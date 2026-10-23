@@ -1,0 +1,3426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}body{margin:0}</style>
+</head>
+<body>
+<title>Settling Up</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A sharecropping simulation for U.S. History: five crop years, 1869 to 1873, then an audit of the planter's books.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Caveat:wght@500;700&family=Courier+Prime:wght@400;700&family=Public+Sans:ital,wght@0,400..700;1,400&display=swap">
+<style>
+/* Layout: a first-person farm fills the screen; paper ledger pages lie on top of it. */
+:root {
+  color-scheme: light;
+  --paper: #EFE6D2;
+  --paper-deep: #E3D6B8;
+  --ink: #1E1B18;
+  --ink-soft: #5A5048;
+  --red: #A3271F;
+  --ochre: #C08A3E;
+  --rule: #A7BAC6;
+  --margin: #C9877C;
+  --veil: rgba(30, 27, 24, 0.5);
+  --display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --body: "Public Sans", "Segoe UI", Arial, sans-serif;
+  --figures: "Courier Prime", "Courier New", Courier, monospace;
+  --hand: "Caveat", "Segoe Script", "Bradley Hand", cursive;
+  --gutter-l: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+html, body { height: 100%; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--ochre); outline-offset: 2px; }
+
+#app { position: relative; height: 100%; overflow: hidden; }
+
+/* ---- paper ------------------------------------------------------------ */
+.paper {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(90deg, transparent 0 34px, var(--margin) 34px 35.5px, transparent 35.5px),
+    repeating-linear-gradient(to bottom, transparent 0 31px, color-mix(in srgb, var(--rule) 55%, transparent) 31px 32px);
+  box-shadow: 0 1px 0 rgba(30,27,24,.08), 0 18px 40px -18px rgba(30,27,24,.55);
+}
+
+/* ---- top bar ------------------------------------------------------------ */
+#topbar {
+  position: absolute; inset: 0 0 auto 0; z-index: 50;
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding-block: 8px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  border-bottom: 1.5px solid var(--ink);
+}
+.brand { font-family: var(--display); font-stretch: 72%; font-weight: 900; font-size: 1.3rem; letter-spacing: .01em; text-transform: uppercase; margin: 0; }
+#years { display: flex; gap: 4px; list-style: none; margin: 0; padding: 0; font-family: var(--figures); font-variant-numeric: tabular-nums; }
+#years li { display: flex; flex-direction: column; align-items: center; min-width: 52px; padding: 1px 6px; border: 1px solid transparent; line-height: 1.15; }
+#years li.cur { border-color: var(--ink); background: var(--paper); }
+.chip-yr { font-weight: 700; font-size: .86rem; }
+#years li:not(.cur):not(.done) .chip-yr { color: var(--ink-soft); }
+.chip-bal { font-size: .72rem; }
+.chip-bal.neg { color: var(--red); }
+#fam { font-size: .86rem; color: var(--ink-soft); margin-left: auto; min-width: 0; }
+.tag { display: inline-block; font-size: .72rem; font-weight: 600; border: 1px solid currentColor; padding: 0 5px; border-radius: 2px; color: var(--ink); }
+.topbtn { border: 1.5px solid var(--ink); background: transparent; padding: 4px 12px; font-weight: 600; font-size: .86rem; cursor: pointer; border-radius: 2px; }
+.topbtn:hover { background: var(--ink); color: var(--paper); }
+
+/* ---- world -------------------------------------------------------------- */
+#world { position: absolute; inset: 0; z-index: 1; }
+.world-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#world-flat { position: absolute; inset: 0; background: var(--paper-deep); }
+#world-flat svg { width: 100%; height: 100%; display: block; }
+.world-tag {
+  position: absolute; z-index: 5; pointer-events: none;
+  background: var(--paper); border: 1.5px solid var(--ink); padding: 2px 8px;
+  font-size: .8rem; font-weight: 600; white-space: nowrap; transform: rotate(-1.5deg);
+}
+.world-bubble {
+  position: absolute; z-index: 6; pointer-events: none; max-width: min(300px, 70vw);
+  transform: translate(-50%, calc(-100% - 12px));
+  background: var(--paper); border: 1.5px solid var(--ink); padding: 8px 12px;
+  font-size: .95rem; line-height: 1.35; box-shadow: 3px 3px 0 var(--ink);
+}
+.world-bubble::after {
+  content: ""; position: absolute; left: 50%; bottom: -9px; width: 14px; height: 14px;
+  background: var(--paper); border-right: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+.world-help {
+  position: absolute; z-index: 4; right: var(--gutter-r); bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  font-size: .78rem; color: var(--ink); background: color-mix(in srgb, var(--paper) 85%, transparent);
+  padding: 4px 10px; border: 1px solid var(--ink); pointer-events: none;
+}
+
+/* ---- dock: the small page in the corner --------------------------------- */
+#dock {
+  position: absolute; z-index: 20;
+  left: var(--gutter-l); bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  width: min(410px, calc(100% - 32px)); max-height: calc(100% - var(--top, 56px) - 32px); overflow: auto;
+  padding: 16px 18px 18px 50px; display: flex; flex-direction: column; gap: 10px;
+}
+#dock > * { margin: 0; }
+.eyebrow { font-family: var(--figures); font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); margin: 0; }
+.voice { font-style: italic; margin: 0; }
+.how { font-size: .92rem; margin: 0; }
+.how.flash { animation: flash .9s; }
+@keyframes flash { 0%, 100% { color: var(--ink); } 30% { color: var(--red); } }
+.fine { font-size: .82rem; color: var(--ink-soft); margin: 0; }
+.fine.warn { color: var(--red); }
+.fine a { color: inherit; }
+
+.acres { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.acre {
+  aspect-ratio: 1.25; border: 1.5px solid var(--ink); border-radius: 2px; cursor: pointer;
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  background: #F7F2E6; color: var(--ink); padding: 0;
+}
+.acre.corn { background: var(--ochre); color: var(--ink); }
+.estimate { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.estimate > div { display: flex; flex-direction: column; border-top: 1.5px solid var(--ink); padding-top: 4px; min-width: 0; }
+.est-k { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.est-v { font-family: var(--figures); font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.est-s { font-size: .8rem; color: var(--ink-soft); }
+.pickcount { font-family: var(--figures); font-weight: 700; margin: 0; }
+.progress { height: 10px; border: 1.5px solid var(--ink); background: #F7F2E6; }
+.progress span { display: block; height: 100%; width: 0; background: var(--ink); transition: width .3s; }
+.scale-read { display: flex; flex-direction: column; border: 1.5px solid var(--ink); padding: 10px 12px; background: #F7F2E6; }
+.scale-k { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.scale-v { font-family: var(--figures); font-weight: 700; font-size: 2rem; font-variant-numeric: tabular-nums; }
+.scale-s { font-size: .85rem; }
+
+/* ---- buttons --------------------------------------------------------------- */
+.primary, .secondary, .ghost {
+  border-radius: 2px; padding: 10px 16px; font-weight: 700; cursor: pointer; min-height: 44px;
+  border: 1.5px solid var(--ink); text-align: center;
+}
+.primary { background: var(--ink); color: var(--paper); }
+.primary:hover { background: #3a332d; }
+.secondary { background: transparent; color: var(--ink); }
+.secondary:hover { background: var(--paper-deep); }
+.secondary.danger { color: var(--red); border-color: var(--red); }
+.ghost { background: transparent; border-color: transparent; color: inherit; }
+.big { font-size: 1.1rem; padding: 12px 22px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ---- sheet: a ledger page over the world ----------------------------------- */
+#sheet {
+  position: absolute; inset: 0; z-index: 40; background: var(--veil);
+  display: flex; align-items: center; justify-content: center;
+  padding-block: calc(var(--top, 56px) + 10px) 16px; padding-left: var(--gutter-l); padding-right: var(--gutter-r);
+}
+#sheet.low { align-items: flex-end; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+#sheet.low { background: linear-gradient(to bottom, transparent 0 30%, var(--veil) 75%); }
+#sheet.low #sheet-body { max-height: 62%; }
+@media (min-width: 900px) {
+  #sheet.low { justify-content: flex-end; background: linear-gradient(to right, transparent 0 45%, var(--veil) 100%); }
+  #sheet.low #sheet-body { width: min(560px, 100%); max-height: calc(100% - 16px); }
+}
+#sheet-body {
+  width: min(720px, 100%); max-height: 100%; overflow: auto;
+  padding: 26px 28px 28px 58px; display: flex; flex-direction: column; gap: 14px;
+}
+#sheet.wide #sheet-body { width: min(980px, 100%); }
+#sheet-body h1, #sheet-body h2, #sheet-body h3 { font-family: var(--display); font-stretch: 78%; text-wrap: balance; margin: 0; line-height: 1.05; }
+#sheet-body h2 { font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 900; text-transform: uppercase; }
+#sheet-body h3 { font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: .02em; }
+#sheet-body p { margin: 0; max-width: 68ch; }
+
+.join .title { font-size: clamp(3rem, 11vw, 5.6rem); font-weight: 900; font-stretch: 66%; text-transform: uppercase; letter-spacing: -.01em; line-height: .9; }
+.lede { font-size: 1.08rem; }
+.join-form { display: grid; gap: 6px; max-width: 360px; }
+.join-form label { font-weight: 700; font-size: .9rem; margin-top: 6px; }
+.join-form .opt { font-weight: 400; color: var(--ink-soft); }
+.join-form input, .t-code input, .t-add input, .t-add select, .blank input {
+  border: none; border-bottom: 2px solid var(--ink); background: transparent; padding: 6px 2px;
+  font-family: var(--figures); font-size: 1.15rem; border-radius: 0; min-width: 0;
+}
+.join-form button { margin-top: 12px; justify-self: start; }
+.form-err { color: var(--red); font-weight: 600; }
+.resume { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; border: 1.5px solid var(--ink); padding: 10px 14px; background: #F7F2E6; }
+.wait { display: flex; flex-direction: column; gap: 10px; padding-block: 12px; }
+
+/* contract */
+.contract { background: #F7F2E6; border: 1.5px solid var(--ink); padding: 16px 18px; font-family: Georgia, "Times New Roman", serif; display: flex; flex-direction: column; gap: 10px; }
+.doc-label { font-family: var(--display); font-stretch: 70%; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+.doc-credit { font-family: var(--body); font-size: .76rem; color: var(--ink-soft); }
+.terms { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; }
+.terms dt { font-weight: 700; }
+.terms dd { margin: 0; font-family: var(--figures); }
+.game-note { font-size: .82rem; color: var(--ink-soft); }
+.mark-row { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.mark { position: relative; width: min(360px, 100%); height: 92px; border: none; background: transparent; cursor: pointer; padding: 0; }
+.mark-line { position: absolute; left: 0; right: 0; bottom: 26px; border-bottom: 2px solid var(--ink); }
+.mark-x { position: absolute; left: 40%; bottom: 22px; font-family: var(--hand); font-size: 4.4rem; line-height: 1; color: var(--red); opacity: 0; transform: scale(1.8) rotate(-8deg); transition: opacity .25s, transform .35s cubic-bezier(.2,1.4,.4,1); }
+.mark.made .mark-x { opacity: 1; transform: scale(1) rotate(-8deg); }
+.mark-cap { position: absolute; left: 0; bottom: 2px; font-size: .78rem; color: var(--ink-soft); }
+.mark:hover .mark-line { border-bottom-color: var(--red); }
+.hint-small { font-size: .82rem; color: var(--ink-soft); }
+
+/* store */
+.baskets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.basket {
+  display: flex; flex-direction: column; gap: 6px; text-align: left; cursor: pointer;
+  background: #F7F2E6; border: 1.5px solid var(--ink); border-radius: 2px; padding: 14px 14px 12px;
+}
+.basket:hover { box-shadow: 4px 4px 0 var(--ink); transform: translate(-2px, -2px); }
+.basket-name { font-family: var(--display); font-stretch: 75%; font-weight: 900; font-size: 1.4rem; text-transform: uppercase; }
+.basket-note { font-size: .86rem; color: var(--ink-soft); }
+.hand { list-style: none; margin: 0; padding: 0; font-family: var(--hand); font-size: 1.35rem; line-height: 1.15; color: #2B3550; }
+.basket-price { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; border-top: 1.5px solid var(--ink); padding-top: 6px; font-family: var(--figures); font-weight: 700; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.basket-price .lbl { font-family: var(--body); font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+
+/* event card */
+.card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+.card-art { border: 1.5px solid var(--ink); aspect-ratio: 16 / 10; overflow: hidden; max-width: 100%; background: var(--paper-deep); }
+.card-art svg { width: 100%; height: 100%; display: block; }
+.card-text { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.q { font-weight: 700; font-size: 1.1rem; }
+.effect { font-family: var(--figures); font-weight: 700; border-left: 4px solid var(--red); padding-left: 10px; }
+.dyk { font-size: .9rem; background: #F7F2E6; border: 1px dashed var(--ink-soft); padding: 10px 12px; }
+.dyk-k { font-weight: 800; text-transform: uppercase; font-size: .74rem; letter-spacing: .06em; display: block; margin-bottom: 2px; }
+.credit { display: block; margin-top: 4px; font-size: .76rem; color: var(--ink-soft); }
+.card-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* settling up */
+.settle { display: flex; flex-direction: column; gap: 12px; }
+.sold { font-size: 1rem; }
+.said { margin: 0; font-size: 1.25rem; font-style: italic; border-left: 3px solid var(--ink); padding-left: 14px; max-width: 60ch; }
+.number {
+  font-family: var(--figures); font-weight: 700; font-size: clamp(2.8rem, 9vw, 4.6rem); line-height: 1;
+  font-variant-numeric: tabular-nums; align-self: flex-start; padding-bottom: 6px; border-bottom: 5px double currentColor;
+}
+.number.neg { color: var(--red); }
+.reveal { border: 1.5px solid var(--red); padding: 12px 14px; background: #F7F2E6; display: flex; flex-direction: column; gap: 6px; }
+.figure-line { font-family: var(--figures); font-weight: 700; }
+.settle-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+
+/* audit */
+.ledger-wrap { overflow-x: auto; border: 1.5px solid var(--ink); background: #F7F2E6; max-width: 100%; }
+.ledger { border-collapse: collapse; width: 100%; font-family: var(--figures); font-variant-numeric: tabular-nums; font-size: .86rem; }
+.ledger th, .ledger td { padding: 6px 10px; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; vertical-align: top; }
+.ledger thead th { font-weight: 700; border-bottom: 1.5px solid var(--ink); }
+.ledger tbody th { text-align: left; font-family: var(--body); font-weight: 600; font-size: .84rem; }
+.ledger .p, .ledger .h { display: block; }
+.ledger .h { color: var(--ink-soft); }
+.ledger .h.diff { color: var(--red); font-weight: 700; }
+.ledger tr.key th { font-family: var(--body); font-size: .68rem; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); font-weight: 600; }
+.ledger tr.total td, .ledger tr.total th { border-top: 1.5px solid var(--ink); border-bottom: 4px double var(--ink); font-weight: 700; }
+.findings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.finding { display: flex; flex-direction: column; border-top: 1.5px solid var(--ink); padding-top: 4px; min-width: 0; }
+.f-k { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+.f-v { font-family: var(--figures); font-weight: 700; font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.f-v.neg { color: var(--red); }
+.f-s { font-size: .8rem; color: var(--red); font-family: var(--figures); }
+.blanks { display: flex; flex-direction: column; gap: 14px; }
+.blank { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border: 1.5px solid var(--ink); background: #F7F2E6; }
+.blank.right { border-color: var(--ink); box-shadow: inset 4px 0 0 var(--ink); }
+.blank label, .blank legend { font-weight: 600; }
+.blank fieldset { border: none; margin: 0; padding: 0; }
+.qn { display: inline-grid; place-items: center; width: 1.5em; height: 1.5em; border: 1.5px solid var(--ink); border-radius: 50%; font-family: var(--figures); font-weight: 700; font-size: .8rem; margin-right: 8px; }
+.blank-row { display: flex; align-items: baseline; gap: 4px; max-width: 240px; }
+.blank-row input { flex: 1; }
+.unit { font-family: var(--figures); font-weight: 700; }
+.blank-fb { font-size: .88rem; min-height: 1.2em; }
+.yn { display: flex; gap: 20px; margin-top: 6px; }
+.yn label { display: flex; gap: 6px; align-items: center; font-weight: 600; }
+.blanks > button { align-self: flex-start; }
+
+/* final */
+.final { display: flex; flex-direction: column; gap: 12px; }
+.report { border: 1.5px solid var(--ink); padding: 12px 14px; background: #F7F2E6; display: flex; flex-direction: column; gap: 4px; }
+.report-line { font-family: var(--figures); font-size: 1.05rem; }
+.final-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---- cutscene ------------------------------------------------------------ */
+#cutscene {
+  position: absolute; inset: 0; z-index: 60; background: var(--ink); color: var(--paper);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  padding-block: 20px; padding-left: var(--gutter-l); padding-right: var(--gutter-r); cursor: pointer;
+}
+.cut-frame { width: min(100%, calc((100vh - 230px) * 16 / 9), 1100px); max-width: 100%; }
+.cut-art { aspect-ratio: 16 / 9; max-width: 100%; border: 6px solid var(--paper); overflow: hidden; background: var(--paper-deep); }
+.cut-art svg { width: 100%; height: 100%; display: block; animation: drift 9s ease-out both; }
+@keyframes drift { from { transform: scale(1.06) translateY(1%); } to { transform: scale(1); } }
+.cut-text { width: min(100%, 1100px); display: flex; flex-direction: column; gap: 4px; }
+.cut-cap { font-family: var(--display); font-stretch: 80%; font-weight: 800; font-size: clamp(1.3rem, 3vw, 2rem); line-height: 1.15; margin: 0; text-wrap: balance; }
+.cut-sub { font-size: clamp(1rem, 2vw, 1.2rem); margin: 0; color: #DCCFB2; }
+.cut-nav { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.cut-count { font-family: var(--figures); font-size: .85rem; color: #BDAF92; margin-right: auto; }
+#cutscene .primary { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+#cutscene .ghost { color: #DCCFB2; }
+
+/* ---- journal ------------------------------------------------------------- */
+#journal {
+  position: absolute; z-index: 70; top: 0; right: 0; bottom: 0; width: min(440px, 100%);
+  display: flex; flex-direction: column; border-left: 1.5px solid var(--ink);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.j-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px 10px 50px; border-bottom: 1.5px solid var(--ink); }
+.j-head h2 { font-family: var(--display); font-stretch: 75%; font-weight: 900; text-transform: uppercase; margin: 0; font-size: 1.5rem; }
+#journal-list { overflow: auto; padding: 14px 18px 24px 50px; padding-right: var(--gutter-r); display: flex; flex-direction: column; gap: 14px; }
+#journal-list section { display: flex; flex-direction: column; gap: 8px; }
+#journal-list h3 { font-family: var(--figures); margin: 0; font-size: 1rem; }
+#journal-list p { margin: 0; font-size: .95rem; }
+.j-card { font-weight: 600; }
+.j-settle { font-family: var(--figures); font-size: .9rem !important; }
+.j-cutscene { font-style: italic; }
+
+/* ---- teacher ------------------------------------------------------------- */
+#teacher { position: absolute; inset: 0; z-index: 80; overflow: auto; }
+#teacher-body { max-width: 1000px; margin: 0 auto; padding-block: 24px 48px; padding-left: max(52px, env(safe-area-inset-left, 0px)); padding-right: var(--gutter-r); display: flex; flex-direction: column; gap: 18px; }
+#teacher-body h1 { font-family: var(--display); font-stretch: 70%; font-weight: 900; text-transform: uppercase; font-size: clamp(2rem, 6vw, 3rem); margin: 0; line-height: 1; }
+#teacher-body h2 { font-family: var(--display); font-stretch: 78%; font-weight: 900; font-size: clamp(1.4rem, 4vw, 2rem); margin: 0; text-wrap: balance; }
+#teacher-body h3 { font-family: var(--display); font-stretch: 78%; font-weight: 800; text-transform: uppercase; margin: 0; }
+.t-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+.t-status { margin: 0; font-size: .9rem; border-left: 4px solid var(--ink-soft); padding-left: 10px; max-width: 70ch; }
+.t-status.on { border-color: var(--ink); }
+.t-code, .t-add { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end; }
+.t-code label, .t-add label { font-weight: 700; font-size: .85rem; width: 100%; margin-bottom: -6px; }
+.t-add label { width: auto; margin: 0; }
+.t-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.t-ctl { display: flex; flex-direction: column; gap: 6px; border: 1.5px solid var(--ink); padding: 12px; background: #F7F2E6; min-width: 0; }
+.t-k { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.t-v { font-family: var(--figures); font-weight: 700; font-size: 1.4rem; }
+.t-s { font-size: .8rem; color: var(--ink-soft); }
+.seg { display: flex; }
+.seg button { flex: 1; border: 1.5px solid var(--ink); background: transparent; padding: 8px; font-weight: 700; cursor: pointer; }
+.seg button + button { border-left: none; }
+.seg button.on { background: var(--ink); color: var(--paper); }
+.t-board { display: flex; flex-direction: column; gap: 12px; }
+.t-endings { display: flex; flex-wrap: wrap; gap: 8px 22px; font-size: .95rem; }
+.t-endings strong { font-family: var(--figures); font-size: 1.3rem; }
+.chart-wrap { overflow-x: auto; max-width: 100%; }
+.board-chart { width: 100%; min-width: 520px; height: auto; display: block; }
+.board-chart .lab { font-family: var(--body); font-size: 13px; fill: var(--ink); }
+.board-chart .val { font-family: var(--figures); font-size: 12px; fill: var(--ink); }
+.board-chart .ax { font-family: var(--figures); font-size: 11px; fill: var(--ink-soft); }
+.board-chart .axis { stroke: var(--ink); stroke-width: 1.5; }
+.board-chart .rentline { stroke: var(--ink-soft); stroke-dasharray: 4 4; }
+.board-chart .bar { fill: var(--ink); }
+.board-chart .bar.neg { fill: var(--red); }
+.t-table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.t-table th, .t-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.t-table thead th { border-bottom: 1.5px solid var(--ink); font-size: .76rem; text-transform: uppercase; letter-spacing: .05em; }
+.t-table td:nth-child(4) { font-family: var(--figures); font-variant-numeric: tabular-nums; }
+.t-table td.neg { color: var(--red); }
+.t-debrief ul { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
+.teacher-mode #topbar, .teacher-mode #dock, .teacher-mode #sheet { display: none; }
+
+/* ---- narrow screens -------------------------------------------------------- */
+@media (max-width: 760px) {
+  #dock { left: var(--gutter-l); right: var(--gutter-r); width: auto; max-height: 50%; padding-left: 44px; }
+  .baskets { grid-template-columns: 1fr; }
+  .card { grid-template-columns: 1fr; }
+  .findings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .t-controls { grid-template-columns: 1fr; }
+  #sheet-body { padding: 20px 18px 22px 46px; }
+  #years li { min-width: 42px; padding: 1px 3px; }
+  #fam { display: none; }
+  #journal-btn { margin-left: auto; }
+  .world-help { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cut-art svg { animation: none; }
+  .mark-x { transition: none; }
+  .basket:hover { transform: none; }
+}
+</style>
+
+<div id="app">
+  <header id="topbar">
+    <p class="brand">Settling Up</p>
+    <ol id="years" aria-label="Crop years"></ol>
+    <span id="fam"></span>
+    <button class="topbtn" id="journal-btn" type="button">Journal</button>
+  </header>
+
+  <div id="world">
+    <div id="world-flat" hidden></div>
+    <div class="world-tag" hidden></div>
+    <div class="world-bubble" hidden aria-live="polite"></div>
+    <div class="world-hint" hidden></div>
+    <p class="world-help">Drag to look · tap to walk · WASD to move</p>
+  </div>
+
+  <section id="dock" class="paper" hidden aria-live="polite"></section>
+
+  <div id="sheet" hidden>
+    <div id="sheet-body" class="paper" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <div id="cutscene" hidden role="dialog" aria-modal="true" aria-label="Story"></div>
+
+  <aside id="journal" class="paper" hidden aria-label="Journal">
+    <div class="j-head"><h2>Journal</h2><button class="secondary" id="journal-close" type="button">Close</button></div>
+    <div id="journal-list"></div>
+  </aside>
+
+  <div id="teacher" class="paper" hidden><div id="teacher-body"></div></div>
+</div>
+
+<script type="module">
+// ============================================================================
+// TUNING — every game number lives here. Change prices and odds without
+// touching game logic. All dollar amounts are game values, not history.
+// ============================================================================
+const CONFIG = {
+  years: [1869, 1870, 1871, 1872, 1873],
+
+  // The deal
+  acres: 15,
+  maxCornAcres: 5,          // contract caps the food patch
+  acresPerBale: 3,          // about 1 bale per 3 acres of cotton
+  familyShare: 0.5,         // half the crop
+  muleOwnerShare: 2 / 3,    // a family with its own mule keeps two-thirds (planter takes a third)
+  poundsPerBale: 400,
+
+  // Cotton price per bale, announced each year
+  pricePerBale: { 1869: 110, 1870: 95, 1871: 85, 1872: 85, 1873: 60 },
+
+  // Store (furnish). Students only ever see credit prices.
+  creditMarkup: 0.40,       // hidden: credit price = cash price x 1.40
+  baskets: {
+    lean:  { label: "Lean",  credit: 170, note: "Cut the cloth and shoes." },
+    basic: { label: "Basic", credit: 210, note: "Food, cloth, shoes, and supplies." },
+    extra: { label: "Extra", credit: 245, note: "Basic, plus medicine and coffee." },
+  },
+  cornSavingsCash: 12,      // each acre of corn cuts the store bill (cash price)
+
+  ginningPerBale: 5,        // charged on the family's half
+  shortWeight: 0.10,        // hidden: 10% of the family's cotton goes missing at the gin
+  interestTold: 0.10,       // what the planter says
+  interestCharged: 0.25,    // what the ledger actually charges on carried debt
+
+  // Events
+  doctorCredit: 10,
+  muleCost: 60,
+  eggsCash: 15,
+  eggsMinCorn: 3,
+  leaveCost: 10,            // moving costs; doubled after the night riders card
+  evictOddsDemand: 1 / 3,   // demanding the books
+  evictOddsVote: 1 / 4,     // voting
+
+  leanSickOdds: 0.4,       // a lean basket in a bad year: chance someone falls sick
+
+  // The ladder out
+  rentSavings: 150,         // plus owning a mule
+};
+
+// The event deck. Weights set how often each card is drawn.
+// 1873 is always the Panic. Election only in 1870 or 1872.
+const DECK = [
+  { id: "rains",    weight: 2.5 },
+  { id: "drought",  weight: 1.2, bad: true },
+  { id: "flood",    weight: 1.0, bad: true },
+  { id: "muledies", weight: 0.8, bad: true },
+  { id: "sickness", weight: 1.2, bad: true },
+  { id: "school",   weight: 1.5 },
+  { id: "election", weight: 2.0, years: [1870, 1872] },
+  { id: "mulebuy",  weight: 3.5, years: [1870, 1871, 1872] },
+  { id: "eggs",     weight: 2.0 },
+  { id: "riders",   weight: 1.0, bad: true },
+];
+
+// ============================================================================
+// ENGINE — pure game rules. No DOM in here, so it can be tested on its own.
+// ============================================================================
+
+// Seeded draws: every roll is keyed, so a refresh never rerolls a year.
+function hashString(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+function roll(seed, key) {
+  let t = (hashString(seed + "|" + key) + 0x6d2b79f5) >>> 0;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+function familySeed(family, classCode) {
+  return (family || "").trim().toLowerCase() + "::" + (classCode || "").trim().toUpperCase();
+}
+
+const money = (n) => Math.round(n * 100) / 100;
+const cashOf = (credit) => credit / (1 + CONFIG.creditMarkup);
+
+// One card per year, without repeats. 1873 is always the Panic.
+function drawEvents(seed) {
+  const used = new Set();
+  return CONFIG.years.map((year) => {
+    if (year === 1873) return "panic";
+    const pool = DECK.filter((c) => !used.has(c.id) && (!c.years || c.years.includes(year)));
+    const total = pool.reduce((s, c) => s + c.weight, 0);
+    let r = roll(seed, "event:" + year) * total;
+    let pick = pool[pool.length - 1];
+    for (const c of pool) {
+      r -= c.weight;
+      if (r < 0) { pick = c; break; }
+    }
+    used.add(pick.id);
+    return pick.id;
+  });
+}
+
+function isBadCard(id) {
+  if (id === "panic") return true;
+  const c = DECK.find((d) => d.id === id);
+  return !!(c && c.bad);
+}
+
+function newGame(family, classCode) {
+  const seed = familySeed(family, classCode);
+  return {
+    v: 1,
+    family: family.trim(),
+    classCode: (classCode || "").trim().toUpperCase(),
+    seed,
+    events: drawEvents(seed),
+    yearIndex: 0,
+    step: "contract",
+    balance: 0,          // the planter's books: + savings, - debt
+    honestBalance: 0,    // same family, same choices, no hidden charges
+    ownMule: false,
+    education: 0,
+    planterIndex: 0,     // 0 = Holliday; moves to the next planter on leaving or eviction
+    revealed: [],        // hidden line items the family has forced into the open
+    years: [],
+    ending: null,
+    signed: false,
+  };
+}
+
+function currentYear(g) { return CONFIG.years[g.yearIndex]; }
+
+function blankYear(g) {
+  return {
+    year: currentYear(g),
+    corn: 0,
+    basket: "basic",
+    event: g.events[g.yearIndex],
+    choice: null,        // event choice: "yes" | "no"
+    cornLost: false,
+    yieldNotes: [],
+    doctor: 0,
+    muleCharge: 0,
+    eggs: 0,
+    muleBought: 0,
+    leaveCost: 0,
+    voted: false,
+    evicted: false,
+    evictedBy: null,
+    demanded: false,
+    decision: null,      // "stay" | "leave" | "rent"
+    startBalance: g.balance,
+    startHonest: g.honestBalance,
+  };
+}
+
+// Planting preview: what the family is told (no short weight).
+function plantingEstimate(corn, year) {
+  const cottonAcres = CONFIG.acres - corn;
+  const bales = cottonAcres / CONFIG.acresPerBale;
+  const half = bales * CONFIG.familyShare;
+  const price = CONFIG.pricePerBale[year];
+  return {
+    cottonAcres,
+    bales,
+    half,
+    shareValue: half * price,
+    storeSavings: corn * CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup),
+  };
+}
+
+// Apply the drawn card and any choice the family made on it.
+function applyEvent(g, y) {
+  const notes = [];
+  let mult = 1;
+  const id = y.event;
+  y.doctor = 0; y.muleCharge = 0; y.eggs = 0; y.cornLost = false;
+  switch (id) {
+    case "rains": mult *= 1.2; notes.push(["Good rains", 1.2]); break;
+    case "drought": mult *= 0.7; notes.push(["Drought", 0.7]); break;
+    case "flood": mult *= 0.8; y.cornLost = true; notes.push(["Flood", 0.8]); break;
+    case "muledies":
+      if (g.ownMule) y.lostOwnMule = true;
+      else y.muleCharge = CONFIG.muleCost;
+      break;
+    case "sickness":
+      if (y.basket === "extra") { mult *= 0.9; notes.push(["Sickness (medicine on hand)", 0.9]); }
+      else { mult *= 0.85; y.doctor += CONFIG.doctorCredit; notes.push(["Sickness", 0.85]); }
+      break;
+    case "school":
+      if (y.choice === "yes") { mult *= 0.9; notes.push(["A child in school", 0.9]); }
+      break;
+    case "election":
+      y.voted = y.choice === "yes";
+      break;
+    case "eggs":
+      if (y.corn >= CONFIG.eggsMinCorn) y.eggs = CONFIG.eggsCash;
+      break;
+    default: break;
+  }
+  // A lean basket leaves the family thin when a bad year comes.
+  if (y.basket === "lean" && isBadCard(id) && roll(g.seed, "lean:" + y.year) < CONFIG.leanSickOdds) {
+    mult *= 0.85;
+    y.doctor += CONFIG.doctorCredit;
+    notes.push(["Thin winter, sickness", 0.85]);
+  }
+  y.yieldMult = mult;
+  y.yieldNotes = notes;
+}
+
+// Mule purchase happens on the card, in cash, if the family has it.
+function canBuyMule(g) { return g.balance >= CONFIG.muleCost && !g.ownMule; }
+
+// Harvest and gin. Returns the numbers the planter shows and the true ones.
+function harvest(g, y) {
+  const cottonAcres = CONFIG.acres - y.corn;
+  const bales = (cottonAcres / CONFIG.acresPerBale) * y.yieldMult;
+  y.shareRate = g.ownMule ? CONFIG.muleOwnerShare : CONFIG.familyShare;
+  const half = bales * y.shareRate;
+  const credited = half * (1 - CONFIG.shortWeight);
+  y.totalBales = bales;
+  y.familyBales = half;
+  y.creditedBales = credited;
+  y.trueLbs = Math.round(bales * CONFIG.poundsPerBale);
+  y.scaleLbs = Math.round(bales * (1 - CONFIG.shortWeight) * CONFIG.poundsPerBale);
+  return y;
+}
+
+// Build both ledgers for the year. `evicted` zeroes the family's share.
+function buildLedger(g, y) {
+  const price = CONFIG.pricePerBale[y.year];
+  const cornSavingsCash = y.cornLost ? 0 : y.corn * CONFIG.cornSavingsCash;
+  const basketCredit = CONFIG.baskets[y.basket].credit;
+  const storeCredit = basketCredit - cornSavingsCash * (1 + CONFIG.creditMarkup);
+  const storeCash = cashOf(basketCredit) - cornSavingsCash;
+  const ginning = y.familyBales * CONFIG.ginningPerBale;
+
+  const carried = y.startBalance - y.muleBought + y.eggs;
+  const honestCarried = y.startHonest - y.muleBought + y.eggs;
+  const interest = y.startBalance < 0 ? -y.startBalance * CONFIG.interestCharged : 0;
+  const honestInterest = y.startHonest < 0 ? -y.startHonest * CONFIG.interestTold : 0;
+
+  const share = y.evicted ? 0 : y.creditedBales * price;
+  const honestShare = y.evicted ? 0 : y.familyBales * price;
+
+  const planter = {
+    price,
+    share,
+    store: storeCredit,
+    doctor: y.doctor,
+    mule: y.muleCharge,
+    ginning,
+    interest,
+    leave: y.leaveCost,
+  };
+  planter.charges = planter.store + planter.doctor + planter.mule + planter.ginning + planter.interest + planter.leave;
+  planter.balance = money(carried + planter.share - planter.charges);
+
+  const honest = {
+    price,
+    share: honestShare,
+    store: storeCash,
+    doctor: cashOf(y.doctor),
+    mule: y.muleCharge,
+    ginning,
+    interest: honestInterest,
+    leave: y.leaveCost,
+  };
+  honest.charges = honest.store + honest.doctor + honest.mule + honest.ginning + honest.interest + honest.leave;
+  honest.balance = money(honestCarried + honest.share - honest.charges);
+
+  y.ledger = planter;
+  y.honest = honest;
+  y.markup = (storeCredit - storeCash) + (y.doctor - cashOf(y.doctor));
+  y.missingBales = y.familyBales - y.creditedBales;
+  y.missingValue = y.evicted ? 0 : y.missingBales * price;
+  y.extraInterest = interest - (y.startBalance < 0 ? -y.startBalance * CONFIG.interestTold : 0);
+  return y;
+}
+
+function leaveCostFor(y) {
+  return CONFIG.leaveCost * (y.event === "riders" ? 2 : 1);
+}
+
+// Settling up. Recompute after anything that changes the year.
+function settleNumbers(g, y) {
+  buildLedger(g, y);
+  return y.ledger.balance;
+}
+
+// The vote can cost the family its place. Rolled once, at settling up.
+function voteEviction(g, y) {
+  return y.voted && roll(g.seed, "vote:" + y.year) < CONFIG.evictOddsVote;
+}
+
+const HIDDEN_ITEMS = ["markup", "weight", "interest"];
+
+// Demanding the books: 1 in 3 the planter puts the family off the place.
+function demandBooks(g, y) {
+  y.demanded = true;
+  if (roll(g.seed, "demand:" + y.year) < CONFIG.evictOddsDemand) {
+    y.evicted = true;
+    y.evictedBy = "demand";
+    buildLedger(g, y);
+    return { evicted: true };
+  }
+  const next = HIDDEN_ITEMS.find((k) => !g.revealed.includes(k)) || HIDDEN_ITEMS[0];
+  if (!g.revealed.includes(next)) g.revealed.push(next);
+  return { evicted: false, item: next };
+}
+
+function canRent(g, balance) { return balance >= CONFIG.rentSavings && g.ownMule; }
+
+// Close the year with the family's decision and move on.
+function closeYear(g, y, decision) {
+  y.decision = decision;
+  buildLedger(g, y);
+  const owed = y.ledger.balance < 0;
+  if (decision === "leave" && !y.evicted && !owed) {
+    y.leaveCost = leaveCostFor(y);
+    buildLedger(g, y);
+  }
+  g.balance = y.ledger.balance;
+  g.honestBalance = y.honest.balance;
+  if (y.lostOwnMule) g.ownMule = false;
+  g.years[g.yearIndex] = y;
+
+  if (decision === "rent") { g.ending = "rent"; return g; }
+  if (decision === "leave" && owed && !y.evicted) { g.ending = "vagrancy"; return g; }
+  if (decision === "leave" || y.evicted) g.planterIndex += 1;
+  if (g.yearIndex >= CONFIG.years.length - 1) { g.ending = "cropping"; return g; }
+  g.yearIndex += 1;
+  return g;
+}
+
+// Totals for the audit, from the family's own play.
+function auditTotals(g) {
+  const ys = g.years.filter(Boolean);
+  const markup = ys.reduce((s, y) => s + y.markup, 0);
+  const missingBales = ys.reduce((s, y) => s + (y.evicted ? 0 : y.missingBales), 0);
+  const missingValue = ys.reduce((s, y) => s + y.missingValue, 0);
+  const extraInterest = ys.reduce((s, y) => s + y.extraInterest, 0);
+  const finalPlanter = ys.length ? ys[ys.length - 1].ledger.balance : 0;
+  const finalHonest = ys.length ? ys[ys.length - 1].honest.balance : 0;
+  return {
+    markup: money(markup),
+    missingBales,
+    missingLbs: Math.round(missingBales * CONFIG.poundsPerBale),
+    missingValue: money(missingValue),
+    extraInterest: money(extraInterest),
+    finalPlanter,
+    finalHonest,
+    wouldRent: finalHonest >= CONFIG.rentSavings,
+  };
+}
+
+// One compact record per family, for the class board and the audit.
+function familyRecord(g) {
+  return {
+    family: g.family,
+    classCode: g.classCode,
+    year: currentYear(g),
+    step: g.step,
+    balance: g.balance,
+    ownMule: g.ownMule,
+    education: g.education,
+    ending: g.ending,
+    years: g.years.filter(Boolean).map((y) => ({
+      year: y.year,
+      corn: y.corn,
+      basket: y.basket,
+      event: y.event,
+      choice: y.choice,
+      bales: Math.round(y.totalBales * 100) / 100,
+      shortLbs: y.trueLbs - y.scaleLbs,
+      credited: money(y.ledger.share),
+      charges: money(y.ledger.charges),
+      decision: y.decision,
+      evicted: y.evicted,
+      balance: y.ledger.balance,
+    })),
+    audit: g.ending ? auditTotals(g) : null,
+  };
+}
+
+// ============================================================================
+// STORY — every word students read. Lucy tells it, looking back.
+// {F} = the family name students type. {P} = the current planter.
+// ============================================================================
+const PLANTERS = ["Holliday", "Pruitt", "Dunbar", "Coker", "Askew"];
+
+const FAMILY = [
+  { id: "papa", name: "Papa", full: "Robert", role: "Plows and picks" },
+  { id: "mama", name: "Mama", full: "Hannah", role: "Keeps count" },
+  { id: "lucy", name: "Lucy", full: "Lucy, 10", role: "Tells this story" },
+  { id: "sam", name: "Sam", full: "Sam, 6", role: "Carries water" },
+  { id: "ruth", name: "Grandma Ruth", full: "Ruth", role: "Minds the garden" },
+];
+
+const PROLOGUE = [
+  { art: "fieldSun", caption: "Mississippi, 1869. Four years after freedom came.", sub: "My name is Lucy {F}. I was ten years old." },
+  { art: "family", caption: "There were five of us.", sub: "Papa, Mama, Grandma Ruth, my little brother Sam, and me." },
+  { art: "plow", caption: "Papa wanted one thing: land of our own.", sub: "People had talked about forty acres. It never came." },
+  { art: "bigHouse", caption: "Mr. Holliday had land but no one to work it.", sub: "We had our hands, and nothing else." },
+  { art: "contractDesk", caption: "So in January, Papa walked up to the big house.", sub: "He went to make his mark on a contract." },
+];
+
+// Adapted from the 1882 Grimes contract (SHEG modified version).
+const CONTRACT = {
+  lines: [
+    "For every 30 acres of land rented by sharecroppers, I will provide a mule team, plow, and farming tools. The sharecroppers can have half of the cotton, corn, peas, pumpkins, and potatoes they grow.",
+    "Every sharecropper must be responsible for all farming gear placed in his hands, and if not returned must be paid for unless it is worn out by use.",
+    "Nothing can be sold from their crops until my rent is all paid, and all amounts they owe me are paid in full.",
+    "I am to gin and pack all of the cotton.",
+    "The sale of every sharecropper's part of the cotton to be made by me when and where I choose to sell, and after taking all they owe me.",
+  ],
+  credit: "Adapted. Sharecropping contract, 1882, Grimes Family Papers (#3357), Southern Historical Collection, UNC Chapel Hill. Modified by the Stanford History Education Group.",
+  terms: [
+    ["Land", "15 acres, a cabin, a mule, tools, and seed"],
+    ["Your share", "Half the cotton, after he is paid"],
+    ["Food patch", "No more than 5 acres of corn and garden"],
+    ["Store", "Supplies on account at the plantation store"],
+    ["Interest", "10% on anything carried to next year"],
+  ],
+  narration: "Papa couldn't read. Mr. Holliday read it out loud, fast, and pushed the pen across the table.",
+};
+
+const YEAR_LINES = {
+  1869: {
+    plant: "Papa walked the fifteen acres with his hat in his hand. \"Cotton pays,\" he said. \"Corn feeds us.\"",
+    store: "Mr. Holliday's store was the only store for nine miles. Whatever we took, he wrote in his book.",
+    harvest: "We picked from September until frost. Then the wagon went to Mr. Holliday's gin and his scale.",
+    settle: "At Christmas, Mr. Holliday called each family up to the porch, one at a time.",
+  },
+  1870: {
+    plant: "Papa said this year we would come out ahead. He said that every spring.",
+    store: "Mama asked Mr. Holliday what the flour cost. He said, \"Same as always,\" and wrote it down.",
+    harvest: "Sam was big enough to drag a sack this year. He cried when his fingers bled, then kept picking.",
+    settle: "Papa wore his good shirt to the porch. Mama walked up with him.",
+  },
+  1871: {
+    plant: "Grandma Ruth said the land didn't care whose name was on it. It just wanted working.",
+    store: "Mama kept her own count on a piece of string, one knot for every dollar.",
+    harvest: "Mama looked at the loaded wagon, then at the number on the scale. She didn't say anything.",
+    settle: "Mr. Holliday didn't look up from his book. He just read the number.",
+  },
+  1872: {
+    plant: "Grandma Ruth's hands hurt too much to pick now. She minded the chickens and sang to them.",
+    store: "The store had new shoes in the window. Mama walked past them.",
+    harvest: "It was a long picking. We sang to keep our rows even.",
+    settle: "Five Christmases on the porch. Papa said he could find it in the dark.",
+  },
+  1873: {
+    plant: "Mama counted every coin twice that spring. We all felt something coming.",
+    store: "The prices on the shelf hadn't changed. Mr. Holliday said cotton would come back.",
+    harvest: "We picked the best crop we ever grew. Nobody wanted to buy it.",
+    settle: "The last settling up I remember clearly. I stood on the step and listened.",
+  },
+};
+
+const STORE_ITEMS = {
+  lean: ["Meal and salt pork", "Molasses", "Seed and plow points"],
+  basic: ["Meal and salt pork", "Molasses", "Seed and plow points", "Cloth, 12 yards", "Shoes, 2 pair"],
+  extra: ["Meal and salt pork", "Molasses", "Seed and plow points", "Cloth, 12 yards", "Shoes, 2 pair", "Medicine", "Coffee"],
+};
+
+// Event cards. `choice` cards show two buttons.
+const CARDS = {
+  rains: {
+    title: "Good rains",
+    art: "rain",
+    body: "Rain came in spring, then dry weather at picking time. The cotton stood tall.",
+    effect: "Yield +20%",
+    dyk: "Most farm families had no savings and no insurance. One season's weather could decide whether they ended the year ahead or behind.",
+  },
+  drought: {
+    title: "Drought",
+    art: "drought",
+    body: "No rain from June to August. The bolls came in small and hard.",
+    effect: "Yield −30%",
+    dyk: "A sharecropper carried the risk of a bad year. The planter still collected his half of whatever grew, and the store bill stayed the same.",
+  },
+  flood: {
+    title: "Flood on the bottomland",
+    art: "flood",
+    body: "The river came up over the low fields. It took the corn patch and some of the cotton.",
+    effect: "Yield −20%. The corn patch is lost, so the store bill goes back up.",
+    dyk: "Bottomland near rivers had the richest soil, and it was the first to flood. Croppers rarely got the high ground.",
+  },
+  muledies: {
+    title: "The mule dies",
+    art: "mule",
+    body: "Old Jack lay down in his stall and didn't get up. Mr. {P} said the mule was in Papa's hands.",
+    effect: "The planter charges $60 to your account.",
+    effectOwn: "Your own mule dies. You lose the bigger share until you buy another.",
+    dyk: "The 1882 contract says every sharecropper is \"responsible for all farming gear placed in his hands.\" Families paid for the planter's tools and stock.",
+    credit: "Grimes Family Papers, 1882, adapted by SHEG",
+  },
+  sickness: {
+    title: "Sickness in the family",
+    art: "sick",
+    body: "Sam took a fever in July. Mama sat up with him for nine nights, and we were one pair of hands short.",
+    effect: "Yield −15%. Doctor: $10 on account.",
+    effectExtra: "You bought medicine this spring. Yield −10%, and no doctor's bill.",
+    dyk: "With no savings, every crisis went on account at the store. Historian Jim Downs found that the Freedmen's Bureau never had enough doctors or money to fight the epidemics of these years.",
+    credit: "Jim Downs, Sick from Freedom (2012)",
+  },
+  school: {
+    title: "A school opens nearby",
+    art: "school",
+    body: "The church started a school for children. It meant one less picker in the field.",
+    question: "Send Lucy to school?",
+    yes: "Send Lucy",
+    no: "Keep her in the field",
+    effectYes: "Yield −10%. Lucy learns to read.",
+    effectNo: "Lucy stays in the field.",
+    dyk: "The Freedmen's Bureau and Black churches opened schools across the South. Families paid for them with tuition, with labor, and with lost hands in the field.",
+    credit: "Records of the Freedmen's Bureau, National Archives",
+  },
+  election: {
+    title: "Election Day, {Y}",
+    art: "ballot",
+    body: "Papa could vote now. Mr. {P} said a man who votes against him can find another place to live.",
+    question: "Does Papa go to vote?",
+    yes: "Go and vote",
+    no: "Stay home",
+    effectYes: "Papa votes. Mr. {P} may put you off the place (1 in 4).",
+    effectNo: "Papa stays home.",
+    dyk: "The 15th Amendment (1870) said no state could deny the vote because of race. Planters used the lease as a weapon against Black voters.",
+    credit: "U.S. Constitution, 15th Amendment",
+  },
+  mulebuy: {
+    title: "A chance to buy a mule",
+    art: "mulebuy",
+    body: "A neighbor moving west to Texas offered his mule for $60, cash money.",
+    question: "Buy the mule?",
+    yes: "Buy it for $60",
+    no: "Not this year",
+    effectYes: "You own a mule. From now on you keep two-thirds of the crop, not half.",
+    effectNo: "You let the mule go.",
+    cantAfford: "You need $60 in savings. You don't have it.",
+    dyk: "Families who owned a mule could bargain for a bigger share of the crop. Owning stock was the first rung on the ladder toward renting land.",
+    credit: "Ransom and Sutch, One Kind of Freedom (1977)",
+  },
+  eggs: {
+    title: "Eggs and greens in town",
+    art: "eggs",
+    body: "Grandma Ruth's garden came in thick. Mama walked to town on Saturday with a basket.",
+    effect: "+$15 cash, if you planted 3 or more acres of corn and garden.",
+    effectNone: "The garden was too small to spare anything for town.",
+    dyk: "Every egg or ear of corn a family raised was one less thing bought on credit at the planter's store.",
+  },
+  riders: {
+    title: "Headline: night riders in the county",
+    art: "headline",
+    headline: "NIGHT RIDERS IN THE COUNTY",
+    body: "The newspaper said men in masks rode at night two farms over. Papa barred the door and said nothing.",
+    effect: "No money lost. Leaving this year costs double.",
+    dyk: "The Ku Klux Klan and other groups attacked Black voters, teachers, and families who tried to get ahead. Congress passed the Enforcement Acts in 1870 and 1871 to stop them.",
+    credit: "Enforcement Acts of 1870–1871",
+  },
+  panic: {
+    title: "The Panic of 1873",
+    art: "panic",
+    headline: "PANIC IN NEW YORK",
+    body: "A big bank in New York failed in September, and many more followed. Nobody wanted to buy cotton.",
+    effect: "Cotton drops to $60 a bale.",
+    dyk: "The Panic of 1873 began when Jay Cooke & Company failed. Cotton prices fell, and the Freedman's Savings Bank collapsed the next year, taking many Black families' savings with it.",
+    credit: "Federal Reserve History, \"The Panic of 1873\"",
+  },
+  none: { title: "A quiet year", art: "fieldSun", body: "Nothing much happened.", effect: "", dyk: "" },
+};
+
+const INTERLUDES = {
+  1870: [
+    { art: "newspaper15", caption: "In 1870, the 15th Amendment said Papa could vote.", sub: "Mama read the newspaper to Grandma Ruth twice." },
+    { art: "tracker", caption: "On our tracker, we crossed one word off.", sub: "The other word stayed." },
+    { art: "senate", caption: "That winter, Hiram Revels of Mississippi took a seat in the U.S. Senate.", sub: "He was the first Black senator. Papa said, \"Now watch.\"" },
+  ],
+  1873: [
+    { art: "newspaperPanic", caption: "In the fall of 1873, banks failed far away in New York.", sub: "We had never seen New York. It found us anyway." },
+    { art: "priceChart", caption: "Cotton fell to $60 a bale.", sub: "We had grown it all year at the old price." },
+  ],
+};
+
+const SETTLE_TEXT = {
+  owe: "\"You owe me ${N}. We'll carry it to next year, at ten percent.\"",
+  ahead: "\"Your share comes to ${N}, clear.\"",
+  even: "\"You come out even. Nothing owed.\"",
+  evictedVote: "\"I heard you went to town on Election Day. I'll keep your share for the trouble. Find yourselves another place.\"",
+  evictedDemand: "\"You calling me a liar? Get off my porch. Your share stays with me. Be gone by New Year's.\"",
+  demandIntro: "Papa took a breath and asked to see the books.",
+  leaveOwing: "If we leave owing him, the law can come after Papa. Mama said it quietly.",
+  rentReady: "Papa had saved enough, and the mule was ours. A man two miles off had land to rent.",
+};
+
+const REVEALS = {
+  markup: {
+    title: "One line from his book",
+    text: "The store charges a \"time price\" for goods on account: 40% more than the cash price.",
+    detail: (y) => `This year: ${fmt(y.ledger.store + y.ledger.doctor)} on account. Cash price: ${fmt(y.honest.store + y.honest.doctor)}.`,
+  },
+  weight: {
+    title: "One line from his book",
+    text: "Papa asked about the weight. Mr. {P} turned the book around for a second. The gin weight was less than what went in the wagon.",
+    detail: (y) => `Your wagon: ${y.trueLbs.toLocaleString()} lb. His scale: ${y.scaleLbs.toLocaleString()} lb.`,
+  },
+  interest: {
+    title: "One line from his book",
+    text: "The interest on the carried debt isn't ten percent. It's twenty-five.",
+    detail: (y) => y.startBalance < 0
+      ? `This year: ${fmt(y.ledger.interest)} in interest. At 10% it would be ${fmt(-y.startBalance * CONFIG.interestTold)}.`
+      : "You weren't carrying debt this year, but it will apply the next time you are.",
+  },
+};
+
+const ENDINGS = {
+  cropping: {
+    title: "Still cropping",
+    panels: [
+      { art: "porchLantern", caption: "\"Next year,\" Mr. {P} said. \"Cotton will come back.\"", sub: "Papa said, \"Yes, sir.\" We planted again in the spring." },
+      { art: "longRows", caption: "We planted again the year after that, and the year after that.", sub: "The rows were the same. Only the number in the book got bigger." },
+    ],
+  },
+  rent: {
+    title: "Renting a farm",
+    panels: [
+      { art: "muleRoad", caption: "We loaded the wagon in January and drove our own mule down the road.", sub: "The land still wasn't ours. But the crop was ours to sell." },
+      { art: "ownField", caption: "Papa sold our cotton himself that fall.", sub: "He read the price off the board in town and counted the money twice." },
+    ],
+  },
+  vagrancy: {
+    title: "Arrested for vagrancy",
+    panels: [
+      { art: "emptyRoad", caption: "We left at night, owing.", sub: "On the second day, the sheriff stopped Papa on the road." },
+      { art: "emptyDoor", caption: "The law called a man without a contract a vagrant.", sub: "The judge fined Papa money he didn't have." },
+      { art: "emptyDoor", caption: "A planter paid the fine, and Papa had to work for him until it was paid off.", sub: "We didn't see him for most of a year." },
+    ],
+  },
+};
+
+const EPILOGUE = {
+  school: { art: "schoolLetters", caption: "I learned to read at the church school.", sub: "Years later I taught there. I wrote this down so you would know." },
+  noschool: { art: "grandmother", caption: "I never went to school.", sub: "I told this story to my granddaughter, and she wrote it down for me." },
+};
+
+const AUDIT_INTRO = "Now you are the auditors. Here is Mr. Holliday's book next to what your family really bought, at cash prices, with honest weights.";
+
+const EXIT_TICKET = {
+  question: "Can you be free if you can't leave?",
+  prompt: "Answer in one TEA paragraph. Use one number from your own audit as evidence.",
+  tracker: "LANDLESS stays on the tracker. Write the one mechanism from the sim that kept it there.",
+};
+
+// ============================================================================
+// ART — flat 2D cutscene panels and card art, built from simple shapes.
+// Palette leans on tempera colors: ochre, indigo, brick, ink, and paper.
+// ============================================================================
+const ART_COLORS = {
+  paper: "#EFE6D2", paper2: "#E2D4B6", ink: "#1E1B18", ochre: "#C08A3E", ochreLt: "#D9AE62",
+  brick: "#A3271F", indigo: "#2E3B56", indigoLt: "#4C5C7E", green: "#5E6A3A", greenLt: "#7E8B4E",
+  brown: "#7A4A2E", brownDk: "#4F2F1D", cream: "#F6EFDF", sky: "#D9B877", night: "#1F2840",
+  skin1: "#5A3824", skin2: "#7A4E30", skin3: "#3E2718", cotton: "#F7F2E6", gray: "#8C8578",
+};
+const AC = ART_COLORS;
+
+function svgWrap(w, h, inner, label) {
+  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="${label || ""}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+}
+const R = (x, y, w, h, f, extra = "") => `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${f}" ${extra}/>`;
+const C = (x, y, r, f, extra = "") => `<circle cx="${x}" cy="${y}" r="${r}" fill="${f}" ${extra}/>`;
+const P = (pts, f, extra = "") => `<polygon points="${pts.map((p) => p.join(",")).join(" ")}" fill="${f}" ${extra}/>`;
+const L = (x1, y1, x2, y2, s, w, extra = "") => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${s}" stroke-width="${w}" ${extra}/>`;
+const T = (x, y, txt, o = {}) => `<text x="${x}" y="${y}" fill="${o.fill || AC.ink}" font-family="${o.font || "Archivo, 'Arial Narrow', sans-serif"}" font-size="${o.size || 40}" font-weight="${o.weight || 800}" text-anchor="${o.anchor || "middle"}" letter-spacing="${o.ls || 0}" ${o.extra || ""}>${txt}</text>`;
+
+// A flat, faceless figure. (x, y) is where the feet meet the ground.
+function figure(x, y, h, o = {}) {
+  const s = h / 100;
+  const skin = o.skin || AC.skin1, top = o.top || AC.indigo, low = o.low || AC.brownDk;
+  const dir = o.dir === "left" ? -1 : 1;
+  const X = (dx) => x + dx * s * dir;
+  const Y = (dy) => y - dy * s;
+  let out = "";
+  // legs or skirt
+  if (o.skirt) {
+    out += P([[X(-9), Y(52)], [X(9), Y(52)], [X(19), Y(3)], [X(-17), Y(3)]], low);
+    out += R(X(-10) - (dir < 0 ? 5 * s : 0), Y(4), 6 * s, 4 * s, AC.ink);
+  } else {
+    out += P([[X(-9), Y(52)], [X(-1), Y(52)], [X(-3), Y(0)], [X(-11), Y(0)]], low);
+    out += P([[X(1), Y(52)], [X(9), Y(52)], [X(11), Y(0)], [X(3), Y(0)]], low);
+  }
+  // torso
+  out += P([[X(-13), Y(83)], [X(13), Y(83)], [X(10), Y(50)], [X(-10), Y(50)]], top);
+  // arms
+  const pose = o.pose || "down";
+  if (pose === "down") {
+    out += P([[X(-13), Y(82)], [X(-8), Y(80)], [X(-12), Y(48)], [X(-17), Y(49)]], top);
+    out += P([[X(13), Y(82)], [X(8), Y(80)], [X(12), Y(48)], [X(17), Y(49)]], top);
+    out += C(X(-14.5), Y(46), 3.4 * s, skin) + C(X(14.5), Y(46), 3.4 * s, skin);
+  } else if (pose === "work") {
+    // bent forward, both arms reaching low
+    out += P([[X(8), Y(82)], [X(13), Y(80)], [X(30), Y(52)], [X(25), Y(49)]], top);
+    out += P([[X(-6), Y(80)], [X(-1), Y(82)], [X(22), Y(44)], [X(17), Y(42)]], top);
+    out += C(X(28), Y(48), 3.6 * s, skin) + C(X(21), Y(40), 3.6 * s, skin);
+    if (o.tool) out += L(X(30), Y(55), X(46), Y(2), AC.brownDk, 2.4 * s);
+  } else if (pose === "hat") {
+    // hat held at the chest
+    out += P([[X(-13), Y(82)], [X(-8), Y(80)], [X(2), Y(64)], [X(-2), Y(60)]], top);
+    out += P([[X(13), Y(82)], [X(8), Y(80)], [X(4), Y(64)], [X(9), Y(60)]], top);
+    out += `<ellipse cx="${X(3)}" cy="${Y(63)}" rx="${12 * s}" ry="${4 * s}" fill="${AC.ochreLt}"/>`;
+  } else if (pose === "hold") {
+    out += P([[X(-13), Y(82)], [X(-8), Y(80)], [X(4), Y(62)], [X(0), Y(58)]], top);
+    out += P([[X(13), Y(82)], [X(8), Y(80)], [X(12), Y(60)], [X(16), Y(62)]], top);
+    out += C(X(6), Y(60), 3.4 * s, skin) + C(X(14), Y(60), 3.4 * s, skin);
+  } else if (pose === "up") {
+    out += P([[X(-13), Y(82)], [X(-8), Y(83)], [X(-14), Y(112)], [X(-19), Y(110)]], top);
+    out += P([[X(13), Y(82)], [X(8), Y(80)], [X(12), Y(48)], [X(17), Y(49)]], top);
+    out += C(X(-17), Y(113), 3.4 * s, skin) + C(X(14.5), Y(46), 3.4 * s, skin);
+  }
+  // neck and head
+  out += R(X(-3) - (dir < 0 ? 6 * s : 0), Y(89), 6 * s, 7 * s, skin);
+  out += `<ellipse cx="${X(0)}" cy="${Y(96)}" rx="${8 * s}" ry="${9.5 * s}" fill="${skin}"/>`;
+  if (o.hat) {
+    out += `<ellipse cx="${X(0)}" cy="${Y(102)}" rx="${15 * s}" ry="${3.4 * s}" fill="${o.hat}"/>`;
+    out += P([[X(-8), Y(102)], [X(8), Y(102)], [X(6), Y(111)], [X(-6), Y(111)]], o.hat);
+  }
+  if (o.wrap) {
+    out += P([[X(-9), Y(99)], [X(9), Y(99)], [X(10), Y(106)], [X(0), Y(110)], [X(-10), Y(106)]], o.wrap);
+  }
+  if (o.gray) out += `<ellipse cx="${X(0)}" cy="${Y(103)}" rx="${8.4 * s}" ry="${4 * s}" fill="${AC.paper2}"/>`;
+  return `<g>${out}</g>`;
+}
+
+function mule(x, y, s, o = {}) {
+  const col = o.color || AC.brownDk;
+  const d = o.dir === "left" ? -1 : 1;
+  const X = (dx) => x + dx * s * d, Y = (dy) => y - dy * s;
+  let out = "";
+  out += P([[X(-40), Y(52)], [X(30), Y(56)], [X(34), Y(30)], [X(-38), Y(30)]], col);
+  [[-34], [-24], [20], [28]].forEach(([lx]) => { out += R(Math.min(X(lx), X(lx + 6)), Y(32), 6 * s, 32 * s, col); });
+  if (o.down) {
+    out += P([[X(30), Y(52)], [X(48), Y(30)], [X(62), Y(16)], [X(54), Y(10)], [X(36), Y(28)]], col);
+  } else {
+    out += P([[X(28), Y(56)], [X(44), Y(80)], [X(64), Y(70)], [X(60), Y(62)], [X(40), Y(48)]], col);
+    out += P([[X(42), Y(80)], [X(40), Y(98)], [X(47), Y(82)]], col) + P([[X(47), Y(80)], [X(50), Y(97)], [X(52), Y(80)]], col);
+  }
+  out += P([[X(-40), Y(50)], [X(-50), Y(26)], [X(-46), Y(26)]], col);
+  return `<g>${out}</g>`;
+}
+
+function cabin(x, y, w, h, o = {}) {
+  const wall = o.wall || AC.brown, roof = o.roof || AC.brownDk;
+  let out = R(x, y - h, w, h, wall);
+  for (let i = 1; i < 6; i++) out += L(x, y - h + (h * i) / 6, x + w, y - h + (h * i) / 6, AC.brownDk, 2, 'opacity="0.45"');
+  out += P([[x - w * 0.08, y - h], [x + w / 2, y - h - h * 0.62], [x + w * 1.08, y - h]], roof);
+  out += R(x + w * 0.4, y - h * 0.62, w * 0.2, h * 0.62, o.door || AC.ink);
+  out += R(x + w * 0.1, y - h * 0.7, w * 0.18, h * 0.22, o.window || AC.ink);
+  out += R(x + w * 0.78, y - h - h * 0.5, w * 0.08, h * 0.35, AC.brownDk);
+  return out;
+}
+
+function bigHouse(x, y, w, h) {
+  let out = R(x, y - h, w, h, AC.cream);
+  out += P([[x - w * 0.06, y - h], [x + w / 2, y - h - h * 0.45], [x + w * 1.06, y - h]], AC.brick);
+  for (let i = 0; i < 6; i++) out += R(x + w * 0.06 + i * w * 0.17, y - h, w * 0.035, h, AC.paper2);
+  for (let i = 0; i < 4; i++) out += R(x + w * 0.14 + i * w * 0.2, y - h * 0.8, w * 0.08, h * 0.24, AC.indigo);
+  out += R(x + w * 0.44, y - h * 0.42, w * 0.12, h * 0.42, AC.indigo);
+  return out;
+}
+
+function fieldRows(y0, y1, n, a, b, extra = "") {
+  let out = "";
+  for (let i = 0; i < n; i++) {
+    const t0 = i / n, t1 = (i + 1) / n;
+    const yA = y0 + (y1 - y0) * Math.pow(t0, 1.6), yB = y0 + (y1 - y0) * Math.pow(t1, 1.6);
+    out += R(0, yA, 1600, yB - yA + 1, i % 2 ? a : b, extra);
+  }
+  return out;
+}
+
+function cottonDots(y0, y1, count, seed = 1) {
+  let out = "", s = seed;
+  const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+  for (let i = 0; i < count; i++) {
+    const t = rnd();
+    const y = y0 + (y1 - y0) * t;
+    out += C(rnd() * 1600, y, 3 + 9 * t, AC.cotton);
+  }
+  return out;
+}
+
+function newspaper(x, y, w, h, mast, head, sub) {
+  let out = R(x, y, w, h, AC.cream) + R(x, y, w, h, "none", `stroke="${AC.ink}" stroke-width="4"`);
+  out += T(x + w / 2, y + 70, mast, { size: 34, weight: 700, font: "'Courier Prime', Courier, monospace", ls: 6 });
+  out += L(x + 30, y + 92, x + w - 30, y + 92, AC.ink, 4) + L(x + 30, y + 100, x + w - 30, y + 100, AC.ink, 1.5);
+  const lines = Array.isArray(head) ? head : [head];
+  lines.forEach((ln, i) => { out += T(x + w / 2, y + 180 + i * 84, ln, { size: 76, weight: 900 }); });
+  const subY = y + 180 + lines.length * 84 + 10;
+  if (sub) out += T(x + w / 2, subY, sub, { size: 30, weight: 600, font: "'Public Sans', Arial, sans-serif" });
+  for (let c = 0; c < 3; c++) {
+    for (let r = 0; r < 7; r++) {
+      const cx = x + 40 + c * ((w - 80) / 3);
+      out += R(cx, subY + 40 + r * 26, (w - 80) / 3 - 30, 9, AC.gray, 'opacity="0.55"');
+    }
+  }
+  return out;
+}
+
+const SCENES = {
+  fieldSun() {
+    return R(0, 0, 1600, 900, AC.sky) + C(1160, 300, 190, AC.brick) +
+      P([[0, 470], [300, 400], [620, 450], [940, 380], [1300, 440], [1600, 400], [1600, 520], [0, 520]], AC.indigo) +
+      fieldRows(500, 900, 12, AC.green, AC.brown) + cottonDots(520, 900, 140, 7) +
+      figure(330, 820, 230, { pose: "work", top: AC.ochre, low: AC.indigo, skin: AC.skin2, hat: AC.ochreLt });
+  },
+  family() {
+    let out = R(0, 0, 1600, 900, AC.ochre) + R(0, 730, 1600, 170, AC.brownDk);
+    out += cabin(980, 730, 520, 430, { wall: AC.brown });
+    out += figure(300, 760, 380, { top: AC.indigo, low: AC.brownDk, hat: AC.ochreLt, skin: AC.skin1 });
+    out += figure(470, 760, 350, { skirt: true, top: AC.brick, low: AC.indigoLt, wrap: AC.cream, skin: AC.skin2 });
+    out += figure(625, 760, 300, { skirt: true, top: AC.green, low: AC.brownDk, wrap: AC.paper2, gray: true, skin: AC.skin3 });
+    out += figure(760, 760, 230, { skirt: true, top: AC.cream, low: AC.brick, skin: AC.skin2 });
+    out += figure(870, 760, 170, { top: AC.ochreLt, low: AC.indigo, skin: AC.skin1 });
+    return out;
+  },
+  plow() {
+    return R(0, 0, 1600, 900, AC.ochreLt) + C(260, 220, 120, AC.cream) +
+      fieldRows(430, 900, 10, AC.brown, AC.brownDk) +
+      mule(980, 700, 4.2, { color: AC.ink }) +
+      L(700, 600, 840, 560, AC.ink, 8) + P([[690, 610], [720, 700], [700, 712]], AC.ink) +
+      figure(560, 760, 340, { pose: "work", top: AC.indigo, low: AC.brick, hat: AC.ochre, skin: AC.skin1 });
+  },
+  bigHouse() {
+    return R(0, 0, 1600, 900, AC.sky) +
+      P([[0, 520], [500, 260], [1100, 240], [1600, 470], [1600, 900], [0, 900]], AC.green) +
+      bigHouse(620, 330, 420, 200) +
+      P([[0, 760], [1600, 700], [1600, 900], [0, 900]], AC.greenLt) +
+      cabin(160, 820, 260, 190, { wall: AC.brown });
+  },
+  contractDesk() {
+    let out = R(0, 0, 1600, 900, AC.indigo) + P([[0, 420], [1600, 360], [1600, 900], [0, 900]], AC.brown);
+    out += P([[520, 470], [1080, 440], [1140, 860], [480, 880]], AC.cream);
+    for (let i = 0; i < 11; i++) out += L(540, 520 + i * 30, 1090 - (i < 10 ? 0 : 200), 505 + i * 31, AC.gray, 5, 'opacity="0.7"');
+    out += T(800, 840, "X", { size: 70, fill: AC.brick, font: "'Courier Prime', Courier, monospace" });
+    out += `<ellipse cx="1290" cy="560" rx="70" ry="24" fill="${AC.ink}"/>` + R(1235, 470, 110, 90, AC.ink);
+    out += L(1290, 470, 1180, 260, AC.cream, 6);
+    out += P([[200, 900], [330, 560], [420, 600], [360, 900]], AC.skin1);
+    return out;
+  },
+  newspaper15() {
+    return R(0, 0, 1600, 900, AC.ochre) + `<g transform="rotate(-3 800 450)">` +
+      newspaper(330, 70, 940, 780, "THE COUNTY REPUBLICAN", ["FIFTEENTH", "AMENDMENT RATIFIED"], "The vote may not be denied on account of race") + `</g>`;
+  },
+  tracker() {
+    let out = R(0, 0, 1600, 900, AC.indigo) + R(360, 160, 880, 580, AC.cream);
+    for (let i = 0; i < 9; i++) out += L(360, 230 + i * 60, 1240, 230 + i * 60, "#9FB3C2", 2);
+    out += L(450, 160, 450, 740, AC.brick, 2);
+    out += T(800, 380, "VOTELESS", { size: 120, weight: 900, fill: AC.gray });
+    out += L(500, 345, 1100, 345, AC.brick, 16, 'stroke-linecap="round"');
+    out += T(800, 590, "LANDLESS", { size: 120, weight: 900 });
+    return out;
+  },
+  senate() {
+    let out = R(0, 0, 1600, 900, AC.sky) + R(0, 690, 1600, 210, AC.green);
+    out += R(440, 470, 720, 220, AC.cream) + R(700, 380, 200, 90, AC.cream);
+    out += `<path d="M640 390 A160 160 0 0 1 960 390 Z" fill="${AC.cream}"/>` + R(790, 180, 20, 60, AC.cream) + C(800, 175, 16, AC.cream);
+    for (let i = 0; i < 9; i++) out += R(470 + i * 78, 500, 24, 190, AC.paper2);
+    out += figure(800, 860, 300, { top: AC.ink, low: AC.ink, skin: AC.skin1, pose: "down" });
+    return out;
+  },
+  newspaperPanic() {
+    let out = R(0, 0, 1600, 900, AC.night) + `<g transform="rotate(2 800 450)">` +
+      newspaper(330, 70, 940, 780, "THE DAILY LEDGER", ["PANIC IN", "NEW YORK"], "Jay Cooke & Co. fails. Banks close their doors.") + `</g>`;
+    out += P([[1350, 200], [1420, 200], [1420, 600], [1480, 600], [1385, 760], [1290, 600], [1350, 600]], AC.brick);
+    return out;
+  },
+  priceChart() {
+    let out = R(0, 0, 1600, 900, AC.cream);
+    const ys = CONFIG.years, max = 120, base = 760, top = 160;
+    ys.forEach((yr, i) => {
+      const v = CONFIG.pricePerBale[yr], h = ((base - top) * v) / max, x = 300 + i * 220;
+      out += R(x, base - h, 140, h, yr === 1873 ? AC.brick : AC.indigo);
+      out += T(x + 70, base - h - 22, "$" + v, { size: 48, weight: 700, font: "'Courier Prime', Courier, monospace" });
+      out += T(x + 70, base + 60, String(yr), { size: 40, weight: 700, font: "'Courier Prime', Courier, monospace" });
+    });
+    out += L(260, base, 1400, base, AC.ink, 5);
+    out += T(800, 110, "Cotton, price per bale (game values)", { size: 40, weight: 700 });
+    return out;
+  },
+  porchLantern() {
+    let out = R(0, 0, 1600, 900, AC.night) + C(1320, 160, 60, AC.cream, 'opacity="0.9"');
+    out += R(0, 640, 1600, 260, AC.brownDk) + R(200, 220, 1200, 420, AC.indigo) + R(200, 200, 1200, 40, AC.ink);
+    for (let i = 0; i < 6; i++) out += R(220 + i * 230, 240, 26, 400, AC.cream, 'opacity="0.85"');
+    out += C(820, 420, 160, AC.ochre, 'opacity="0.35"') + R(800, 380, 40, 60, AC.ochreLt) + C(820, 370, 10, AC.cream);
+    out += R(940, 520, 220, 20, AC.brown) + R(960, 540, 16, 100, AC.brown) + R(1124, 540, 16, 100, AC.brown);
+    out += R(970, 470, 140, 50, AC.cream) + L(1040, 470, 1040, 520, AC.ink, 3);
+    out += figure(1060, 640, 260, { top: AC.cream, low: AC.ink, skin: "#C9A27E", pose: "hold" });
+    out += figure(600, 700, 330, { top: AC.indigoLt, low: AC.brownDk, skin: AC.skin1, pose: "hat", dir: "right" });
+    return out;
+  },
+  longRows() {
+    let out = R(0, 0, 1600, 900, AC.ochreLt) + R(0, 300, 1600, 60, AC.indigo);
+    out += fieldRows(340, 900, 14, AC.green, AC.brown) + cottonDots(360, 900, 160, 3);
+    [[260, 560, 90], [520, 600, 110], [820, 650, 140], [1180, 720, 190]].forEach(([x, y, h], i) => {
+      out += figure(x, y, h, { pose: "work", top: [AC.indigo, AC.brick, AC.cream, AC.ochre][i], low: AC.brownDk, skin: AC.skin1 });
+    });
+    return out;
+  },
+  muleRoad() {
+    let out = R(0, 0, 1600, 900, AC.sky) + C(1300, 330, 150, AC.ochreLt);
+    out += P([[0, 520], [1600, 460], [1600, 900], [0, 900]], AC.greenLt);
+    out += P([[620, 900], [780, 470], [880, 470], [1260, 900]], AC.ochre);
+    out += R(820, 640, 260, 90, AC.brown) + C(860, 750, 40, AC.ink) + C(1040, 750, 40, AC.ink);
+    out += mule(700, 760, 2.6, { color: AC.ink, dir: "left" });
+    out += figure(420, 860, 300, { top: AC.indigo, low: AC.brownDk, hat: AC.ochre, skin: AC.skin1 });
+    out += figure(1230, 860, 280, { skirt: true, top: AC.brick, low: AC.indigoLt, wrap: AC.cream, skin: AC.skin2 });
+    out += figure(1360, 860, 200, { skirt: true, top: AC.cream, low: AC.brick, skin: AC.skin2 });
+    return out;
+  },
+  ownField() {
+    let out = R(0, 0, 1600, 900, AC.ochreLt) + fieldRows(420, 900, 10, AC.green, AC.brown) + cottonDots(440, 900, 120, 11);
+    out += cabin(1100, 470, 300, 200, { wall: AC.brown });
+    out += figure(600, 860, 380, { top: AC.indigo, low: AC.brownDk, hat: AC.ochre, skin: AC.skin1, pose: "hold" });
+    out += C(625, 625, 12, AC.ochreLt) + C(640, 618, 12, AC.ochreLt) + C(612, 612, 12, AC.ochreLt);
+    return out;
+  },
+  emptyRoad() {
+    let out = R(0, 0, 1600, 900, AC.night) + C(1200, 200, 80, AC.cream);
+    out += P([[0, 560], [1600, 520], [1600, 900], [0, 900]], AC.indigo);
+    out += P([[700, 900], [790, 540], [830, 540], [1100, 900]], AC.indigoLt);
+    out += `<ellipse cx="900" cy="780" rx="60" ry="26" fill="${AC.ochre}"/>`;
+    return out;
+  },
+  emptyDoor() {
+    let out = R(0, 0, 1600, 900, AC.brown);
+    for (let i = 0; i < 12; i++) out += L(0, i * 75, 1600, i * 75, AC.brownDk, 4, 'opacity="0.5"');
+    out += R(560, 150, 480, 750, AC.ink) + R(1040, 150, 40, 750, AC.brownDk);
+    out += R(720, 620, 160, 18, AC.brown) + R(730, 638, 14, 120, AC.brown) + R(856, 638, 14, 120, AC.brown) + R(730, 480, 14, 140, AC.brown);
+    return out;
+  },
+  schoolLetters() {
+    let out = R(0, 0, 1600, 900, AC.ochre) + R(300, 120, 1000, 460, AC.ink);
+    out += T(800, 300, "A  B  C", { size: 140, weight: 400, fill: AC.cream, font: "'Courier Prime', Courier, monospace" });
+    out += T(800, 470, "Lucy", { size: 110, weight: 400, fill: AC.cream, font: "'Caveat', 'Segoe Script', cursive" });
+    out += R(0, 720, 1600, 180, AC.brownDk);
+    out += figure(1100, 860, 300, { skirt: true, top: AC.indigo, low: AC.brick, skin: AC.skin2, pose: "up", dir: "left" });
+    return out;
+  },
+  grandmother() {
+    let out = R(0, 0, 1600, 900, AC.night) + C(800, 420, 300, AC.ochre, 'opacity="0.25"');
+    out += R(780, 360, 40, 70, AC.ochreLt) + C(800, 350, 12, AC.cream);
+    out += figure(540, 820, 360, { skirt: true, top: AC.green, low: AC.brownDk, wrap: AC.paper2, gray: true, skin: AC.skin3, pose: "hold" });
+    out += figure(1020, 820, 240, { skirt: true, top: AC.brick, low: AC.indigo, skin: AC.skin2, dir: "left" });
+    return out;
+  },
+};
+
+// Card art, 400 x 240.
+const CARD_ART = {
+  fieldSun: () => SCENES.fieldSun(),
+  rain() {
+    let out = R(0, 0, 1600, 900, AC.indigoLt) + fieldRows(520, 900, 10, AC.green, AC.greenLt);
+    out += `<ellipse cx="520" cy="200" rx="300" ry="110" fill="${AC.paper2}"/><ellipse cx="900" cy="170" rx="330" ry="130" fill="${AC.cream}"/><ellipse cx="1220" cy="220" rx="260" ry="100" fill="${AC.paper2}"/>`;
+    for (let i = 0; i < 40; i++) { const x = (i * 97) % 1600; out += L(x, 300 + (i % 5) * 40, x - 60, 420 + (i % 5) * 40, AC.cream, 8, 'stroke-linecap="round"'); }
+    return out;
+  },
+  drought() {
+    let out = R(0, 0, 1600, 900, AC.ochreLt) + C(800, 260, 200, AC.brick) + R(0, 520, 1600, 380, AC.ochre);
+    for (let i = 0; i < 18; i++) { const x = 60 + i * 90; out += `<polyline points="${x},540 ${x + 30},640 ${x - 10},720 ${x + 40},900" fill="none" stroke="${AC.brownDk}" stroke-width="7"/>`; }
+    return out;
+  },
+  flood() {
+    let out = R(0, 0, 1600, 900, AC.paper2) + fieldRows(380, 900, 8, AC.green, AC.brown);
+    for (let i = 0; i < 6; i++) out += `<path d="M0 ${520 + i * 70} Q 200 ${480 + i * 70} 400 ${520 + i * 70} T 800 ${520 + i * 70} T 1200 ${520 + i * 70} T 1600 ${520 + i * 70} V 900 H 0 Z" fill="${i % 2 ? AC.indigo : AC.indigoLt}" opacity="0.9"/>`;
+    return out;
+  },
+  mule() {
+    return R(0, 0, 1600, 900, AC.ochre) + R(0, 660, 1600, 240, AC.brownDk) + R(240, 140, 1120, 520, AC.brown, 'opacity="0.6"') + mule(800, 760, 6, { color: AC.ink, down: true });
+  },
+  sick() {
+    let out = R(0, 0, 1600, 900, AC.indigo) + C(1200, 300, 180, AC.ochre, 'opacity="0.35"');
+    out += R(260, 560, 900, 60, AC.brown) + R(260, 420, 60, 300, AC.brown) + R(1100, 480, 60, 240, AC.brown);
+    out += R(320, 500, 780, 70, AC.cream) + `<ellipse cx="420" cy="500" rx="60" ry="46" fill="${AC.skin2}"/>`;
+    out += R(1220, 520, 70, 140, AC.greenLt) + R(1240, 490, 30, 30, AC.ink) + R(1195, 660, 120, 14, AC.brownDk);
+    return out;
+  },
+  school() {
+    let out = R(0, 0, 1600, 900, AC.sky) + R(0, 700, 1600, 200, AC.green);
+    out += R(520, 380, 560, 320, AC.cream) + P([[480, 380], [800, 180], [1120, 380]], AC.brick);
+    out += R(760, 90, 80, 120, AC.cream) + P([[740, 90], [800, 20], [860, 90]], AC.brick) + C(800, 150, 22, AC.ochre);
+    out += R(740, 540, 120, 160, AC.indigo) + R(580, 450, 100, 90, AC.indigo) + R(920, 450, 100, 90, AC.indigo);
+    return out;
+  },
+  ballot() {
+    let out = R(0, 0, 1600, 900, AC.ochre) + R(520, 380, 560, 420, AC.brown) + R(520, 380, 560, 40, AC.brownDk);
+    out += R(700, 360, 200, 20, AC.ink);
+    out += `<g transform="rotate(-8 800 250)">` + R(680, 120, 240, 260, AC.cream) + L(710, 180, 890, 180, AC.gray, 8) + L(710, 230, 890, 230, AC.gray, 8) + T(800, 330, "X", { size: 90, fill: AC.brick, font: "'Courier Prime', Courier, monospace" }) + `</g>`;
+    return out;
+  },
+  mulebuy() {
+    return R(0, 0, 1600, 900, AC.greenLt) + R(0, 700, 1600, 200, AC.green) + mule(760, 760, 6, { color: AC.brownDk }) +
+      L(1080, 380, 1200, 300, AC.ink, 5) + `<g transform="rotate(12 1260 300)">` + R(1170, 240, 200, 120, AC.cream) + T(1270, 325, "$60", { size: 64, font: "'Courier Prime', Courier, monospace" }) + `</g>`;
+  },
+  eggs() {
+    let out = R(0, 0, 1600, 900, AC.ochreLt) + R(0, 700, 1600, 200, AC.brownDk);
+    out += `<ellipse cx="800" cy="560" rx="380" ry="80" fill="${AC.brown}"/>` + P([[420, 560], [1180, 560], [1080, 780], [520, 780]], AC.brown);
+    out += `<path d="M460 560 Q 800 180 1140 560" fill="none" stroke="${AC.brownDk}" stroke-width="24"/>`;
+    [[640, 520], [740, 500], [850, 510], [950, 525], [700, 545], [900, 548]].forEach(([x, y]) => { out += `<ellipse cx="${x}" cy="${y}" rx="44" ry="56" fill="${AC.cream}"/>`; });
+    out += P([[1000, 520], [1120, 380], [1080, 540]], AC.green) + P([[1020, 530], [1200, 440], [1100, 550]], AC.greenLt);
+    return out;
+  },
+  headline() { return R(0, 0, 1600, 900, AC.night) + newspaper(300, 60, 1000, 780, "THE COUNTY WEEKLY", ["NIGHT RIDERS", "IN THE COUNTY"], "Families warned to keep inside after dark"); },
+  panic() { return SCENES.newspaperPanic(); },
+};
+
+function sceneSVG(name, label) {
+  const fn = SCENES[name] || CARD_ART[name] || SCENES.fieldSun;
+  return svgWrap(1600, 900, fn(), label);
+}
+function cardSVG(name, label) {
+  const fn = CARD_ART[name] || SCENES[name] || SCENES.fieldSun;
+  return svgWrap(1600, 900, fn(), label);
+}
+
+// ============================================================================
+// WORLD — first-person 3D farm through Papa's eyes. Buildings and ground are
+// simple 3D shapes; people, the mule, trees, and crops are flat paper
+// cutouts standing in the world. If 3D can't load, World.ok stays false and
+// the game runs on its flat screens instead.
+// ============================================================================
+const THREE_URL = "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js";
+
+const World = (() => {
+  let THREE, renderer, scene, camera, container, tagEl, bubbleEl, hintEl;
+  let ok = false;
+  const EYE = 1.68;
+  const v = {};                      // shared vectors, set after load
+  const look = { yaw: 0, pitch: -0.12 };
+  const pos = { x: -12, z: 9 };
+  const keys = {};
+  const tweens = [];
+  const billboards = [];             // cutouts that turn to face Papa
+  const clickables = [];             // meshes with userData.click
+  const people = {};
+  const plots = [];
+  const plants = [];                 // { mesh, plot, kind, picked }
+  const colliders = [];              // [minX, minZ, maxX, maxZ]
+  const tex = {};
+  const mats = {};
+  let mode = "locked";
+  let handlers = {};
+  let walk = null;                   // { x, z, yaw, pitch, resolve }
+  let hovered = null;
+  let rain = null, flood = null, school = null, muleCut = null, wagon = null, scaleNeedle = null;
+  let bubble = null;
+  let groundMats = [];
+  let reduceMotion = false;
+  let lastT = 0;
+  let drag = null;
+
+  // ---- places Papa can walk to -------------------------------------------
+  const PLACES = {
+    home:   { x: -12, z: 9.5, face: [0, 0, 0], pitch: -0.14 },
+    field:  { x: 2.2, z: 12, face: [-3.2, 0, 0], pitch: -0.34 },
+    cabin:  { x: -11.2, z: 12.2, face: [-15, 1.4, 13], pitch: -0.08 },
+    store:  { x: 15.6, z: 5.4, face: [15.9, 1.6, 9.5], pitch: 0.02 },
+    gin:    { x: 9.6, z: 11.6, face: [13.6, 1.1, 8], pitch: -0.1 },
+    porch:  { x: -1.2, z: -20.2, face: [0.6, 3.9, -25.9], pitch: 0.04 },
+    school: { x: -22, z: -4, face: [-27, 2, -9], pitch: 0 },
+  };
+
+  // ---- terrain -----------------------------------------------------------
+  const HILL = { x: 0, z: -31, top: 9, base: 19, h: 2.4 };
+  function heightAt(x, z) {
+    const d = Math.hypot(x - HILL.x, z - HILL.z);
+    if (d <= HILL.top) return HILL.h;
+    if (d >= HILL.base) return 0;
+    return HILL.h * (HILL.base - d) / (HILL.base - HILL.top);
+  }
+
+  // ---- paper cutout textures -----------------------------------------------
+  const EDGE = `<filter id="e" x="-10%" y="-10%" width="120%" height="120%"><feMorphology operator="dilate" radius="5" in="SourceAlpha" result="d"/><feFlood flood-color="${AC.cream}"/><feComposite in2="d" operator="in" result="o"/><feMerge><feMergeNode in="o"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  const cut = (w, h, inner) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w * 2}" height="${h * 2}"><defs>${EDGE}</defs><g filter="url(#e)">${inner}</g></svg>`;
+
+  const PERSON_H = 420;
+  const SPRITES = {
+    mama:     () => cut(240, PERSON_H, figure(120, 410, 340, { skirt: true, top: AC.brick, low: AC.indigoLt, wrap: AC.cream, skin: AC.skin2 })),
+    lucy:     () => cut(240, PERSON_H, figure(120, 410, 340, { skirt: true, top: AC.cream, low: AC.brick, skin: AC.skin2 })),
+    sam:      () => cut(240, PERSON_H, figure(120, 410, 340, { top: AC.ochreLt, low: AC.indigo, skin: AC.skin1 })),
+    ruth:     () => cut(240, PERSON_H, figure(120, 410, 340, { skirt: true, top: AC.green, low: AC.brownDk, wrap: AC.paper2, gray: true, skin: AC.skin3, pose: "hold" })),
+    holliday: () => cut(240, PERSON_H, figure(120, 410, 340, { top: AC.cream, low: AC.ink, skin: "#C9A27E", hat: AC.ink, pose: "hold" })),
+    mamaWork: () => cut(240, PERSON_H, figure(80, 410, 300, { skirt: true, top: AC.brick, low: AC.indigoLt, wrap: AC.cream, skin: AC.skin2, pose: "work" })),
+    lucyWork: () => cut(240, PERSON_H, figure(80, 410, 300, { skirt: true, top: AC.cream, low: AC.brick, skin: AC.skin2, pose: "work" })),
+    samWork:  () => cut(240, PERSON_H, figure(80, 410, 300, { top: AC.ochreLt, low: AC.indigo, skin: AC.skin1, pose: "work" })),
+    mule:     () => cut(400, 260, mule(190, 250, 2.4, { color: AC.brownDk })),
+    tree1:    () => cut(300, 420, R(138, 230, 26, 190, AC.brownDk) + C(150, 150, 110, AC.green) + C(90, 200, 70, AC.greenLt) + C(210, 190, 80, AC.green)),
+    tree2:    () => cut(300, 420, R(140, 250, 22, 170, AC.brownDk) + P([[150, 20], [270, 270], [30, 270]], AC.green) + P([[150, 80], [240, 300], [60, 300]], "#4D5A2E")),
+    sprout:   () => cut(200, 200, R(97, 120, 6, 80, AC.green) + P([[100, 130], [40, 90], [70, 140]], AC.greenLt) + P([[100, 120], [165, 85], [130, 135]], AC.greenLt)),
+    cottonGrow: () => cut(200, 260, R(96, 120, 8, 140, AC.green) + C(100, 110, 60, AC.green) + C(60, 150, 40, AC.greenLt) + C(140, 145, 42, AC.greenLt)),
+    cottonRipe: () => cut(200, 260, R(96, 120, 8, 140, AC.brown) + C(100, 110, 58, "#6E6A3E") + C(60, 150, 40, "#7C7444") + C(140, 145, 42, "#7C7444") +
+      [[80, 80], [125, 90], [100, 125], [55, 140], [150, 130], [85, 165], [125, 170], [105, 70]].map(([x, y]) => C(x, y, 17, AC.cotton)).join("")),
+    cottonPicked: () => cut(200, 260, R(96, 120, 8, 140, AC.brown) + C(100, 110, 56, "#7C6A44") + C(60, 150, 38, "#8A7448") + C(140, 145, 40, "#8A7448")),
+    cornSprout: () => cut(200, 300, R(96, 60, 8, 240, AC.greenLt) + P([[100, 200], [30, 120], [86, 196]], AC.greenLt) + P([[100, 150], [175, 80], [112, 150]], AC.green) + P([[100, 90], [50, 20], [94, 96]], AC.greenLt)),
+    cornGrow: () => cut(200, 420, R(95, 60, 10, 360, AC.green) + P([[100, 300], [20, 220], [90, 280]], AC.greenLt) + P([[100, 230], [185, 160], [110, 215]], AC.green) + P([[100, 160], [30, 90], [92, 150]], AC.greenLt) + P([[100, 60], [85, 10], [115, 10]], AC.ochreLt)),
+    cornRipe: () => cut(200, 420, R(95, 60, 10, 360, "#A08A4A") + P([[100, 300], [20, 220], [90, 280]], AC.ochre) + P([[100, 230], [185, 160], [110, 215]], "#A08A4A") + `<ellipse cx="122" cy="250" rx="16" ry="40" fill="${AC.ochreLt}"/>` + P([[100, 60], [85, 10], [115, 10]], AC.ochre)),
+    hills1:   () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" width="1600" height="300">${P([[0, 300], [0, 170], [220, 90], [430, 150], [700, 60], [980, 140], [1230, 80], [1600, 160], [1600, 300]], AC.indigoLt)}</svg>`,
+    hills2:   () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" width="1600" height="300">${P([[0, 300], [0, 210], [300, 140], [560, 200], [820, 120], [1100, 190], [1380, 130], [1600, 200], [1600, 300]], "#6C7A4C")}</svg>`,
+    blob:     () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" width="128" height="64"><ellipse cx="50" cy="25" rx="48" ry="22" fill="#1E1B18" opacity="0.28"/></svg>`,
+    dial:     () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256"><circle cx="100" cy="100" r="94" fill="${AC.cream}" stroke="${AC.ink}" stroke-width="8"/>${Array.from({ length: 11 }, (_, i) => { const a = Math.PI * (0.8 + i * 0.14); return L(100 + 70 * Math.cos(a), 100 + 70 * Math.sin(a), 100 + 86 * Math.cos(a), 100 + 86 * Math.sin(a), AC.ink, 5); }).join("")}</svg>`,
+    needle:   () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256">${P([[96, 100], [104, 100], [100, 22]], AC.brick)}${C(100, 100, 9, AC.ink)}</svg>`,
+  };
+
+  function svgToTexture(svg) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth || img.width; c.height = img.naturalHeight || img.height;
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const t = new THREE.CanvasTexture(c);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.anisotropy = 4;
+        resolve(t);
+      };
+      img.onerror = () => resolve(null);
+      img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    });
+  }
+
+  function textTexture(lines, o = {}) {
+    const c = document.createElement("canvas");
+    c.width = o.w || 512; c.height = o.h || 160;
+    const g = c.getContext("2d");
+    g.fillStyle = o.bg || AC.cream; g.fillRect(0, 0, c.width, c.height);
+    g.strokeStyle = AC.ink; g.lineWidth = 8; g.strokeRect(4, 4, c.width - 8, c.height - 8);
+    g.fillStyle = o.fg || AC.ink; g.textAlign = "center"; g.textBaseline = "middle";
+    lines.forEach((ln, i) => {
+      g.font = `${i === 0 ? 800 : 600} ${o.size || 54}px Archivo, "Arial Narrow", sans-serif`;
+      g.fillText(ln, c.width / 2, c.height / (lines.length + 1) * (i + 1));
+    });
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+
+  function grainTexture() {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const g = c.getContext("2d");
+    const img = g.createImageData(128, 128);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const n = 225 + Math.random() * 30;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = n; img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(24, 24);
+    return t;
+  }
+
+  // ---- building blocks ----------------------------------------------------
+  function lambert(color, map) {
+    const m = new THREE.MeshLambertMaterial({ color, map: map || null, flatShading: true });
+    return m;
+  }
+  function box(w, h, d, color, x, y, z, opts = {}) {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), opts.mat || lambert(color, opts.map));
+    m.position.set(x, y + h / 2, z);
+    if (opts.ry) m.rotation.y = opts.ry;
+    scene.add(m);
+    return m;
+  }
+  function roof(w, h, d, color, x, y, z) {
+    const shape = new THREE.Shape();
+    shape.moveTo(-w / 2, 0); shape.lineTo(0, h); shape.lineTo(w / 2, 0); shape.lineTo(-w / 2, 0);
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
+    geo.translate(0, 0, -d / 2);
+    const m = new THREE.Mesh(geo, lambert(color));
+    m.position.set(x, y, z);
+    scene.add(m);
+    return m;
+  }
+  function cutout(texName, height, x, z, o = {}) {
+    const t = tex[texName];
+    const img = t.image;
+    const aspect = img.width / img.height;
+    const w = height * aspect;
+    const mat = new THREE.MeshBasicMaterial({ map: t, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide });
+    const geo = new THREE.PlaneGeometry(w, height);
+    geo.translate(0, height / 2, 0);
+    const m = new THREE.Mesh(geo, mat);
+    const y = (o.y != null ? o.y : heightAt(x, z));
+    m.position.set(x, y, z);
+    if (o.billboard !== false) billboards.push(m);
+    if (o.blob !== false) {
+      const s = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.9, w * 0.35), mats.blob);
+      s.rotation.x = -Math.PI / 2;
+      s.position.set(0, 0.02, 0);
+      m.add(s);
+      m.userData.blob = s;
+    }
+    scene.add(m);
+    return m;
+  }
+  function crossed(texName, height, x, z, y = 0) {
+    const t = tex[texName];
+    const aspect = t.image.width / t.image.height;
+    const g = new THREE.Group();
+    const mat = new THREE.MeshBasicMaterial({ map: t, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide });
+    for (let i = 0; i < 2; i++) {
+      const geo = new THREE.PlaneGeometry(height * aspect, height);
+      geo.translate(0, height / 2, 0);
+      const m = new THREE.Mesh(geo, mat);
+      m.rotation.y = i * Math.PI / 2 + 0.4;
+      g.add(m);
+    }
+    g.position.set(x, y, z);
+    scene.add(g);
+    return g;
+  }
+
+  // ---- build the farm -------------------------------------------------------
+  function build() {
+    const grain = grainTexture();
+    mats.blob = new THREE.MeshBasicMaterial({ map: tex.blob, transparent: true, depthWrite: false });
+
+    scene.add(new THREE.HemisphereLight(0xfff3dc, 0x6b5a3a, 1.7));
+    const sun = new THREE.DirectionalLight(0xffe7c2, 1.6);
+    sun.position.set(-30, 50, 20);
+    scene.add(sun);
+
+    // ground
+    const groundMat = lambert(0x9a9b5c, grain);
+    groundMats.push(groundMat);
+    const ground = new THREE.Mesh(new THREE.CircleGeometry(95, 48), groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    scene.add(ground);
+    ground.userData.click = { kind: "ground" };
+    clickables.push(ground);
+
+    // the hill under the big house
+    const hillMat = lambert(0x8f9355, grain);
+    groundMats.push(hillMat);
+    const hill = new THREE.Mesh(new THREE.CylinderGeometry(HILL.top, HILL.base, HILL.h, 40, 1), hillMat);
+    hill.position.set(HILL.x, HILL.h / 2 - 0.01, HILL.z);
+    hill.userData.click = { kind: "ground" };
+    scene.add(hill);
+    clickables.push(hill);
+
+    // paths
+    const pathMat = lambert(0xb48a56, grain);
+    const strip = (x1, z1, x2, z2, w) => {
+      const len = Math.hypot(x2 - x1, z2 - z1);
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(w, len), pathMat);
+      m.rotation.x = -Math.PI / 2;
+      m.rotation.z = -Math.atan2(x2 - x1, z2 - z1);
+      m.position.set((x1 + x2) / 2, 0.02, (z1 + z2) / 2);
+      scene.add(m);
+    };
+    strip(-16, 12, 16, 12, 2.2);
+    strip(0, 12, 0, -14, 2.2);
+    strip(0, -14, 0, -22, 2.2);
+
+    // the field: 15 one-acre plots, 5 across and 3 deep
+    const soilMat = lambert(0x7a4e31, grain);
+    const soilCorn = lambert(0x9c7838, grain);
+    const ridgeMat = lambert(0x6a4a2c, grain);
+    mats.soil = soilMat; mats.soilCorn = soilCorn;
+    mats.soilHover = lambert(0xa3703f, grain);
+    for (let r = 0; r < 3; r++) {
+      for (let c = 0; c < 5; c++) {
+        const i = r * 5 + c;
+        const x = (c - 2) * 4.4, z = (r - 1) * 4.4;
+        const tile = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.18, 3.7), soilMat);
+        tile.position.set(x, 0.09, z);
+        tile.userData.click = { kind: "plot", index: i };
+        scene.add(tile);
+        clickables.push(tile);
+        for (let k = -1; k <= 1; k++) {
+          const ridge = new THREE.Mesh(new THREE.BoxGeometry(3.5, 0.12, 0.42), ridgeMat);
+          ridge.position.set(x, 0.22, z + k * 1.1);
+          scene.add(ridge);
+        }
+        const plot = { index: i, x, z, tile, corn: false, plants: [] };
+        for (let k = -1; k <= 1; k++) {
+          for (let j = 0; j < 4; j++) {
+            const px = x - 1.3 + j * 0.86 + (k % 2 ? 0.2 : 0), pz = z + k * 1.1;
+            const g = crossed("sprout", 0.5, px, pz, 0.22);
+            g.children.forEach((m) => { m.userData.click = { kind: "plant", plot: i }; clickables.push(m); });
+            const p = { group: g, plot: i, picked: false, x: px, z: pz };
+            plot.plants.push(p);
+            plants.push(p);
+          }
+        }
+        plots.push(plot);
+      }
+    }
+    // fence around the field
+    const postMat = lambert(0x5a3a24);
+    for (let x = -12; x <= 12; x += 2) {
+      box(0.16, 1.1, 0.16, 0, x, 0, -7.4, { mat: postMat });
+    }
+    box(24.2, 0.12, 0.08, 0, 0, 0.85, -7.4, { mat: postMat });
+    box(24.2, 0.12, 0.08, 0, 0, 0.45, -7.4, { mat: postMat });
+
+    // the cabin
+    const cab = { x: -17.5, z: 13 };
+    box(5, 3, 4.2, 0x7a4a2e, cab.x, 0, cab.z, { map: grain });
+    roof(5.8, 1.9, 4.8, 0x4f2f1d, cab.x, 3, cab.z).rotation.y = Math.PI / 2;
+    box(1.1, 2, 0.1, 0x1e1b18, cab.x + 2.51, 0, cab.z, { ry: Math.PI / 2 });
+    box(0.1, 0.9, 1, 0x1e1b18, cab.x + 2.52, 1.4, cab.z - 1.4);
+    box(0.7, 1.4, 0.7, 0x4f2f1d, cab.x - 1.6, 3.4, cab.z + 1.3);
+    box(2.2, 0.2, 4.2, 0x5a3a24, cab.x + 3.4, 0, cab.z);
+    colliders.push([cab.x - 2.8, cab.z - 2.4, cab.x + 2.8, cab.z + 2.4]);
+    const cabinHot = box(1.2, 2, 1.2, 0, cab.x + 2.9, 0, cab.z, { mat: new THREE.MeshBasicMaterial({ visible: false }) });
+    cabinHot.userData.click = { kind: "place", name: "cabin" };
+    clickables.push(cabinHot);
+
+    // store and gin house
+    const st = { x: 17.5, z: 12 };
+    box(7, 4, 5, 0xc7b08a, st.x, 0, st.z, { map: grain });
+    roof(7.8, 2, 5.6, 0x7a4a2e, st.x, 4, st.z);
+    box(1.4, 2.4, 0.1, 0x2e3b56, st.x - 1.6, 0, st.z - 2.51);
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 1.1), new THREE.MeshBasicMaterial({ map: textTexture(["HOLLIDAY", "STORE & GIN"], { size: 46 }) }));
+    sign.position.set(st.x + 0.6, 3.1, st.z - 2.53);
+    sign.rotation.y = Math.PI;
+    scene.add(sign);
+    mats.storeSign = sign;
+    colliders.push([st.x - 3.8, st.z - 2.8, st.x + 3.8, st.z + 2.8]);
+    const storeHot = box(1.6, 2.4, 1, 0, st.x - 1.6, 0, st.z - 3, { mat: new THREE.MeshBasicMaterial({ visible: false }) });
+    storeHot.userData.click = { kind: "place", name: "store" };
+    clickables.push(storeHot);
+
+    // the gin scale
+    const sc = { x: 13.6, z: 8 };
+    box(2.4, 0.25, 2.4, 0x5a3a24, sc.x, 0, sc.z);
+    box(0.25, 2.6, 0.25, 0x3e2718, sc.x + 1.3, 0, sc.z - 1.3);
+    const dial = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshBasicMaterial({ map: tex.dial, transparent: true }));
+    dial.position.set(sc.x + 1.3, 2.7, sc.z - 1.15);
+    dial.rotation.y = -0.6;
+    scene.add(dial);
+    scaleNeedle = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshBasicMaterial({ map: tex.needle, transparent: true }));
+    scaleNeedle.position.set(0, 0, 0.01);
+    dial.add(scaleNeedle);
+    scaleNeedle.rotation.z = Math.PI * 0.6;
+    const ginHot = box(2.4, 1.4, 2.4, 0, sc.x, 0, sc.z, { mat: new THREE.MeshBasicMaterial({ visible: false }) });
+    ginHot.userData.click = { kind: "place", name: "gin" };
+    clickables.push(ginHot);
+
+    // the big house on the hill
+    const bh = { x: 0, z: -32.5, y: HILL.h };
+    box(13, 6.4, 7, 0xefe6d2, bh.x, bh.y, bh.z, { map: grain });
+    roof(14, 2.6, 7.8, 0xa3271f, bh.x, bh.y + 6.4, bh.z);
+    box(13, 0.4, 3, 0xe2d4b6, bh.x, bh.y, bh.z + 5);
+    for (let i = 0; i < 6; i++) box(0.36, 4.6, 0.36, 0xf6efdf, bh.x - 5.6 + i * 2.24, bh.y + 0.4, bh.z + 6.2);
+    box(13.4, 0.4, 3.4, 0xe2d4b6, bh.x, bh.y + 5, bh.z + 5);
+    for (let i = 0; i < 4; i++) box(1.1, 1.5, 0.1, 0x2e3b56, bh.x - 4.5 + i * 3, bh.y + 1.4, bh.z + 3.52);
+    box(1.6, 2.6, 0.1, 0x2e3b56, bh.x, bh.y + 0.4, bh.z + 3.53);
+    for (let i = 0; i < 3; i++) box(3, 0.14, 0.5, 0xe2d4b6, bh.x, bh.y - 0.14 * (i + 1) + 0.28, bh.z + 6.8 + i * 0.5);
+    colliders.push([bh.x - 7, bh.z - 3.8, bh.x + 7, bh.z + 6.6]);
+    const bigHot = box(4, 3, 1, 0, bh.x, bh.y, bh.z + 6.8, { mat: new THREE.MeshBasicMaterial({ visible: false }) });
+    bigHot.userData.click = { kind: "place", name: "porch" };
+    clickables.push(bigHot);
+
+    // the church school (shown when the school card is drawn)
+    school = new THREE.Group();
+    const sx = -27, sz = -9;
+    const sb = new THREE.Mesh(new THREE.BoxGeometry(5, 3.2, 6), lambert(0xf6efdf, grain));
+    sb.position.set(sx, 1.6, sz); school.add(sb);
+    const sr = roof(5.8, 2.2, 6.6, 0xa3271f, sx, 3.2, sz); scene.remove(sr); sr.rotation.y = Math.PI / 2; school.add(sr);
+    const st2 = new THREE.Mesh(new THREE.BoxGeometry(1.1, 2.4, 1.1), lambert(0xf6efdf)); st2.position.set(sx + 2.2, 5, sz); school.add(st2);
+    const sch = new THREE.Mesh(new THREE.BoxGeometry(1.2, 2, 1.2), new THREE.MeshBasicMaterial({ visible: false }));
+    sch.position.set(sx + 2.8, 1, sz); sch.userData.click = { kind: "place", name: "school" }; school.add(sch); clickables.push(sch);
+    school.visible = false;
+    scene.add(school);
+
+    // trees and distant hills
+    const treeSpots = [[-30, 18], [-24, 24], [-8, 26], [10, 25], [26, 22], [32, 4], [30, -14], [16, -22], [-16, -22], [-32, -2], [-36, 10], [22, -34], [-22, -36], [38, -26], [-40, -22], [6, 30], [-14, 32]];
+    treeSpots.forEach(([x, z], i) => cutout(i % 2 ? "tree1" : "tree2", 6 + (i % 3), x, z));
+    [[110, "hills2", 18], [130, "hills1", 30]].forEach(([rad, t, h]) => {
+      for (let a = 0; a < 12; a++) {
+        const ang = (a / 12) * Math.PI * 2;
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(rad * 0.58, h), new THREE.MeshBasicMaterial({ map: tex[t], transparent: true, fog: false }));
+        m.position.set(Math.cos(ang) * rad, h / 2 - 2, Math.sin(ang) * rad);
+        m.lookAt(0, h / 2 - 2, 0);
+        scene.add(m);
+      }
+    });
+
+    // the family and the planter, as paper cutouts
+    people.mama = cutout("mama", 1.66, -12.3, 11.4);
+    people.lucy = cutout("lucy", 1.36, -13.4, 13.8);
+    people.sam = cutout("sam", 1.12, -12.6, 12.6);
+    people.ruth = cutout("ruth", 1.56, -14.4, 14.6, { y: 0.2 });
+    people.holliday = cutout("holliday", 1.9, 0.6, -25.9, { y: HILL.h + 0.4 });
+    Object.entries(people).forEach(([id, m]) => { m.userData.click = { kind: "person", id }; clickables.push(m); });
+    muleCut = cutout("mule", 1.6, -9.5, 15.5);
+    muleCut.userData.click = { kind: "person", id: "mule" };
+    clickables.push(muleCut);
+
+    // wagon for harvest
+    wagon = new THREE.Group();
+    const bed = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.5, 1.6), lambert(0x7a4a2e));
+    bed.position.y = 0.9; wagon.add(bed);
+    for (const [wx, wz] of [[-0.9, -0.85], [0.9, -0.85], [-0.9, 0.85], [0.9, 0.85]]) {
+      const wh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 0.12, 12), lambert(0x3e2718));
+      wh.rotation.x = Math.PI / 2; wh.position.set(wx, 0.5, wz); wagon.add(wh);
+    }
+    wagon.userData.bales = [];
+    wagon.position.set(4, 0, 8);
+    wagon.visible = false;
+    scene.add(wagon);
+
+    // flood water and rain, hidden until a card calls for them
+    flood = new THREE.Mesh(new THREE.PlaneGeometry(30, 12), new THREE.MeshLambertMaterial({ color: 0x4c5c7e, transparent: true, opacity: 0.78 }));
+    flood.rotation.x = -Math.PI / 2;
+    flood.position.set(0, 0.32, -1.6);
+    flood.visible = false;
+    scene.add(flood);
+    const drops = new Float32Array(900 * 6);
+    const rg = new THREE.BufferGeometry();
+    rg.setAttribute("position", new THREE.BufferAttribute(drops, 3));
+    rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xf6efdf, transparent: true, opacity: 0.55 }));
+    rain.visible = false;
+    rain.frustumCulled = false;
+    scene.add(rain);
+    for (let i = 0; i < 900; i++) resetDrop(i, true);
+  }
+
+  function resetDrop(i, any) {
+    const a = rain.geometry.attributes.position.array;
+    const x = pos.x + (Math.random() - 0.5) * 40, z = pos.z + (Math.random() - 0.5) * 40;
+    const y = any ? Math.random() * 14 : 14;
+    a.set([x, y, z, x - 0.08, y - 0.7, z], i * 6);
+  }
+
+  // ---- input ----------------------------------------------------------------
+  const ray = () => new THREE.Raycaster();
+  let raycaster;
+  function pickAt(clientX, clientY) {
+    const r = renderer.domElement.getBoundingClientRect();
+    v.ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    raycaster.setFromCamera(v.ndc, camera);
+    const hits = raycaster.intersectObjects(clickables.filter((m) => isVisible(m)), false);
+    for (const h of hits) {
+      const c = h.object.userData.click;
+      if (!c) continue;
+      return { ...c, point: h.point, distance: h.distance, object: h.object };
+    }
+    return null;
+  }
+  function isVisible(m) {
+    let o = m;
+    while (o) { if (!o.visible) return false; o = o.parent; }
+    return true;
+  }
+
+  function onPointerDown(e) {
+    if (mode === "locked") return;
+    drag = { x: e.clientX, y: e.clientY, yaw: look.yaw, pitch: look.pitch, moved: false, id: e.pointerId };
+    renderer.domElement.setPointerCapture?.(e.pointerId);
+  }
+  function onPointerMove(e) {
+    if (drag) {
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
+      if (drag.moved) {
+        look.yaw = drag.yaw - dx * 0.0042;
+        look.pitch = Math.max(-1.1, Math.min(0.7, drag.pitch - dy * 0.0036));
+      }
+      return;
+    }
+    if (mode === "locked" || e.pointerType === "touch") return;
+    const hit = pickAt(e.clientX, e.clientY);
+    setHover(hit && hit.kind !== "ground" ? hit : null, e.clientX, e.clientY);
+  }
+  function onPointerUp(e) {
+    if (!drag) return;
+    const wasDrag = drag.moved;
+    drag = null;
+    if (wasDrag || mode === "locked") return;
+    const hit = pickAt(e.clientX, e.clientY);
+    if (!hit) return;
+    handleClick(hit);
+  }
+
+  function handleClick(hit) {
+    if (hit.kind === "ground") {
+      if (mode === "free" || mode === "plant" || mode === "harvest") walkToPoint(hit.point.x, hit.point.z);
+      return;
+    }
+    if (hit.kind === "plot" || hit.kind === "plant") {
+      const index = hit.kind === "plot" ? hit.index : hit.plot;
+      if (mode === "plant") handlers.plot?.(index);
+      else if (mode === "free" || mode === "harvest") walkToPoint(hit.point.x, hit.point.z);
+      return;
+    }
+    if (hit.kind === "place" || hit.kind === "person") handlers.interact?.(hit.kind === "place" ? hit.name : hit.id);
+  }
+
+  function setHover(hit, x, y) {
+    if (hovered && hovered.kind === "plot") plots[hovered.index].tile.material = plots[hovered.index].corn ? mats.soilCorn : mats.soil;
+    hovered = hit;
+    let label = "";
+    if (hit) {
+      if (hit.kind === "plot" && mode === "plant") {
+        plots[hit.index].tile.material = mats.soilHover;
+        label = plots[hit.index].corn ? "Corn · tap for cotton" : "Cotton · tap for corn";
+      } else if (hit.kind === "person") {
+        const names = { mama: "Mama", lucy: "Lucy", sam: "Sam", ruth: "Grandma Ruth", holliday: "Mr. " + (handlers.planterName?.() || "Holliday"), mule: "The mule" };
+        label = names[hit.id] || "";
+      } else if (hit.kind === "place") {
+        label = { cabin: "Your cabin", store: "The store", gin: "The gin scale", porch: "The big house", school: "The church school" }[hit.name] || "";
+      }
+    }
+    renderer.domElement.style.cursor = label ? "pointer" : (mode === "locked" ? "default" : "grab");
+    if (label) {
+      tagEl.textContent = label;
+      tagEl.hidden = false;
+      const r = container.getBoundingClientRect();
+      tagEl.style.left = (x - r.left + 14) + "px";
+      tagEl.style.top = (y - r.top + 14) + "px";
+    } else tagEl.hidden = true;
+  }
+
+  function onKey(e, down) {
+    if (e.target && /INPUT|TEXTAREA|SELECT|BUTTON/.test(e.target.tagName) && e.key !== "Escape") return;
+    const k = e.key.toLowerCase();
+    if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "q", "e"].includes(k)) {
+      keys[k] = down;
+      if (down && mode !== "locked") { walk = null; e.preventDefault(); }
+    }
+  }
+
+  // ---- movement -------------------------------------------------------------
+  function collide(x, z) {
+    for (const [a, b, c, d] of colliders) {
+      if (x > a && x < c && z > b && z < d) {
+        const dl = x - a, dr = c - x, dt = z - b, db = d - z;
+        const m = Math.min(dl, dr, dt, db);
+        if (m === dl) x = a; else if (m === dr) x = c; else if (m === dt) z = b; else z = d;
+      }
+    }
+    const rr = Math.hypot(x, z);
+    if (rr > 60) { x *= 60 / rr; z *= 60 / rr; }
+    return [x, z];
+  }
+
+  function walkToPoint(x, z, faceTo) {
+    return new Promise((resolve) => {
+      const dx = x - pos.x, dz = z - pos.z;
+      const yaw = faceTo ? Math.atan2(-(faceTo[0] - x), -(faceTo[2] - z)) : Math.atan2(-dx, -dz);
+      walk = { x, z, yaw, pitch: null, resolve, turnFirst: true };
+    });
+  }
+
+  function walkTo(name) {
+    const p = PLACES[name];
+    if (!p) return Promise.resolve();
+    return new Promise((resolve) => {
+      const yaw = Math.atan2(-(p.face[0] - p.x), -(p.face[2] - p.z));
+      walk = { x: p.x, z: p.z, yaw, pitch: p.pitch, resolve };
+      if (reduceMotion || !ok) { pos.x = p.x; pos.z = p.z; look.yaw = yaw; look.pitch = p.pitch; finishWalk(); }
+    });
+  }
+  function finishWalk() {
+    const w = walk;
+    walk = null;
+    if (w && w.path && w.path.length) {
+      const [nx, nz] = w.path[0];
+      walk = { ...w, x: nx, z: nz, yaw: Math.atan2(-(nx - w.x), -(nz - w.z)), path: w.path.slice(1) };
+      return;
+    }
+    w?.resolve?.();
+  }
+
+  function angleDiff(a, b) {
+    let d = a - b;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return d;
+  }
+
+  function step(dt) {
+    // keyboard walking
+    const fwd = (keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0);
+    const side = (keys.d ? 1 : 0) - (keys.a ? 1 : 0);
+    const turn = (keys.arrowleft || keys.q ? 1 : 0) - (keys.arrowright || keys.e ? 1 : 0);
+    if (mode !== "locked") {
+      look.yaw += turn * dt * 1.6;
+      if (fwd || side) {
+        const sp = 5 * dt;
+        const fx = -Math.sin(look.yaw), fz = -Math.cos(look.yaw);
+        const rx = Math.cos(look.yaw), rz = -Math.sin(look.yaw);
+        const nx = pos.x + (fx * fwd + rx * side) * sp;
+        const nz = pos.z + (fz * fwd + rz * side) * sp;
+        [pos.x, pos.z] = collide(nx, nz);
+      }
+    }
+    // auto walking
+    if (walk) {
+      const dx = walk.x - pos.x, dz = walk.z - pos.z;
+      const dist = Math.hypot(dx, dz);
+      const heading = dist > 0.3 ? Math.atan2(-dx, -dz) : walk.yaw;
+      const target = dist > 1.2 ? heading : walk.yaw;
+      look.yaw += angleDiff(target, look.yaw) * Math.min(1, dt * 4);
+      if (walk.pitch != null) look.pitch += (walk.pitch - look.pitch) * Math.min(1, dt * 3);
+      if (dist > 0.05) {
+        const sp = Math.min(dist, 6.5 * dt);
+        [pos.x, pos.z] = collide(pos.x + (dx / dist) * sp, pos.z + (dz / dist) * sp);
+        if (Math.hypot(walk.x - pos.x, walk.z - pos.z) > dist - 0.0001 && dist < 1) { pos.x = walk.x; pos.z = walk.z; }
+      }
+      if (dist < 0.06 && Math.abs(angleDiff(walk.yaw, look.yaw)) < 0.06 && (walk.pitch == null || Math.abs(walk.pitch - look.pitch) < 0.04)) {
+        look.yaw = walk.yaw;
+        if (walk.pitch != null) look.pitch = walk.pitch;
+        finishWalk();
+      }
+    }
+    camera.position.set(pos.x, heightAt(pos.x, pos.z) + EYE, pos.z);
+    camera.rotation.set(look.pitch, look.yaw, 0, "YXZ");
+
+    // harvest: the cotton comes off the plants Papa walks past
+    if (mode === "harvest") {
+      let changed = false;
+      for (const p of plants) {
+        if (p.picked || plots[p.plot].corn || !p.group.visible) continue;
+        if (Math.hypot(p.x - pos.x, p.z - pos.z) < 2.4) {
+          p.picked = true;
+          setPlantTexture(p, "cottonPicked");
+          pop(p.group);
+          changed = true;
+        }
+      }
+      if (changed) handlers.harvest?.(harvestFraction());
+    }
+
+    // cutouts turn to face Papa, like paper standees
+    for (const b of billboards) {
+      if (!b.visible) continue;
+      b.rotation.y = Math.atan2(camera.position.x - b.position.x, camera.position.z - b.position.z);
+    }
+    // tweens
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const t = tweens[i];
+      t.t += dt / t.dur;
+      const k = Math.min(1, t.t);
+      t.fn(k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2, k);
+      if (k >= 1) { tweens.splice(i, 1); t.done?.(); }
+    }
+    // rain
+    if (rain.visible) {
+      const a = rain.geometry.attributes.position.array;
+      for (let i = 0; i < 900; i++) {
+        a[i * 6 + 1] -= dt * 16; a[i * 6 + 4] -= dt * 16;
+        if (a[i * 6 + 4] < 0) resetDrop(i, false);
+      }
+      rain.geometry.attributes.position.needsUpdate = true;
+    }
+    // speech bubble follows its speaker
+    if (bubble) {
+      const m = people[bubble.id] || muleCut;
+      v.tmp.copy(m.position); v.tmp.y += (m.geometry.parameters?.height || 1.6) + 0.25;
+      v.tmp.project(camera);
+      const r = container.getBoundingClientRect();
+      if (v.tmp.z < 1) {
+        bubbleEl.style.left = ((v.tmp.x + 1) / 2) * r.width + "px";
+        bubbleEl.style.top = ((1 - v.tmp.y) / 2) * r.height + "px";
+        bubbleEl.hidden = false;
+      } else bubbleEl.hidden = true;
+      bubble.t -= dt;
+      if (bubble.t <= 0) { bubble = null; bubbleEl.hidden = true; }
+    }
+  }
+
+  function harvestFraction() {
+    const cotton = plants.filter((p) => !plots[p.plot].corn && p.group.visible);
+    return cotton.length ? cotton.filter((p) => p.picked).length / cotton.length : 1;
+  }
+
+  function tween(dur, fn, done) {
+    if (reduceMotion) { fn(1, 1); done?.(); return; }
+    tweens.push({ t: 0, dur, fn, done });
+  }
+  function pop(g) {
+    const s = g.scale.x;
+    tween(0.25, (k, raw) => { const b = 1 + Math.sin(raw * Math.PI) * 0.25; g.scale.set(s * b, s * b, s * b); });
+  }
+
+  function loop(t) {
+    requestAnimationFrame(loop);
+    if (document.hidden) return;
+    const dt = Math.min(0.1, (t - lastT) / 1000 || 0.016);
+    lastT = t;
+    step(dt);
+    renderer.render(scene, camera);
+  }
+
+  function resize() {
+    const w = container.clientWidth, h = container.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.fov = w / h < 0.9 ? 70 : 58;
+    camera.updateProjectionMatrix();
+  }
+
+  // ---- crop and season state ---------------------------------------------
+  let stage = "plan";
+  function setPlantTexture(p, name) {
+    const t = tex[name];
+    const isCorn = name.startsWith("corn");
+    const h = { sprout: 0.5, cornSprout: 0.95, cottonGrow: 1.0, cottonRipe: 1.05, cottonPicked: 1.0, cornGrow: 2.1, cornRipe: 2.1 }[name] || 1;
+    p.group.children.forEach((m) => {
+      m.material = mats["plant_" + name] || (mats["plant_" + name] = new THREE.MeshBasicMaterial({ map: t, transparent: true, alphaTest: 0.35, side: THREE.DoubleSide }));
+      const aspect = t.image.width / t.image.height;
+      m.geometry.dispose();
+      const g = new THREE.PlaneGeometry(h * aspect, h);
+      g.translate(0, h / 2, 0);
+      m.geometry = g;
+    });
+    p.kind = isCorn ? "corn" : "cotton";
+  }
+  function refreshPlants() {
+    plots.forEach((plot) => {
+      plot.tile.material = plot.corn ? mats.soilCorn : mats.soil;
+      plot.plants.forEach((p) => {
+        let name;
+        if (plot.corn) name = stage === "plan" ? "cornSprout" : stage === "grow" ? "cornGrow" : "cornRipe";
+        else if (stage === "plan") name = "sprout";
+        else if (stage === "grow") name = "cottonGrow";
+        else name = p.picked || stage === "picked" ? "cottonPicked" : "cottonRipe";
+        setPlantTexture(p, name);
+      });
+    });
+  }
+
+  const SKIES = {
+    spring: [0xe8d6a8, 0x9fa262], summer: [0xe3c587, 0x8c9550], fall: [0xd9b16a, 0xa38f54],
+    dusk: [0x3a4466, 0x5b5a40], drought: [0xe7b56a, 0xb9965a],
+  };
+  function setSky(name) {
+    const [sky, grass] = SKIES[name] || SKIES.spring;
+    scene.background.setHex(sky);
+    scene.fog.color.setHex(sky);
+    groundMats.forEach((m) => m.color.setHex(grass));
+    const dusk = name === "dusk";
+    Object.values(mats).forEach((m) => { if (m && m.isMeshBasicMaterial && m.map && m !== mats.blob) m.color.setHex(dusk ? 0x9aa0b8 : 0xffffff); });
+    billboards.forEach((b) => b.material.color.setHex(dusk ? 0xb8bccc : 0xffffff));
+  }
+
+  // ---- public API -----------------------------------------------------------
+  async function init(el) {
+    container = el;
+    reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false;
+    try {
+      THREE = await import(THREE_URL);
+      const test = document.createElement("canvas");
+      if (!(test.getContext("webgl2") || test.getContext("webgl"))) throw new Error("no webgl");
+      v.ndc = new THREE.Vector2(); v.tmp = new THREE.Vector3();
+      raycaster = ray();
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      el.prepend(renderer.domElement);
+      renderer.domElement.className = "world-canvas";
+      renderer.domElement.setAttribute("aria-label", "The farm, seen through Papa's eyes. Drag to look around, tap to walk or act.");
+      renderer.domElement.setAttribute("role", "img");
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(SKIES.spring[0]);
+      scene.fog = new THREE.Fog(SKIES.spring[0], 45, 140);
+      camera = new THREE.PerspectiveCamera(58, 1, 0.1, 400);
+      const names = Object.keys(SPRITES);
+      const loaded = await Promise.all(names.map((n) => svgToTexture(SPRITES[n]())));
+      if (loaded.some((t) => !t)) throw new Error("sprites");
+      names.forEach((n, i) => { tex[n] = loaded[i]; });
+      build();
+      refreshPlants();
+      tagEl = el.querySelector(".world-tag");
+      bubbleEl = el.querySelector(".world-bubble");
+      hintEl = el.querySelector(".world-hint");
+      const c = renderer.domElement;
+      c.addEventListener("pointerdown", onPointerDown);
+      c.addEventListener("pointermove", onPointerMove);
+      c.addEventListener("pointerup", onPointerUp);
+      c.addEventListener("pointercancel", () => { drag = null; });
+      c.addEventListener("pointerleave", () => { if (!drag) setHover(null); });
+      window.addEventListener("keydown", (e) => onKey(e, true));
+      window.addEventListener("keyup", (e) => onKey(e, false));
+      new ResizeObserver(resize).observe(el);
+      resize();
+      ok = true;
+      requestAnimationFrame(loop);
+      return true;
+    } catch (err) {
+      console.warn("3D world unavailable, using flat screens.", err);
+      ok = false;
+      return false;
+    }
+  }
+
+  return {
+    get ok() { return ok; },
+    get debug() { return { x: pos.x, z: pos.z, yaw: look.yaw, pitch: look.pitch, walking: !!walk, mode }; },
+    init,
+    on(h) { handlers = { ...handlers, ...h }; },
+    setMode(m) {
+      mode = m;
+      if (!ok) return;
+      renderer.domElement.style.cursor = m === "locked" ? "default" : "grab";
+      if (m === "locked") { setHover(null); Object.keys(keys).forEach((k) => { keys[k] = false; }); }
+    },
+    walkTo(name) { return ok ? walkTo(name) : Promise.resolve(); },
+    place(name) {
+      const p = PLACES[name];
+      if (!ok || !p) return;
+      pos.x = p.x; pos.z = p.z;
+      look.yaw = Math.atan2(-(p.face[0] - p.x), -(p.face[2] - p.z));
+      look.pitch = p.pitch;
+      walk = null;
+    },
+    setCorn(set) {
+      if (!ok) return;
+      plots.forEach((p) => { p.corn = set.has(p.index); });
+      refreshPlants();
+    },
+    setStage(s) {
+      stage = s;
+      if (!ok) return;
+      if (s !== "ripe") plants.forEach((p) => { p.picked = false; });
+      refreshPlants();
+    },
+    setSky(name) { if (ok) setSky(name); },
+    setWeather(w) {
+      if (!ok) return;
+      rain.visible = w === "rain";
+      flood.visible = w === "flood";
+      if (w === "flood") plots.forEach((p) => p.plants.forEach((pl) => { if (p.corn) pl.group.visible = false; }));
+      else plants.forEach((pl) => { pl.group.visible = true; });
+      if (w === "drought") setSky("drought");
+    },
+    setFlags({ mule: muleState, school: schoolOn } = {}) {
+      if (!ok) return;
+      if (muleState != null) muleCut.visible = muleState !== "none";
+      if (schoolOn != null) school.visible = schoolOn;
+    },
+    setPeople(where) {
+      if (!ok) return;
+      const spots = {
+        home: { mama: [-12.3, 11.4, "mama"], lucy: [-13.4, 13.8, "lucy"], sam: [-12.6, 12.6, "sam"], ruth: [-14.4, 14.6, "ruth"] },
+        field: { mama: [-2.2, 5.6, "mamaWork"], lucy: [3.4, 5.8, "lucyWork"], sam: [5.6, 6.6, "samWork"], ruth: [-13.9, 12.4, "ruth"] },
+        porch: { mama: [1.6, -21.6, "mama"], lucy: [-13.4, 13.8, "lucy"], sam: [-12.6, 12.6, "sam"], ruth: [-14.4, 14.6, "ruth"] },
+        store: { mama: [12.2, 5.4, "mama"], lucy: [-13.4, 13.8, "lucy"], sam: [-12.6, 12.6, "sam"], ruth: [-14.4, 14.6, "ruth"] },
+      }[where] || {};
+      Object.entries(spots).forEach(([id, [x, z, t]]) => {
+        const m = people[id];
+        m.position.set(x, heightAt(x, z) + (id === "ruth" && where !== "field" ? 0.2 : 0), z);
+        m.material.map = tex[t];
+        m.material.needsUpdate = true;
+      });
+    },
+    say(id, text, seconds = 4.5) {
+      if (!ok || !bubbleEl) return;
+      bubbleEl.textContent = text;
+      bubble = { id, t: seconds };
+    },
+    hint(text) {
+      if (!hintEl) return;
+      hintEl.textContent = text || "";
+      hintEl.hidden = !text;
+    },
+    harvestFraction() { return ok ? harvestFraction() : 0; },
+    // Walk every row of the field, front to back.
+    walkRows() {
+      if (!ok) return Promise.resolve();
+      const route = [[-10.5, 6.6], [10.5, 6.6], [10.5, 2.2], [-10.5, 2.2], [-10.5, -2.2], [10.5, -2.2], [10.5, -6.4], [-10.5, -6.4]];
+      return new Promise((resolve) => {
+        const [x, z] = route[0];
+        walk = { x, z, yaw: Math.atan2(-(x - pos.x), -(z - pos.z)), pitch: -0.42, resolve, path: route.slice(1) };
+      });
+    },
+    // Harvest: load the wagon and roll it to the scale. Calls back with the
+    // planter's weight once the needle settles.
+    harvestRun(bales, scaleLbs, maxLbs) {
+      if (!ok) return Promise.resolve();
+      return new Promise((resolve) => {
+        wagon.userData.bales.forEach((b) => wagon.remove(b));
+        wagon.userData.bales = [];
+        const n = Math.max(1, Math.round(bales));
+        for (let i = 0; i < n; i++) {
+          const b = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.6, 0.6), lambert(0xf6efdf));
+          b.position.set(-0.8 + (i % 3) * 0.8, 1.45 + Math.floor(i / 3) * 0.62, (i % 2) * 0.1 - 0.05);
+          const tie = new THREE.Mesh(new THREE.BoxGeometry(0.78, 0.62, 0.06), lambert(0x4f2f1d));
+          b.add(tie);
+          wagon.add(b);
+          wagon.userData.bales.push(b);
+        }
+        wagon.visible = true;
+        wagon.position.set(4, 0, 8);
+        muleCut.userData.home = muleCut.userData.home || muleCut.position.clone();
+        const muleWasVisible = muleCut.visible;
+        muleCut.visible = true;
+        scaleNeedle.rotation.z = Math.PI * 0.6;
+        walkTo("gin");
+        tween(3.2, (k) => {
+          wagon.position.set(4 + (13.6 - 4) * k, 0.25 * k, 8);
+          muleCut.position.set(wagon.position.x + 2.4, 0, wagon.position.z);
+        }, () => {
+          const frac = Math.min(1, scaleLbs / maxLbs);
+          tween(1.8, (k) => { scaleNeedle.rotation.z = Math.PI * 0.6 - k * frac * Math.PI * 1.4; }, () => {
+            setTimeout(() => {
+              muleCut.position.copy(muleCut.userData.home);
+              muleCut.visible = muleWasVisible;
+              resolve();
+            }, 250);
+          });
+        });
+      });
+    },
+    hideWagon() { if (ok) wagon.visible = false; },
+    setPlanter(name) {
+      if (!ok || mats.storeSign.userData.name === name) return;
+      mats.storeSign.material.map?.dispose();
+      mats.storeSign.material.map = textTexture([name.toUpperCase(), "STORE & GIN"], { size: 46 });
+      mats.storeSign.material.needsUpdate = true;
+      mats.storeSign.userData.name = name;
+    },
+  };
+})();
+
+// ============================================================================
+// GAME — the flow: join, contract, five crop years, ending, audit.
+// ============================================================================
+const $ = (sel, root = document) => root.querySelector(sel);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+function fmt(n) {
+  const v = Math.abs(n) < 0.005 ? 0 : n;
+  const s = Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (v < 0 ? "−$" : "$") + s;
+}
+const fmtLbs = (n) => Math.round(n).toLocaleString("en-US") + " lb";
+const fmtBales = (n) => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
+
+const SAVE_KEY = "settling-up:v1";
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage off */ } },
+  del(k) { try { localStorage.removeItem(k); } catch { /* storage off */ } },
+};
+
+const Game = {
+  g: null,
+  y: null,
+  classroom: null,       // { mode, year, revealed } from the teacher, when live
+  els: {},
+  corn: new Set(),
+
+  // ---- text helpers -------------------------------------------------------
+  planter() { return PLANTERS[Math.min(this.g?.planterIndex || 0, PLANTERS.length - 1)]; },
+  t(s) {
+    return String(s || "")
+      .replaceAll("{F}", this.g?.family || "")
+      .replaceAll("{P}", this.planter())
+      .replaceAll("{Y}", this.y?.year || "")
+      .replaceAll("Mr. Holliday", "Mr. " + this.planter());
+  },
+  log(text, kind = "story") {
+    if (!this.g) return;
+    this.g.journal = this.g.journal || [];
+    const last = this.g.journal[this.g.journal.length - 1];
+    if (last && last.text === text) return;
+    this.g.journal.push({ year: this.y?.year || CONFIG.years[0], kind, text });
+  },
+  save() {
+    if (!this.g) return;
+    this.g.cur = this.y;
+    this.g.cornPlots = [...this.corn];
+    store.set(SAVE_KEY, this.g);
+    Sync.saveFamily(this.g);
+    this.renderTopbar();
+  },
+
+  // ---- boot ----------------------------------------------------------------
+  async boot() {
+    this.els = {
+      topbar: $("#topbar"), world: $("#world"), flat: $("#world-flat"), dock: $("#dock"),
+      sheet: $("#sheet"), sheetBody: $("#sheet-body"), cut: $("#cutscene"), journal: $("#journal"),
+      teacher: $("#teacher"),
+    };
+    World.on({
+      plot: (i) => this.togglePlot(i),
+      harvest: (f) => this.onHarvest(f),
+      interact: (name) => this.onInteract(name),
+      planterName: () => this.planter(),
+    });
+    $("#journal-btn").addEventListener("click", () => this.openJournal());
+    const setTop = () => document.documentElement.style.setProperty("--top", this.els.topbar.offsetHeight + "px");
+    new ResizeObserver(setTop).observe(this.els.topbar);
+    setTop();
+    $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !this.els.journal.hidden) this.els.journal.hidden = true;
+    });
+    this.showFlat("fieldSun");
+    const worldReady = World.init(this.els.world);
+    Sync.init();
+    if (location.hash === "#teacher") { Teacher.open(); return; }
+    await worldReady;
+    if (World.ok) this.els.flat.hidden = true;
+    else document.querySelector(".world-help")?.remove();
+    this.showJoin();
+  },
+
+  showFlat(art) {
+    if (World.ok) { this.els.flat.hidden = true; return; }
+    this.els.flat.hidden = false;
+    this.els.flat.innerHTML = sceneSVG(art, "");
+  },
+
+  // ---- top bar ------------------------------------------------------------
+  renderTopbar() {
+    const g = this.g;
+    const yrs = CONFIG.years.map((yr, i) => {
+      const done = g && g.years[i];
+      const cur = g && !g.ending && i === g.yearIndex;
+      const bal = done ? `<span class="chip-bal ${done.ledger.balance < 0 ? "neg" : ""}">${fmt(done.ledger.balance)}</span>` : "";
+      return `<li class="${cur ? "cur" : ""} ${done ? "done" : ""}" aria-current="${cur ? "step" : "false"}"><span class="chip-yr">${yr}</span>${bal}</li>`;
+    }).join("");
+    $("#years").innerHTML = yrs;
+    $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
+  },
+
+  // ---- dock: the small card in the corner --------------------------------
+  dock(html) {
+    this.els.dock.innerHTML = html;
+    this.els.dock.hidden = !html;
+  },
+  sheet(html, opts = {}) {
+    this.els.sheetBody.innerHTML = html;
+    this.els.sheet.hidden = false;
+    this.els.sheet.classList.toggle("wide", !!opts.wide);
+    this.els.sheet.classList.toggle("low", !!opts.low);
+    this.els.sheet.scrollTop = 0;
+    this.els.sheetBody.scrollTop = 0;
+    World.setMode("locked");
+    const first = this.els.sheetBody.querySelector("[autofocus], input, button.primary");
+    setTimeout(() => first?.focus({ preventScroll: true }), 30);
+  },
+  closeSheet() { this.els.sheet.hidden = true; },
+
+  // ---- cutscenes -----------------------------------------------------------
+  cutscene(panels) {
+    return new Promise((resolve) => {
+      let i = 0;
+      const el = this.els.cut;
+      World.setMode("locked");
+      const show = () => {
+        const p = panels[i];
+        const cap = this.t(p.caption), sub = this.t(p.sub || "");
+        this.log(cap + (sub ? " " + sub : ""), "cutscene");
+        el.innerHTML = `
+          <div class="cut-frame"><div class="cut-art">${sceneSVG(p.art, cap)}</div></div>
+          <div class="cut-text">
+            <p class="cut-cap">${esc(cap)}</p>
+            ${sub ? `<p class="cut-sub">${esc(sub)}</p>` : ""}
+            <div class="cut-nav">
+              <span class="cut-count">${i + 1} / ${panels.length}</span>
+              <button class="ghost" data-skip>Skip</button>
+              <button class="primary" data-next autofocus>${i === panels.length - 1 ? "Continue" : "Next"}</button>
+            </div>
+          </div>`;
+        el.hidden = false;
+        el.querySelector("[data-next]").focus({ preventScroll: true });
+      };
+      const next = () => { i++; if (i >= panels.length) finish(); else show(); };
+      const finish = () => {
+        el.hidden = true;
+        el.removeEventListener("click", onClick);
+        document.removeEventListener("keydown", onKey);
+        this.save();
+        resolve();
+      };
+      const onClick = (e) => {
+        if (e.target.closest("[data-skip]")) { finish(); return; }
+        next();
+      };
+      const onKey = (e) => {
+        if (["Enter", " ", "ArrowRight"].includes(e.key)) { e.preventDefault(); next(); }
+        if (e.key === "Escape") finish();
+      };
+      el.addEventListener("click", onClick);
+      document.addEventListener("keydown", onKey);
+      show();
+    });
+  },
+
+  // ---- join -----------------------------------------------------------------
+  showJoin() {
+    const saved = store.get(SAVE_KEY);
+    const resume = saved && saved.v === 1 && saved.step !== "done" ? saved : null;
+    this.dock("");
+    this.sheet(`
+      <div class="join">
+        <p class="eyebrow">Mississippi · 1869 to 1873</p>
+        <h1 class="title">Settling Up</h1>
+        <p class="lede">You are Robert, a free farmer four years after the Civil War. For five crop years you will plant, buy on credit, and settle up with the planter who keeps the books. Then you will audit those books.</p>
+        ${resume ? `<div class="resume"><p>Pick up where you left off: <strong>the ${esc(resume.family)} family</strong>, ${resume.ending ? "the audit" : CONFIG.years[resume.yearIndex]}.</p><button class="primary" id="resume-btn">Continue</button></div>` : ""}
+        <form id="join-form" class="join-form" novalidate>
+          <label for="fam-name">Family name</label>
+          <input id="fam-name" name="family" maxlength="24" autocomplete="off" placeholder="Whitfield" required ${resume ? "" : "autofocus"}>
+          <label for="class-code">Class code <span class="opt">from your teacher, if you have one</span></label>
+          <input id="class-code" name="code" maxlength="12" autocomplete="off" placeholder="e.g. P3" style="text-transform:uppercase">
+          <p class="form-err" id="join-err" hidden>Type a family name to begin.</p>
+          <button class="primary big" type="submit">${resume ? "Start a new family" : "Begin"}</button>
+        </form>
+        <p class="fine">About 25 minutes. One device per family of 2 or 3 is fine: talk each choice through. <a href="#teacher" id="teacher-link">Teacher board</a></p>
+      </div>`);
+    $("#teacher-link").addEventListener("click", (e) => { e.preventDefault(); location.hash = "teacher"; Teacher.open(); });
+    if (resume) $("#resume-btn").addEventListener("click", () => this.resume(resume));
+    $("#join-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fam = $("#fam-name").value.trim().replace(/\s+/g, " ");
+      const code = $("#class-code").value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+      if (!fam) { $("#join-err").hidden = false; $("#fam-name").focus(); return; }
+      this.start(fam, code);
+    });
+  },
+
+  start(family, code) {
+    this.g = newGame(family, code);
+    this.g.step = "prologue";
+    this.g.journal = [];
+    this.y = null;
+    this.corn = new Set();
+    Sync.watchClass(code, (c) => this.onClassroom(c));
+    this.save();
+    this.closeSheet();
+    this.run();
+  },
+
+  resume(saved) {
+    this.g = saved;
+    this.y = saved.cur || null;
+    this.corn = new Set(saved.cornPlots || []);
+    Sync.watchClass(saved.classCode, (c) => this.onClassroom(c));
+    this.closeSheet();
+    this.run();
+  },
+
+  onClassroom(c) {
+    this.classroom = c;
+    if (this.waiting) this.waiting();
+  },
+
+  // ---- the main sequence ----------------------------------------------------
+  async run() {
+    const g = this.g;
+    this.renderTopbar();
+    if (g.step === "prologue") {
+      await this.cutscene(PROLOGUE);
+      g.step = "contract"; this.save();
+    }
+    if (g.step === "contract") {
+      await this.contract();
+      g.step = "plant"; this.save();
+    }
+    while (!g.ending) {
+      if (!this.y || this.y.year !== currentYear(g)) {
+        this.y = blankYear(g);
+        this.corn = new Set();
+        this.save();
+      }
+      await this.playYear();
+    }
+    if (g.step !== "audit" && g.step !== "done") {
+      await this.endingScene();
+      g.step = "audit"; this.save();
+    }
+    if (g.step === "audit") {
+      await this.waitForReveal();
+      await this.audit();
+      g.step = "done"; this.save();
+    }
+    this.done();
+  },
+
+  async playYear() {
+    const g = this.g;
+    const steps = ["plant", "store", "event", "harvest", "settle"];
+    if (!steps.includes(g.step)) g.step = "plant";
+    if (g.step === "plant") {
+      await this.waitForYear();
+      await this.plant();
+      g.step = "store"; this.save();
+    }
+    if (g.step === "store") { await this.storeStep(); g.step = "event"; this.save(); }
+    if (g.step === "event") { await this.eventStep(); g.step = "harvest"; this.save(); }
+    if (g.step === "harvest") { await this.harvestStep(); g.step = "settle"; this.save(); }
+    if (g.step === "settle") {
+      const before = g.yearIndex;
+      await this.settleStep();
+      if (!g.ending) {
+        g.step = "plant";
+        this.save();
+        if (g.yearIndex !== before && INTERLUDES[currentYear(g)]) await this.cutscene(INTERLUDES[currentYear(g)]);
+      }
+    }
+  },
+
+  // ---- class mode gates -------------------------------------------------------
+  waitFor(test, html) {
+    if (test()) return Promise.resolve();
+    return new Promise((resolve) => {
+      this.dock("");
+      this.sheet(html);
+      this.waiting = () => { if (test()) { this.waiting = null; this.closeSheet(); resolve(); } };
+    });
+  },
+  waitForYear() {
+    const yr = currentYear(this.g);
+    return this.waitFor(
+      () => !this.classroom || this.classroom.mode !== "class" || (this.classroom.year || CONFIG.years[0]) >= yr,
+      `<div class="wait"><p class="eyebrow">Class mode</p><h2>Waiting for ${yr}</h2><p>Your teacher will start the next crop year for everyone at once. Talk with your family: what will you plant this time?</p></div>`
+    );
+  },
+  waitForReveal() {
+    return this.waitFor(
+      () => !this.classroom || this.classroom.revealed || !this.classroom.exists,
+      `<div class="wait"><p class="eyebrow">The books are closed</p><h2>Waiting for the audit</h2><p>Your teacher will open Mr. ${esc(this.planter())}'s books for every family at once.</p></div>`
+    );
+  },
+
+  // ---- contract -------------------------------------------------------------
+  contract() {
+    return new Promise((resolve) => {
+      World.setSky("spring");
+      World.place("home");
+      this.showFlat("contractDesk");
+      this.log(CONTRACT.narration);
+      this.sheet(`
+        <p class="eyebrow">January 1869 · The big house</p>
+        <h2>The contract</h2>
+        <p class="voice">${esc(this.t(CONTRACT.narration))}</p>
+        <div class="contract">
+          <p class="doc-label">Labor contract with freedmen</p>
+          ${CONTRACT.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
+          <p class="doc-credit">${esc(CONTRACT.credit)}</p>
+        </div>
+        <h3>The terms Mr. Holliday read out loud</h3>
+        <dl class="terms">${CONTRACT.terms.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
+        <p class="game-note">Game values. The contract excerpt is real and adapted. The dollar amounts are simplified.</p>
+        <div class="mark-row">
+          <button class="mark" id="mark-btn" aria-label="Make your mark">
+            <span class="mark-line"></span><span class="mark-x" aria-hidden="true">X</span>
+            <span class="mark-cap">Robert ${esc(this.g.family)}, his mark</span>
+          </button>
+          <p class="hint-small">Tap the line to make your mark.</p>
+        </div>`);
+      $("#mark-btn").addEventListener("click", (e) => {
+        const b = e.currentTarget;
+        if (b.classList.contains("made")) return;
+        b.classList.add("made");
+        this.g.signed = true;
+        setTimeout(() => { this.closeSheet(); resolve(); }, 900);
+      }, { once: true });
+    });
+  },
+
+  // ---- spring: plant -------------------------------------------------------
+  plant() {
+    return new Promise((resolve) => {
+      const y = this.y;
+      World.setSky("spring"); World.setWeather("none"); World.setStage("plan");
+      World.setPeople("home"); World.hideWagon();
+      World.setFlags({ mule: "planter", school: !!this.g.education });
+      World.setCorn(this.corn);
+      World.setPlanter(this.planter());
+      this.showFlat("plow");
+      const line = this.t(YEAR_LINES[y.year].plant);
+      this.log(line);
+      World.walkTo("field").then(() => {
+        World.setMode("plant");
+        World.say("mama", "Cotton pays. Corn feeds us. Up to five acres of corn.");
+      });
+      this.plantDone = () => {
+        y.corn = this.corn.size;
+        y.cornPlots = [...this.corn];
+        this.plantDone = null;
+        World.setMode("locked");
+        resolve();
+      };
+      this.renderPlant();
+    });
+  },
+  renderPlant() {
+    const y = this.y;
+    const corn = this.corn.size;
+    const est = plantingEstimate(corn, y.year);
+    const prev = CONFIG.years.indexOf(y.year) > 0 ? CONFIG.pricePerBale[y.year - 1] : CONFIG.pricePerBale[y.year];
+    const grid = Array.from({ length: CONFIG.acres }, (_, i) => {
+      const isCorn = this.corn.has(i);
+      return `<button class="acre ${isCorn ? "corn" : "cotton"}" data-acre="${i}" aria-pressed="${isCorn}" aria-label="Acre ${i + 1}: ${isCorn ? "corn" : "cotton"}">${isCorn ? "Corn" : "Cotton"}</button>`;
+    }).join("");
+    this.dock(`
+      <p class="eyebrow">Spring ${y.year} · Plant</p>
+      <p class="voice">${esc(this.t(YEAR_LINES[y.year].plant))}</p>
+      <p class="how">${World.ok ? "Tap a square in the field, or here, to switch it between cotton and corn." : "Tap a square to switch it between cotton and corn."} Up to ${CONFIG.maxCornAcres} acres of corn.</p>
+      <div class="acres" role="group" aria-label="Your 15 acres">${grid}</div>
+      <div class="estimate">
+        <div><span class="est-k">Cotton</span><span class="est-v">${est.cottonAcres} acres</span><span class="est-s">about ${fmtBales(est.bales)} bales. Your half: ${fmtBales(est.half)}</span></div>
+        <div><span class="est-k">Corn</span><span class="est-v">${corn} acres</span><span class="est-s">store bill about ${fmt(est.storeSavings)} lower</span></div>
+      </div>
+      <p class="fine">Cotton sold for about $${prev} a bale last fall.</p>
+      <button class="primary" id="plant-done">Done planting</button>`);
+    this.els.dock.querySelectorAll("[data-acre]").forEach((b) => b.addEventListener("click", () => this.togglePlot(+b.dataset.acre)));
+    $("#plant-done").addEventListener("click", () => this.plantDone?.());
+  },
+  togglePlot(i) {
+    if (!this.plantDone) return;
+    if (this.corn.has(i)) this.corn.delete(i);
+    else if (this.corn.size < CONFIG.maxCornAcres) this.corn.add(i);
+    else { World.say("mama", "The contract only allows five acres of corn."); this.flashLimit(); return; }
+    World.setCorn(this.corn);
+    this.renderPlant();
+    this.els.dock.querySelector(`[data-acre="${i}"]`)?.focus({ preventScroll: true });
+  },
+  flashLimit() {
+    const el = this.els.dock.querySelector(".how");
+    if (!el) return;
+    el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+  },
+
+  // ---- the store --------------------------------------------------------------
+  async storeStep() {
+    const y = this.y;
+    World.setPeople("store");
+    this.showFlat("bigHouse");
+    this.dock(`<p class="eyebrow">Spring ${y.year} · The store</p><p class="voice">Papa and Mama walked to Mr. ${esc(this.planter())}'s store.</p>`);
+    await World.walkTo("store");
+    const line = this.t(YEAR_LINES[y.year].store);
+    this.log(line);
+    const cornCredit = y.corn * CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup);
+    return new Promise((resolve) => {
+      const opts = ["lean", "basic", "extra"].map((k) => {
+        const b = CONFIG.baskets[k];
+        const total = b.credit - cornCredit;
+        return `<button class="basket" data-basket="${k}">
+          <span class="basket-name">${b.label}</span>
+          <span class="basket-note">${esc(b.note)}</span>
+          <ul class="hand">${STORE_ITEMS[k].map((it) => `<li>${esc(it)}</li>`).join("")}</ul>
+          <span class="basket-price"><span class="lbl">On account</span>${fmt(total)}</span>
+        </button>`;
+      }).join("");
+      this.dock("");
+      this.sheet(`
+        <p class="eyebrow">Spring ${y.year} · ${esc(this.planter())} plantation store</p>
+        <h2>Furnish for the year</h2>
+        <p class="voice">${esc(line)}</p>
+        <div class="baskets">${opts}</div>
+        <p class="fine">${y.corn ? `Prices include about ${fmt(cornCredit)} off for your ${y.corn} acres of corn.` : "You planted no corn, so the store sells you all your food."} Everything goes on account until settling up.</p>
+        <p class="fine warn">A lean basket saves money, but a family without shoes and cloth gets sick more easily in a bad year.</p>`, { wide: true });
+      this.els.sheetBody.querySelectorAll("[data-basket]").forEach((b) => b.addEventListener("click", () => {
+        y.basket = b.dataset.basket;
+        const say = { lean: "No shoes this year, then. We'll make do.", basic: "That will see us through, if nothing goes wrong.", extra: "Medicine on the shelf. I'll sleep better." }[y.basket];
+        this.log(`Mama: "${say}"`);
+        this.closeSheet();
+        World.say("mama", say);
+        resolve();
+      }));
+    });
+  },
+
+  // ---- event card ------------------------------------------------------------
+  async eventStep() {
+    const y = this.y, g = this.g;
+    const card = CARDS[y.event] || CARDS.none;
+    World.setSky("summer");
+    World.setStage("grow");
+    World.setPeople("home");
+    World.walkTo("home");
+    this.showFlat(card.art);
+    const title = this.t(card.title);
+    await new Promise((resolve) => {
+      const choice = !!card.question;
+      let effect = card.effect;
+      if (y.event === "muledies" && g.ownMule) effect = card.effectOwn;
+      if (y.event === "sickness" && y.basket === "extra") effect = card.effectExtra;
+      if (y.event === "eggs" && y.corn < CONFIG.eggsMinCorn) effect = card.effectNone;
+      const muleBlocked = y.event === "mulebuy" && !canBuyMule(g);
+      this.log(`${title}. ${this.t(card.body)}`, "card");
+      this.sheet(`
+        <div class="card">
+          <div class="card-art">${cardSVG(card.art, title)}</div>
+          <div class="card-text">
+            <p class="eyebrow">Summer ${y.year} · Event card</p>
+            <h2>${esc(title)}</h2>
+            <p>${esc(this.t(card.body))}</p>
+            ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(effect))}</p>`}
+            ${muleBlocked ? `<p class="effect">${esc(card.cantAfford)}</p>` : ""}
+            <div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>
+            <div class="card-actions" id="card-actions">
+              ${choice && !muleBlocked
+                ? `<button class="primary" data-choice="yes">${esc(this.t(card.yes))}</button><button class="secondary" data-choice="no">${esc(this.t(card.no))}</button>`
+                : `<button class="primary" data-choice="ok">Continue</button>`}
+            </div>
+          </div>
+        </div>`, { wide: true });
+      this.els.sheetBody.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => {
+        const c = b.dataset.choice;
+        if (c === "ok") { y.choice = muleBlocked ? "no" : null; finish(); return; }
+        y.choice = c;
+        if (y.event === "mulebuy" && c === "yes") { y.muleBought = CONFIG.muleCost; g.ownMule = true; }
+        if (y.event === "school" && c === "yes") g.education += 1;
+        const res = this.t(c === "yes" ? card.effectYes : card.effectNo);
+        this.log(res, "card");
+        $("#card-actions").innerHTML = `<p class="effect">${esc(res)}</p><button class="primary" data-done>Continue</button>`;
+        $("#card-actions [data-done]").addEventListener("click", finish);
+        $("#card-actions [data-done]").focus();
+      }));
+      const finish = () => { this.closeSheet(); resolve(); };
+    });
+    applyEvent(g, y);
+    World.setWeather({ rains: "rain", drought: "drought", flood: "flood" }[y.event] || "none");
+    if (y.event === "muledies") World.setFlags({ mule: "none" });
+    if (y.event === "school") World.setFlags({ school: true });
+    if (y.event === "mulebuy" && y.choice === "yes") World.setFlags({ mule: "own" });
+    this.save();
+    if (World.ok && ["rains", "drought", "flood"].includes(y.event)) {
+      this.dock(`<p class="eyebrow">Summer ${y.year}</p><p class="voice">${esc(this.t(card.body))}</p><button class="primary" id="go-on">Go on to the harvest</button>`);
+      World.setMode("free");
+      await new Promise((r) => $("#go-on").addEventListener("click", r, { once: true }));
+      World.setMode("locked");
+    }
+  },
+
+  // ---- fall: harvest and gin -------------------------------------------------
+  async harvestStep() {
+    const y = this.y, g = this.g;
+    harvest(g, y);
+    World.setWeather(y.event === "drought" ? "drought" : "none");
+    World.setSky(y.event === "drought" ? "drought" : "fall");
+    World.setStage("ripe");
+    World.setPeople("field");
+    World.say("mama", "Sun's up. Let's get these rows in before the frost.");
+    this.showFlat("longRows");
+    const line = this.t(YEAR_LINES[y.year].harvest);
+    this.log(line);
+    await World.walkTo("field");
+    await new Promise((resolve) => {
+      this.harvestDone = () => { this.harvestDone = null; World.setMode("locked"); resolve(); };
+      this.dock(`
+        <p class="eyebrow">Fall ${y.year} · Harvest</p>
+        <p class="voice">${esc(line)}</p>
+        <p class="how">${World.ok ? "Walk the rows with the family. Tap the ground to walk, or use WASD." : "The family worked the rows from September to frost."}</p>
+        ${World.ok ? `<div class="progress" aria-hidden="true"><span id="harvest-bar"></span></div>
+        <p class="pickcount" id="harvest-pct" aria-live="polite">Rows walked: 0%</p>
+        <button class="secondary" id="walk-rows">Walk the rows for me</button>` : ""}
+        <button class="primary" id="load-wagon" ${World.ok ? "disabled" : ""}>Load the wagon</button>`);
+      World.setMode(World.ok ? "harvest" : "locked");
+      $("#walk-rows")?.addEventListener("click", (e) => { e.currentTarget.disabled = true; World.walkRows(); });
+      $("#load-wagon").addEventListener("click", () => this.harvestDone?.());
+    });
+    this.dock(`<p class="eyebrow">Fall ${y.year} · The gin</p><p class="voice">The family picked the rest. It took until frost. The wagon went to Mr. ${esc(this.planter())}'s scale.</p>`);
+    const maxLbs = (CONFIG.acres / CONFIG.acresPerBale) * 1.2 * CONFIG.poundsPerBale;
+    await World.harvestRun(y.totalBales, y.scaleLbs, maxLbs);
+    this.showFlat("porchLantern");
+    this.dock(`
+      <p class="eyebrow">Fall ${y.year} · The scale</p>
+      <div class="scale-read">
+        <span class="scale-k">Mr. ${esc(this.planter())}'s scale</span>
+        <span class="scale-v">${fmtLbs(y.scaleLbs)}</span>
+        <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${y.shareRate > 0.5 ? "two-thirds" : "half"}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
+      </div>
+      <button class="primary" id="to-settle">Go up to the big house</button>`);
+    World.say("mama", y.year === 1871 ? "That wagon felt heavier than that." : "That's the year's work, right there.");
+    this.log(`Mr. ${this.planter()}'s scale read ${fmtLbs(y.scaleLbs)}.`);
+    await new Promise((r) => $("#to-settle").addEventListener("click", r, { once: true }));
+  },
+  onHarvest(frac) {
+    const pct = Math.round(frac * 100);
+    const bar = $("#harvest-bar"), label = $("#harvest-pct"), load = $("#load-wagon");
+    if (bar) bar.style.width = pct + "%";
+    if (label) label.textContent = pct >= 99 ? "Every row is picked." : `Rows walked: ${pct}%`;
+    if (load && frac >= 0.6) load.disabled = false;
+  },
+
+  onInteract(name) {
+    const y = this.y;
+    const talk = FAMILY_TALK[name];
+    if (talk && y) {
+      const line = talk[y.year] || talk.any;
+      if (line) {
+        World.say(name, this.t(line));
+        const who = { mama: "Mama", lucy: "Lucy", sam: "Sam", ruth: "Grandma Ruth", holliday: "Mr. " + this.planter() }[name];
+        this.log(who ? `${who}: "${this.t(line)}"` : this.t(line));
+      }
+    }
+  },
+
+  // ---- settling up --------------------------------------------------------------
+  async settleStep() {
+    const y = this.y, g = this.g;
+    World.setSky("dusk");
+    World.setStage("picked");
+    World.setPeople("porch");
+    World.hideWagon();
+    this.showFlat("porchLantern");
+    this.dock(`<p class="eyebrow">Christmas ${y.year} · Settling up</p><p class="voice">${esc(this.t(YEAR_LINES[y.year].settle))}</p>`);
+    this.log(this.t(YEAR_LINES[y.year].settle));
+    await World.walkTo("porch");
+    World.say("holliday", "Come on up. I've got your number right here.");
+    buildLedger(g, y);
+    if (!y.evicted && voteEviction(g, y)) { y.evicted = true; y.evictedBy = "vote"; buildLedger(g, y); }
+    this.dock("");
+    await new Promise((resolve) => {
+      this.settleResolve = resolve;
+      this.renderSettle(null);
+    });
+  },
+  renderSettle(revealed) {
+    const y = this.y, g = this.g;
+    const bal = y.ledger.balance;
+    const price = CONFIG.pricePerBale[y.year];
+    let said;
+    if (y.evicted) said = y.evictedBy === "vote" ? SETTLE_TEXT.evictedVote : SETTLE_TEXT.evictedDemand;
+    else if (bal < -0.005) said = SETTLE_TEXT.owe.replace("${N}", fmt(-bal));
+    else if (bal > 0.005) said = SETTLE_TEXT.ahead.replace("${N}", fmt(bal));
+    else said = SETTLE_TEXT.even;
+    this.log(`Mr. ${this.planter()}: ${said}`, "settle");
+    const rent = !y.evicted && canRent(g, bal);
+    const isLast = g.yearIndex >= CONFIG.years.length - 1;
+    const revealHtml = revealed ? (() => {
+      const r = REVEALS[revealed];
+      return `<div class="reveal"><p class="eyebrow">${esc(r.title)}</p><p>${esc(this.t(r.text))}</p><p class="figure-line">${esc(r.detail(y))}</p></div>`;
+    })() : "";
+    const nextPlanter = PLANTERS[Math.min(g.planterIndex + 1, PLANTERS.length - 1)];
+    let actions;
+    if (y.evicted) {
+      actions = `<button class="primary" data-act="move">${isLast ? "Load the wagon" : `Move to the ${esc(nextPlanter)} place`}</button>
+        <p class="fine">Your debt follows you. Mr. ${esc(nextPlanter)} pays it off and puts it on your new account.</p>`;
+    } else {
+      actions = `
+        ${rent ? `<button class="primary" data-act="rent">Rent a farm</button>` : ""}
+        <button class="${rent ? "secondary" : "primary"}" data-act="stay">${isLast ? "Stay on" : `Stay and sign for ${y.year + 1}`}</button>
+        <button class="secondary" data-act="leave">Leave the ${esc(this.planter())} place</button>
+        ${y.demanded ? "" : `<button class="secondary danger" data-act="demand">Demand to see the books</button>`}`;
+    }
+    this.sheet(`
+      <div class="settle">
+        <p class="eyebrow">Christmas ${y.year} · ${esc(this.planter())}'s porch</p>
+        <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
+        <blockquote class="said">${esc(said)}</blockquote>
+        <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
+        ${revealHtml}
+        ${rent ? `<p class="voice">${esc(SETTLE_TEXT.rentReady)}</p>` : ""}
+        <div class="settle-actions">${actions}</div>
+        ${!y.evicted && bal < 0 ? `<p class="fine">${esc(SETTLE_TEXT.leaveOwing)}</p>` : ""}
+        ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
+      </div>`, { low: true });
+    this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
+  },
+  settleAct(act) {
+    const y = this.y, g = this.g;
+    if (act === "demand") {
+      this.log(SETTLE_TEXT.demandIntro, "settle");
+      const r = demandBooks(g, y);
+      this.save();
+      if (r.evicted) World.say("holliday", "Get off my porch.");
+      this.renderSettle(r.evicted ? null : r.item);
+      return;
+    }
+    if (act === "leave" && y.ledger.balance < 0 && !this.confirmLeave) {
+      this.confirmLeave = true;
+      const box = this.els.sheetBody.querySelector(".settle-actions");
+      box.innerHTML = `<p class="voice">Mama held Papa's arm. "We owe him ${fmt(-y.ledger.balance)}. If we go owing, the sheriff will come after you."</p>
+        <button class="primary" data-act="stay">Stay</button><button class="secondary danger" data-act="leave">Leave anyway</button>`;
+      box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
+      return;
+    }
+    this.confirmLeave = false;
+    const decision = act === "move" ? "stay" : act;
+    closeYear(g, y, decision);
+    this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}. ${{ stay: y.evicted ? "We moved to a new place." : "We stayed.", leave: "We left.", rent: "We rented a farm." }[decision]}`, "settle");
+    this.closeSheet();
+    this.save();
+    const done = this.settleResolve;
+    this.settleResolve = null;
+    done?.();
+  },
+
+  // ---- ending and epilogue ---------------------------------------------------
+  async endingScene() {
+    const g = this.g;
+    const e = ENDINGS[g.ending];
+    World.setSky("dusk");
+    const panels = [...e.panels, g.education ? EPILOGUE.school : EPILOGUE.noschool];
+    await this.cutscene(panels);
+  },
+
+  // ---- the audit -------------------------------------------------------------
+  audit() {
+    return new Promise((resolve) => {
+      const g = this.g;
+      const a = auditTotals(g);
+      this.dock("");
+      World.setMode("locked");
+      const ys = g.years.filter(Boolean);
+      const row = (label, f, cls = "") => `<tr class="${cls}"><th scope="row">${label}</th>${ys.map((y) => f(y)).join("")}</tr>`;
+      const pair = (p, h) => {
+        const diff = Math.abs(p - h) > 0.005;
+        return `<td><span class="p">${fmt(p)}</span><span class="h ${diff ? "diff" : ""}">${fmt(h)}</span></td>`;
+      };
+      const table = `
+        <div class="ledger-wrap"><table class="ledger">
+          <thead><tr><th scope="col"></th>${ys.map((y) => `<th scope="col">${y.year}</th>`).join("")}</tr>
+          <tr class="key"><th></th>${ys.map(() => `<th><span class="p">His book</span><span class="h">Honest</span></th>`).join("")}</tr></thead>
+          <tbody>
+            ${row("Cotton credited", (y) => `<td><span class="p">${fmtBales(y.evicted ? 0 : y.creditedBales)} bales</span><span class="h diff">${fmtBales(y.evicted ? 0 : y.familyBales)} bales</span></td>`)}
+            ${row("Your share", (y) => pair(y.ledger.share, y.honest.share))}
+            ${row("Store goods", (y) => pair(y.ledger.store, y.honest.store))}
+            ${row("Doctor", (y) => pair(y.ledger.doctor, y.honest.doctor))}
+            ${row("Mule", (y) => pair(y.ledger.mule + y.muleBought, y.honest.mule + y.muleBought))}
+            ${row("Ginning", (y) => pair(y.ledger.ginning, y.honest.ginning))}
+            ${row("Interest", (y) => pair(y.ledger.interest, y.honest.interest))}
+            ${row("Eggs sold", (y) => pair(y.eggs, y.eggs))}
+            ${row("Moving", (y) => pair(y.ledger.leave, y.honest.leave))}
+            ${row("Balance", (y) => pair(y.ledger.balance, y.honest.balance), "total")}
+          </tbody>
+        </table></div>`;
+      const qs = [
+        { id: "q1", label: "How much did the credit markup cost you over the years you played?", unit: "$", answer: a.markup, tol: Math.max(5, a.markup * 0.05), show: fmt(a.markup) },
+        { id: "q2", label: "How much of your cotton went missing at the gin, in pounds?", unit: "lb", answer: a.missingLbs, tol: Math.max(20, a.missingLbs * 0.05), show: `${fmtLbs(a.missingLbs)}, worth ${fmt(a.missingValue)}` },
+      ];
+      this.sheet(`
+        <div class="audit">
+          <p class="eyebrow">The audit · ${esc(ENDINGS[g.ending].title)}</p>
+          <h2>Open the books</h2>
+          <p class="voice">${esc(this.t(AUDIT_INTRO))}</p>
+          ${table}
+          <p class="fine">Red figures in the honest column are where his book and the truth part ways. Game values, rebuilt from your own play. This is a reconstruction, not a primary source.</p>
+          <div class="findings">
+            <div class="finding"><span class="f-k">You were told</span><span class="f-v">10% interest</span></div>
+            <div class="finding"><span class="f-k">He charged</span><span class="f-v neg">25% interest</span><span class="f-s">${fmt(a.extraInterest)} extra</span></div>
+            <div class="finding"><span class="f-k">His final number</span><span class="f-v ${a.finalPlanter < 0 ? "neg" : ""}">${fmt(a.finalPlanter)}</span></div>
+            <div class="finding"><span class="f-k">Honest final number</span><span class="f-v ${a.finalHonest < 0 ? "neg" : ""}">${fmt(a.finalHonest)}</span></div>
+          </div>
+          <h3>Fill in the blanks</h3>
+          <form id="audit-form" class="blanks" novalidate>
+            ${qs.map((q, i) => `
+              <div class="blank" data-q="${q.id}">
+                <label for="${q.id}"><span class="qn">${i + 1}</span>${esc(q.label)}</label>
+                <div class="blank-row"><span class="unit">${q.unit === "$" ? "$" : ""}</span><input id="${q.id}" inputmode="decimal" autocomplete="off"><span class="unit">${q.unit === "lb" ? "lb" : ""}</span></div>
+                <p class="blank-fb" aria-live="polite"></p>
+              </div>`).join("")}
+            <div class="blank" data-q="q3">
+              <fieldset><legend><span class="qn">3</span>Without the hidden charges, would you have reached the $${CONFIG.rentSavings} needed to rent?</legend>
+              <div class="yn"><label><input type="radio" name="q3" value="yes"> Yes</label><label><input type="radio" name="q3" value="no"> No</label></div></fieldset>
+              <p class="blank-fb" aria-live="polite"></p>
+            </div>
+            <button class="primary" type="submit">Check my answers</button>
+          </form>
+          <div id="audit-next" hidden><button class="primary big" id="audit-done">Finish</button></div>
+        </div>`, { wide: true });
+      let tries = 0;
+      $("#audit-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        tries++;
+        let right = 0;
+        qs.forEach((q) => {
+          const box = this.els.sheetBody.querySelector(`[data-q="${q.id}"]`);
+          const val = parseFloat(String($("#" + q.id).value).replace(/[^0-9.\-]/g, ""));
+          const ok = !isNaN(val) && Math.abs(val - q.answer) <= q.tol;
+          if (ok) right++;
+          box.classList.toggle("right", ok);
+          box.querySelector(".blank-fb").textContent = ok ? `Right: ${q.show}.` : tries >= 2 ? `The books say ${q.show}.` : "Not quite. Look for the red figures and add them up.";
+        });
+        const box3 = this.els.sheetBody.querySelector('[data-q="q3"]');
+        const pick = this.els.sheetBody.querySelector('input[name="q3"]:checked')?.value;
+        const ok3 = pick === (a.wouldRent ? "yes" : "no");
+        if (ok3) right++;
+        box3.classList.toggle("right", ok3);
+        box3.querySelector(".blank-fb").textContent = ok3 || tries >= 2
+          ? `With honest books you would have ended at ${fmt(a.finalHonest)}, so ${a.wouldRent ? "yes, you would have had enough" : "no, not even then"}.`
+          : "Not quite. Compare the honest final number with $" + CONFIG.rentSavings + ".";
+        g.auditAnswers = { tries, right };
+        if (right === 3 || tries >= 2) $("#audit-next").hidden = false;
+        this.save();
+      });
+      $("#audit-done").addEventListener("click", () => { this.closeSheet(); resolve(); });
+    });
+  },
+
+  done() {
+    const g = this.g;
+    const a = auditTotals(g);
+    World.setMode("free");
+    World.setSky("dusk");
+    this.dock("");
+    this.sheet(`
+      <div class="final">
+        <p class="eyebrow">The ${esc(g.family)} family · ${esc(ENDINGS[g.ending].title)}</p>
+        <h2>${esc(EXIT_TICKET.question)}</h2>
+        <p>${esc(EXIT_TICKET.prompt)}</p>
+        <p>${esc(EXIT_TICKET.tracker)}</p>
+        <div class="report">
+          <p class="eyebrow">Report to your teacher</p>
+          <p class="report-line"><strong>${esc(g.family)}</strong> · his book ${fmt(a.finalPlanter)} · honest ${fmt(a.finalHonest)} · ${esc(ENDINGS[g.ending].title)}</p>
+          <p class="fine">Markup ${fmt(a.markup)} · Cotton missing ${fmtLbs(a.missingLbs)} (${fmt(a.missingValue)}) · Extra interest ${fmt(a.extraInterest)}</p>
+        </div>
+        <div class="final-actions">
+          <button class="secondary" id="final-journal">Read the journal</button>
+          <button class="secondary" id="final-new">Play another family</button>
+        </div>
+      </div>`);
+    $("#final-journal").addEventListener("click", () => this.openJournal());
+    $("#final-new").addEventListener("click", () => { store.del(SAVE_KEY); location.hash = ""; this.g = null; this.y = null; this.renderTopbar(); this.showJoin(); });
+  },
+
+  openJournal() {
+    const j = (this.g && this.g.journal) || [];
+    const byYear = {};
+    j.forEach((e) => { (byYear[e.year] = byYear[e.year] || []).push(e); });
+    $("#journal-list").innerHTML = j.length
+      ? Object.entries(byYear).map(([yr, es]) => `<section><h3>${yr}</h3>${es.map((e) => `<p class="j-${e.kind}">${esc(e.text)}</p>`).join("")}</section>`).join("")
+      : `<p class="fine">Everything you read in the game shows up here, so you can look back at anything you missed.</p>`;
+    this.els.journal.hidden = false;
+    $("#journal-close").focus();
+  },
+};
+
+// Short lines when Papa taps a family member in the world.
+const FAMILY_TALK = {
+  mama: { 1869: "I'm keeping my own count, Robert. In my head.", 1871: "Somebody in this house should know what we really owe.", 1873: "Whatever he says up there, we stay together.", any: "Go on. The rows won't plant themselves." },
+  lucy: { 1869: "Papa, is the land ours now?", 1870: "Mama says I could learn to read, if there was a school.", 1872: "I counted the bales. I got a different number than he did.", any: "I'll carry the water bucket." },
+  sam: { 1869: "When I'm big I'm gonna pick a whole bale by myself.", any: "Can I ride the mule?" },
+  ruth: { 1869: "I was born on this place. Never thought I'd see it from this side.", 1870: "Your grandfather would have walked ten miles to vote.", 1873: "Hard times come round. So do we.", any: "Plant the corn close to the house. Hungry is worse than broke." },
+  holliday: { any: "Get on back to work. We'll settle up at Christmas." },
+  mule: { any: "The mule flicks an ear and goes back to grazing." },
+};
+
+// ============================================================================
+// SYNC — family records to the artifact's shared database, when available.
+// TEACHER — the class board: live balances, endings, year control, reveal.
+// ============================================================================
+const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 24) || "x";
+
+const Sync = {
+  db: null,
+  user: null,
+  ready: null,
+  live: false,
+  writable: true,
+  unsubClass: null,
+  timer: null,
+  writing: false,
+  queued: null,
+
+  init() {
+    if (this.ready) return this.ready;
+    this.ready = (async () => {
+      try {
+        if (!window.claude || typeof window.claude.use !== "function") return;
+        const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+        this.db = db; this.user = user;
+        this.live = !!db;
+      } catch { this.live = false; }
+    })();
+    return this.ready;
+  },
+
+  async watchClass(code, cb) {
+    await this.init();
+    this.unsubClass?.();
+    this.unsubClass = null;
+    if (!this.db || !code) { cb(null); return; }
+    try {
+      this.unsubClass = this.db.doc("classrooms/" + code).onSnapshot(
+        (s) => cb(s.exists ? { ...s.data(), exists: true } : { exists: false }),
+        () => cb(null)
+      );
+    } catch { cb(null); }
+  },
+
+  docId(g) {
+    if (!g.docId) g.docId = slug(g.classCode) + "--" + slug(g.family) + "-" + Math.random().toString(36).slice(2, 6);
+    return g.docId;
+  },
+
+  saveFamily(g) {
+    if (!g || !g.classCode) return;
+    this.docId(g);
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this.flush(g), 700);
+  },
+  async flush(g) {
+    await this.init();
+    if (!this.db || !this.writable) return;
+    const body = { ...familyRecord(g), docId: g.docId, updatedAt: Date.now() };
+    if (this.writing) { this.queued = body; return; }
+    this.writing = true;
+    try {
+      await this.db.doc("families/" + g.docId).set(body);
+    } catch (e) {
+      if (e && (e.code === "invalid_argument" || e.code === "not_granted" || e.code === "revoked")) this.writable = false;
+    }
+    this.writing = false;
+    if (this.queued) { const q = this.queued; this.queued = null; this.writing = true; try { await this.db.doc("families/" + q.docId).set(q); } catch { /* keep playing */ } this.writing = false; }
+  },
+};
+
+const Teacher = {
+  code: "",
+  classroom: null,
+  families: [],
+  unsubs: [],
+  canEdit: false,
+
+  async open() {
+    const el = $("#teacher");
+    el.hidden = false;
+    document.body.classList.add("teacher-mode");
+    await Sync.init();
+    this.canEdit = Sync.user ? await Sync.user.canEdit() : false;
+    const last = store.get("settling-up:teacher-code");
+    this.code = last || "";
+    this.render();
+    if (this.code) this.watch();
+  },
+  close() {
+    $("#teacher").hidden = true;
+    document.body.classList.remove("teacher-mode");
+    this.unsubs.forEach((u) => u());
+    this.unsubs = [];
+    location.hash = "";
+    if (!Game.g) Game.showJoin();
+  },
+
+  watch() {
+    this.unsubs.forEach((u) => u());
+    this.unsubs = [];
+    store.set("settling-up:teacher-code", this.code);
+    if (!Sync.db || !this.code) { this.render(); return; }
+    try {
+      this.unsubs.push(Sync.db.doc("classrooms/" + this.code).onSnapshot((s) => {
+        this.classroom = s.exists ? s.data() : null;
+        this.render();
+      }, () => {}));
+      this.unsubs.push(Sync.db.collection("families").where("classCode", "==", this.code).onSnapshot((snap) => {
+        this.families = snap.docs.map((d) => d.data());
+        this.render();
+      }, () => {}));
+    } catch { this.render(); }
+  },
+
+  manualKey() { return "settling-up:manual:" + this.code; },
+  manualRows() {
+    if (Sync.db && this.classroom && Array.isArray(this.classroom.manual)) return this.classroom.manual;
+    return store.get(this.manualKey()) || [];
+  },
+
+  async writeClass(patch) {
+    const base = this.classroom || { mode: "solo", year: CONFIG.years[0], revealed: false, manual: [] };
+    const next = { ...base, ...patch, updatedAt: Date.now() };
+    if (Sync.db && this.canEdit) {
+      try { await Sync.db.doc("classrooms/" + this.code).set(next); return; } catch { /* fall through */ }
+    }
+    this.classroom = next;
+    if (patch.manual) store.set(this.manualKey(), patch.manual);
+    this.render();
+  },
+
+  rows() {
+    const live = this.families.map((f) => ({
+      family: f.family, year: f.year, step: f.step, balance: f.balance, ending: f.ending, live: true, mule: f.ownMule,
+    }));
+    const manual = this.manualRows().map((m) => ({ ...m, live: false, year: 1873 }));
+    return [...live, ...manual];
+  },
+
+  chart(rows) {
+    if (!rows.length) return `<p class="fine">No families yet. They appear here as they play.</p>`;
+    const sorted = [...rows].sort((a, b) => a.balance - b.balance);
+    const max = Math.max(CONFIG.rentSavings + 20, ...sorted.map((r) => Math.abs(r.balance)));
+    const W = 760, labelW = 150, mid = labelW + (W - labelW) / 2, half = (W - labelW) / 2 - 70;
+    const H = sorted.length * 30 + 40;
+    const sx = (v) => (v / max) * half;
+    let out = `<line x1="${mid}" y1="14" x2="${mid}" y2="${H - 18}" class="axis"/>`;
+    const rentX = mid + sx(CONFIG.rentSavings);
+    out += `<line x1="${rentX}" y1="14" x2="${rentX}" y2="${H - 18}" class="rentline"/>`;
+    out += `<text x="${rentX}" y="${H - 4}" text-anchor="middle" class="ax">$${CONFIG.rentSavings} to rent</text>`;
+    out += `<text x="${mid}" y="${H - 4}" text-anchor="middle" class="ax">$0</text>`;
+    sorted.forEach((r, i) => {
+      const y = 20 + i * 30;
+      const w = sx(r.balance);
+      const x = w < 0 ? mid + w : mid;
+      out += `<text x="${labelW - 10}" y="${y + 14}" text-anchor="end" class="lab">${esc(r.family)}</text>`;
+      out += `<rect x="${x}" y="${y}" width="${Math.max(1.5, Math.abs(w))}" height="20" class="bar ${r.balance < 0 ? "neg" : ""}" rx="2"/>`;
+      const vx = w < 0 ? x - 6 : x + Math.abs(w) + 6;
+      out += `<text x="${vx}" y="${y + 14}" text-anchor="${w < 0 ? "end" : "start"}" class="val">${fmt(r.balance)}</text>`;
+    });
+    return `<div class="chart-wrap"><svg viewBox="0 0 ${W} ${H}" class="board-chart" role="img" aria-label="Final balance for each family">${out}</svg></div>`;
+  },
+
+  render() {
+    const el = $("#teacher-body");
+    const rows = this.rows();
+    const finished = rows.filter((r) => r.ending);
+    const inDebt = finished.filter((r) => r.balance < 0).length;
+    const endings = { cropping: 0, rent: 0, vagrancy: 0 };
+    finished.forEach((r) => { if (endings[r.ending] != null) endings[r.ending]++; });
+    const c = this.classroom || { mode: "solo", year: CONFIG.years[0], revealed: false };
+    const live = Sync.live;
+    const status = live
+      ? (this.canEdit ? "Live board. Families signed in to claude.ai in your organization report here automatically." : "Live board (read only). Only the artifact's owner or editors can change class settings.")
+      : "Not connected to the live board in this view. Add families by hand from their report line.";
+    el.innerHTML = `
+      <header class="t-head">
+        <div><p class="eyebrow">Settling Up</p><h1>Teacher board</h1></div>
+        <button class="secondary" id="t-close">Back to the game</button>
+      </header>
+      <p class="t-status ${live ? "on" : ""}">${esc(status)}</p>
+      <form class="t-code" id="t-code">
+        <label for="t-code-in">Class code</label>
+        <input id="t-code-in" value="${esc(this.code)}" maxlength="12" autocomplete="off" placeholder="e.g. P3" style="text-transform:uppercase">
+        <button class="primary" type="submit">Open board</button>
+      </form>
+      ${this.code ? `
+      <section class="t-controls">
+        <div class="t-ctl">
+          <span class="t-k">Mode</span>
+          <div class="seg" role="group" aria-label="Mode">
+            <button class="${c.mode !== "class" ? "on" : ""}" data-mode="solo" ${this.canEdit || !live ? "" : "disabled"}>Solo</button>
+            <button class="${c.mode === "class" ? "on" : ""}" data-mode="class" ${this.canEdit || !live ? "" : "disabled"}>Class</button>
+          </div>
+          <span class="t-s">${c.mode === "class" ? "Every family waits for you at the start of each year." : "Families play at their own pace."}</span>
+        </div>
+        <div class="t-ctl">
+          <span class="t-k">Year</span>
+          <span class="t-v">${c.mode === "class" ? c.year : "Any"}</span>
+          ${c.mode === "class" ? `<button class="secondary" id="t-next" ${c.year >= 1873 ? "disabled" : ""}>Start ${Math.min(1873, (c.year || 1869) + 1)}</button>` : ""}
+        </div>
+        <div class="t-ctl">
+          <span class="t-k">Audit</span>
+          <span class="t-v">${c.revealed ? "Open" : "Closed"}</span>
+          <button class="${c.revealed ? "secondary" : "primary"}" id="t-reveal">${c.revealed ? "Close the books" : "Open the books for everyone"}</button>
+          <span class="t-s">${c.revealed ? "" : "Families who finish wait at the audit until you open it."}</span>
+        </div>
+      </section>
+      <section class="t-board">
+        <h2>${finished.length ? `${inDebt} of ${finished.length} families ended in debt` : `${rows.length} ${rows.length === 1 ? "family" : "families"} playing`}</h2>
+        <div class="t-endings">
+          <span><strong>${endings.cropping}</strong> still cropping</span>
+          <span><strong>${endings.rent}</strong> renting a farm</span>
+          <span><strong>${endings.vagrancy}</strong> arrested for vagrancy</span>
+        </div>
+        ${this.chart(rows)}
+        <div class="ledger-wrap"><table class="t-table">
+          <thead><tr><th>Family</th><th>Year</th><th>Step</th><th>Balance</th><th>Ending</th></tr></thead>
+          <tbody>${rows.map((r) => `<tr><td>${esc(r.family)}${r.live ? "" : ' <span class="tag">by hand</span>'}</td><td>${r.year || ""}</td><td>${esc(r.step || (r.ending ? "done" : ""))}</td><td class="${r.balance < 0 ? "neg" : ""}">${fmt(r.balance || 0)}</td><td>${r.ending ? esc(ENDINGS[r.ending]?.title || r.ending) : ""}</td></tr>`).join("") || `<tr><td colspan="5" class="fine">No families yet.</td></tr>`}</tbody>
+        </table></div>
+      </section>
+      <section class="t-manual">
+        <h3>Add a family by hand</h3>
+        <p class="fine">For families who can't connect: type the line from their final screen.</p>
+        <form id="t-add" class="t-add">
+          <label for="t-fam">Family</label><input id="t-fam" maxlength="24" required>
+          <label for="t-bal">His final number ($)</label><input id="t-bal" inputmode="decimal" required>
+          <label for="t-end">Ending</label>
+          <select id="t-end"><option value="cropping">Still cropping</option><option value="rent">Renting a farm</option><option value="vagrancy">Arrested for vagrancy</option></select>
+          <button class="secondary" type="submit">Add</button>
+        </form>
+      </section>
+      <section class="t-debrief">
+        <h3>Debrief prompts</h3>
+        <ul>
+          <li>How many of you made good choices and still ended in debt?</li>
+          <li>Why didn't you just leave? Point to the vagrancy ending and the contract line: nothing is sold until the planter is paid.</li>
+          <li>Is this slavery? Push for precision: name what it shares with slavery and what is different.</li>
+        </ul>
+      </section>` : ""}`;
+    $("#t-close").addEventListener("click", () => this.close());
+    $("#t-code").addEventListener("submit", (e) => {
+      e.preventDefault();
+      this.code = $("#t-code-in").value.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+      this.classroom = null; this.families = [];
+      this.watch();
+    });
+    if (!this.code) return;
+    el.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => this.writeClass({ mode: b.dataset.mode, year: c.year || CONFIG.years[0] })));
+    $("#t-next")?.addEventListener("click", () => this.writeClass({ year: Math.min(1873, (c.year || 1869) + 1) }));
+    $("#t-reveal").addEventListener("click", () => this.writeClass({ revealed: !c.revealed }));
+    $("#t-add").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const fam = $("#t-fam").value.trim();
+      const bal = parseFloat($("#t-bal").value.replace(/[^0-9.\-−]/g, "").replace("−", "-"));
+      if (!fam || isNaN(bal)) return;
+      const manual = [...this.manualRows(), { family: fam, balance: bal, ending: $("#t-end").value }];
+      this.writeClass({ manual });
+    });
+  },
+};
+
+window.SettlingUp = { Game, World, Teacher, auditTotals };
+Game.boot();
+</script>
+</body>
+</html>

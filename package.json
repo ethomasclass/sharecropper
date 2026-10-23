@@ -1,0 +1,14 @@
+{
+  "name": "sharecropper",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "sim": "node tools/simulate.mjs",
+    "test": "node tools/simulate.mjs --check"
+  },
+  "devDependencies": {
+    "three": "0.170.0"
+  }
+}
