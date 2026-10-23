@@ -295,32 +295,3 @@ function auditTotals(g) {
     wouldRent: finalHonest >= CONFIG.rentSavings,
   };
 }
-
-// One compact record per family, for the class board and the audit.
-function familyRecord(g) {
-  return {
-    family: g.family,
-    classCode: g.classCode,
-    year: currentYear(g),
-    step: g.step,
-    balance: g.balance,
-    ownMule: g.ownMule,
-    education: g.education,
-    ending: g.ending,
-    years: g.years.filter(Boolean).map((y) => ({
-      year: y.year,
-      corn: y.corn,
-      basket: y.basket,
-      event: y.event,
-      choice: y.choice,
-      bales: Math.round(y.totalBales * 100) / 100,
-      shortLbs: y.trueLbs - y.scaleLbs,
-      credited: money(y.ledger.share),
-      charges: money(y.ledger.charges),
-      decision: y.decision,
-      evicted: y.evicted,
-      balance: y.ledger.balance,
-    })),
-    audit: g.ending ? auditTotals(g) : null,
-  };
-}

@@ -9,9 +9,23 @@
   <div id="world">
     <div id="world-flat" hidden></div>
     <div class="world-tag" hidden></div>
-    <div class="world-bubble" hidden aria-live="polite"></div>
     <div class="world-hint" hidden></div>
-    <p class="world-help">Drag to look · tap to walk · WASD to move</p>
+    <p class="world-help">W A S D or arrows to walk · drag to look · Shift to hurry</p>
+  </div>
+
+  <div class="world-bubble" hidden aria-live="polite"></div>
+
+  <div id="compass" hidden aria-live="polite">
+    <span class="c-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 L20 20 L12 15 L4 20 Z" fill="#A3271F"/></svg></span>
+    <span class="c-text"></span>
+    <span class="c-dist"></span>
+  </div>
+
+  <div id="pad" aria-label="Walk">
+    <button type="button" data-key="arrowup" aria-label="Walk forward">▲</button>
+    <button type="button" data-key="arrowleft" aria-label="Turn left">◀</button>
+    <button type="button" data-key="arrowdown" aria-label="Walk back">▼</button>
+    <button type="button" data-key="arrowright" aria-label="Turn right">▶</button>
   </div>
 
   <section id="dock" class="paper" hidden aria-live="polite"></section>
@@ -27,5 +41,4 @@
     <div id="journal-list"></div>
   </aside>
 
-  <div id="teacher" class="paper" hidden><div id="teacher-body"></div></div>
 </div>

@@ -359,11 +359,20 @@ const CARD_ART = {
   panic() { return SCENES.newspaperPanic(); },
 };
 
+// Your own art in art/scenes/ or art/cards/ replaces a drawn panel of the same name.
+function customImg(kind, name, label) {
+  const src = typeof CUSTOM_ART !== "undefined" && CUSTOM_ART[kind] && CUSTOM_ART[kind][name];
+  return src ? `<img class="art-img" src="${src}" alt="${label || ""}">` : null;
+}
 function sceneSVG(name, label) {
+  const mine = customImg("scenes", name, label);
+  if (mine) return mine;
   const fn = SCENES[name] || CARD_ART[name] || SCENES.fieldSun;
   return svgWrap(1600, 900, fn(), label);
 }
 function cardSVG(name, label) {
+  const mine = customImg("cards", name, label) || customImg("scenes", name, label);
+  if (mine) return mine;
   const fn = CARD_ART[name] || SCENES[name] || SCENES.fieldSun;
   return svgWrap(1600, 900, fn(), label);
 }

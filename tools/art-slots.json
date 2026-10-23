@@ -1,0 +1,6 @@
+{
+  "sprites": ["mama", "lucy", "sam", "ruth", "holliday", "mamaWork", "lucyWork", "samWork", "mule", "tree1", "tree2", "cottonSprout", "cottonGrow", "cottonRipe", "cottonPicked", "cornSprout", "cornGrow", "cornRipe", "cornPicked", "flag"],
+  "props": ["chickens", "dog", "washtub", "woodpile", "rocker", "well", "bench", "clerk", "neighbors", "church", "oak", "fieldhand"],
+  "scenes": ["fieldSun", "family", "plow", "bigHouse", "contractDesk", "newspaper15", "tracker", "senate", "newspaperPanic", "priceChart", "porchLantern", "longRows", "muleRoad", "ownField", "emptyRoad", "emptyDoor", "schoolLetters", "grandmother"],
+  "cards": ["rain", "drought", "flood", "mule", "sick", "school", "ballot", "mulebuy", "eggs", "headline", "panic"]
+}
