@@ -37,6 +37,10 @@ const World = (() => {
   let lastT = 0;
   let drag = null;
   let stage = "plan";
+  let skyName = "spring";
+  const tinted = [];                 // painted materials that dim at dusk
+  const propMeshes = [];             // props that only show in some seasons
+  let sky = null;                    // the painted sky, if there is one
 
   // ---- where things are --------------------------------------------------
   const SPOTS = {
@@ -115,8 +119,108 @@ const World = (() => {
     { name: "church", x: -36, z: -24, h: 7 },
     { name: "oak", x: -4, z: 22, h: 9 },
     { name: "fieldhand", x: -30, z: 6, h: 1.65 },
+    { name: "clothesline", x: -13.4, z: 18.6, h: 1.9, face: SPOTS.home },
+    { name: "baskets", x: 11.4, z: -3.4, h: 1.0, stages: ["ripe", "picked"] },
+    { name: "bales", x: 21.8, z: 6.2, h: 1.4 },
+    { name: "crates", x: 21.2, z: 9.0, h: 1.3 },
+    { name: "ledgerTable", x: -0.7, z: -25.9, h: 1.0, y: HILL.h + 0.4, face: SPOTS.porch },
+    { name: "lantern", x: -0.35, z: -25.85, h: 0.42, y: HILL.h + 0.4, onTable: 0.74, skies: ["dusk"], blob: false },
+    { name: "rainBarrel", x: -20.5, z: 15.6, h: 1.2 },
+    { name: "plow", x: -12.6, z: 4.6, h: 1.1, face: SPOTS.home },
+    { name: "outhouse", x: -23.5, z: 18.5, h: 2.4, face: SPOTS.home },
   ];
+  // fence (art/props/fence) replaces the drawn rail fence behind the field.
   const custom = (kind, name) => (typeof CUSTOM_ART !== "undefined" && CUSTOM_ART[kind] && CUSTOM_ART[kind][name]) || null;
+
+  // ---- painted surfaces (art/textures) ----------------------------------------
+  // Meters per tile. Surfaces that use a painted texture get UVs in meters,
+  // so a texture tiles at the same scale on every wall, roof, and road.
+  const TILE = { grass: 6, hill: 6, soil: 3.7, road: 3, roofShingle: 2, roofTin: 2.5, wallPlanks: 2.5, wallClapboard: 2.5 };
+  const painted = (name) => tex["tx_" + name] || null;
+  function meterUV(geo, su, sv, from = 0, to = geo.attributes.uv.count) {
+    const uv = geo.attributes.uv;
+    for (let i = from; i < to; i++) uv.setXY(i, uv.getX(i) * su, uv.getY(i) * sv);
+    uv.needsUpdate = true;
+    return geo;
+  }
+  function boxUV(geo, w, h, d) {
+    [[d, h], [d, h], [w, d], [w, d], [w, h], [w, h]].forEach(([su, sv], f) => meterUV(geo, su, sv, f * 4, f * 4 + 4));
+    return geo;
+  }
+  // A material from a painted texture if you added one, or the drawn color.
+  // `tint` colors the painting (a brick-red roof from the shingle texture).
+  function surface(color, name, tint = 0xffffff, fallbackMap = null) {
+    const t = painted(name);
+    const m = t ? lambert(tint, t) : lambert(color, fallbackMap);
+    m.userData.painted = !!t;
+    return m;
+  }
+
+  // ---- painted building fronts (art/facades) ----------------------------------
+  // Each stands on its 3D building like a stage flat. The width is set here;
+  // the height comes from the picture, so the roofline is the painter's.
+  const flats = {};
+  function flat(name, w, x, y, z, ry, parent = scene) {
+    const t = tex["facade_" + name];
+    if (!t) return null;
+    const h = w * t.image.height / t.image.width;
+    const geo = new T3.PlaneGeometry(w, h);
+    geo.translate(0, h / 2, 0);
+    const mat = new T3.MeshBasicMaterial({ map: t, alphaTest: 0.5 });
+    tinted.push(mat);
+    const m = new T3.Mesh(geo, mat);
+    m.position.set(x, y - 0.04, z);
+    m.rotation.y = ry;
+    parent.add(m);
+    (flats[name] = flats[name] || []).push(m);
+    // Papa can't walk into a flat
+    if (parent === scene) {
+      const along = Math.abs(Math.sin(ry)) > 0.5 ? "z" : "x";
+      colliders.push(along === "x" ? [x - w / 2, z - 0.08, x + w / 2, z + 0.08] : [x - 0.08, z - w / 2, x + 0.08, z + w / 2]);
+    }
+    return m;
+  }
+  const hasFlat = (name) => !!tex["facade_" + name];
+  // With a painted side, the 3D wall and roof take that painting's height,
+  // so the roof never pokes out above the painted roofline.
+  function fit(side, w, wallH, roofH) {
+    const t = tex["facade_" + side];
+    if (!t) return [wallH, roofH];
+    const k = Math.min(1.3, Math.max(0.7, (w * t.image.height / t.image.width - 0.06) / (wallH + roofH)));
+    return [wallH * k, roofH * k];
+  }
+
+  // ---- painted sky and horizon (art/backdrops) ----------------------------------
+  // A band wrapped around the world, inside facing in, like a theater cyclorama.
+  function wrapMap(t, repeats) {
+    const map = t.clone();
+    map.wrapS = T3.RepeatWrapping;
+    map.repeat.set(-repeats, 1);   // seen from inside, so flip it back the right way
+    map.needsUpdate = true;
+    return map;
+  }
+  function band(t, radius, height, repeats, bottom, cutout) {
+    const map = wrapMap(t, repeats);
+    const mat = new T3.MeshBasicMaterial({ map, side: T3.BackSide, fog: false, alphaTest: cutout ? 0.5 : 0, depthWrite: !!cutout });
+    const m = new T3.Mesh(new T3.CylinderGeometry(radius, radius, height, 72, 1, true), mat);
+    m.position.y = bottom + height / 2;
+    scene.add(m);
+    return m;
+  }
+  // The average color along the top or bottom of a picture, for the fog and sky above.
+  const edgeCache = new Map();
+  function edgeColor(t, top) {
+    const key = t.uuid + top;
+    if (edgeCache.has(key)) return edgeCache.get(key);
+    const c = t.image, g = c.getContext("2d");
+    const rows = Math.max(1, Math.round(c.height * 0.06));
+    const d = g.getImageData(0, top ? 0 : c.height - rows, c.width, rows).data;
+    let r = 0, gr = 0, b = 0, n = 0;
+    for (let i = 0; i < d.length; i += 32) { r += d[i]; gr += d[i + 1]; b += d[i + 2]; n++; }
+    const col = new T3.Color().setRGB(r / n / 255, gr / n / 255, b / n / 255, T3.SRGBColorSpace);
+    edgeCache.set(key, col);
+    return col;
+  }
 
   function loadTexture(src) {
     return new Promise((resolve) => {
@@ -170,18 +274,23 @@ const World = (() => {
   // ---- building blocks ----------------------------------------------------
   const lambert = (color, map) => new T3.MeshLambertMaterial({ color, map: map || null, flatShading: true });
   function box(w, h, d, color, x, y, z, opts = {}) {
-    const m = new T3.Mesh(new T3.BoxGeometry(w, h, d), opts.mat || lambert(color, opts.map));
+    const mat = opts.mat || lambert(color, opts.map);
+    const geo = new T3.BoxGeometry(w, h, d);
+    if (mat.userData.painted) boxUV(geo, w, h, d);
+    const m = new T3.Mesh(geo, mat);
     m.position.set(x, y + h / 2, z);
     if (opts.ry) m.rotation.y = opts.ry;
     scene.add(m);
     return m;
   }
-  function roof(w, h, d, color, x, y, z) {
+  // A pitched roof. Its gable ends face front and back (z); turn it for the sides.
+  // ExtrudeGeometry's UVs are already in meters, so painted roofs tile right.
+  function roof(w, h, d, color, x, y, z, mat) {
     const shape = new T3.Shape();
     shape.moveTo(-w / 2, 0); shape.lineTo(0, h); shape.lineTo(w / 2, 0); shape.lineTo(-w / 2, 0);
     const geo = new T3.ExtrudeGeometry(shape, { depth: d, bevelEnabled: false });
     geo.translate(0, 0, -d / 2);
-    const m = new T3.Mesh(geo, lambert(color));
+    const m = new T3.Mesh(geo, mat || lambert(color));
     m.position.set(x, y, z);
     scene.add(m);
     return m;
@@ -195,6 +304,7 @@ const World = (() => {
   }
   function cutout(texName, height, x, z, o = {}) {
     const mat = new T3.MeshBasicMaterial({ map: tex[texName], transparent: true, alphaTest: 0.35, side: T3.DoubleSide });
+    tinted.push(mat);
     const m = new T3.Mesh(planeFor(texName, height), mat);
     m.position.set(x, o.y != null ? o.y : heightAt(x, z), z);
     m.userData.tex = texName;
@@ -245,22 +355,32 @@ const World = (() => {
     sun.position.set(-30, 50, 20);
     scene.add(sun);
 
-    const groundMat = lambert(0x9a9b5c, grain);
+    const groundMat = surface(0x9a9b5c, "grass", 0xffffff, grain);
     groundMats.push(groundMat);
-    const ground = new T3.Mesh(new T3.CircleGeometry(95, 48), groundMat);
+    const groundGeo = new T3.CircleGeometry(95, 48);
+    if (groundMat.userData.painted) meterUV(groundGeo, 190, 190);
+    const ground = new T3.Mesh(groundGeo, groundMat);
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
 
-    const hillMat = lambert(0x8f9355, grain);
+    const hillMat = surface(0x8f9355, "hill", 0xffffff, grain);
     groundMats.push(hillMat);
-    const hill = new T3.Mesh(new T3.CylinderGeometry(HILL.top, HILL.base, HILL.h, 40, 1), hillMat);
+    const hillGeo = new T3.CylinderGeometry(HILL.top, HILL.base, HILL.h, 40, 1);
+    if (hillMat.userData.painted) {
+      const side = 41 * 2;   // the slope's vertices come first, then the caps
+      meterUV(hillGeo, Math.PI * (HILL.top + HILL.base), Math.hypot(HILL.base - HILL.top, HILL.h), 0, side);
+      meterUV(hillGeo, HILL.top * 2, HILL.top * 2, side);
+    }
+    const hill = new T3.Mesh(hillGeo, hillMat);
     hill.position.set(HILL.x, HILL.h / 2 - 0.01, HILL.z);
     scene.add(hill);
 
-    const pathMat = lambert(0xb48a56, grain);
+    const pathMat = surface(0xb48a56, "road", 0xffffff, grain);
     const strip = (x1, z1, x2, z2, w) => {
       const len = Math.hypot(x2 - x1, z2 - z1);
-      const m = new T3.Mesh(new T3.PlaneGeometry(w, len), pathMat);
+      const geo = new T3.PlaneGeometry(w, len);
+      if (pathMat.userData.painted) meterUV(geo, w, len);
+      const m = new T3.Mesh(geo, pathMat);
       m.rotation.x = -Math.PI / 2;
       m.rotation.z = -Math.atan2(x2 - x1, z2 - z1);
       m.position.set((x1 + x2) / 2, 0.02, (z1 + z2) / 2);
@@ -272,21 +392,23 @@ const World = (() => {
     strip(12.5, 12, 12.5, 2, 2);
 
     // the field: 15 one-acre plots, 5 across and 3 deep
-    mats.soil = lambert(0x7a4e31, grain);
-    mats.soilCorn = lambert(0x9c7838, grain);
-    mats.soilHover = lambert(0xa3703f, grain);
-    const ridgeMat = lambert(0x6a4a2c, grain);
+    mats.soil = surface(0x7a4e31, "soil", 0xffffff, grain);
+    mats.soilCorn = surface(0x9c7838, "soil", 0xf0d48a, grain);
+    mats.soilHover = surface(0xa3703f, "soil", 0xffffff, grain);
+    if (mats.soilHover.userData.painted) mats.soilHover.emissive.setHex(0x3a2412);
+    const ridgeMat = surface(0x6a4a2c, "soil", 0xc9b8a8, grain);
+    const soilUV = (geo, w, h, d) => (mats.soil.userData.painted ? boxUV(geo, w, h, d) : geo);
     for (let r = 0; r < 3; r++) {
       for (let c = 0; c < 5; c++) {
         const i = r * 5 + c;
         const x = (c - 2) * 4.4, z = (r - 1) * 4.4;
-        const tile = new T3.Mesh(new T3.BoxGeometry(3.7, 0.18, 3.7), mats.soil);
+        const tile = new T3.Mesh(soilUV(new T3.BoxGeometry(3.7, 0.18, 3.7), 3.7, 0.18, 3.7), mats.soil);
         tile.position.set(x, 0.09, z);
         tile.userData.click = { kind: "plot", index: i };
         scene.add(tile);
         clickables.push(tile);
         for (let k = -1; k <= 1; k++) {
-          const ridge = new T3.Mesh(new T3.BoxGeometry(3.5, 0.12, 0.42), ridgeMat);
+          const ridge = new T3.Mesh(soilUV(new T3.BoxGeometry(3.5, 0.12, 0.42), 3.5, 0.12, 0.42), ridgeMat);
           ridge.position.set(x, 0.22, z + k * 1.1);
           scene.add(ridge);
         }
@@ -306,30 +428,58 @@ const World = (() => {
     }
     // fence behind the field, with a gate for the road up the hill
     const postMat = lambert(0x5a3a24);
+    const fenceArt = tex.prop_fence;
     for (const [a, b] of [[-12.2, -1.6], [1.6, 12.2]]) {
-      for (let x = a; x <= b + 0.01; x += (b - a) / 5) box(0.16, 1.1, 0.16, 0, x, 0, -7.4, { mat: postMat });
-      box(b - a, 0.12, 0.08, 0, (a + b) / 2, 0.85, -7.4, { mat: postMat });
-      box(b - a, 0.12, 0.08, 0, (a + b) / 2, 0.45, -7.4, { mat: postMat });
+      if (fenceArt) {
+        // painted sections, stretched a little so a whole number fits the run
+        const h = 1.25, w = h * fenceArt.image.width / fenceArt.image.height;
+        const n = Math.max(1, Math.round((b - a) / w)), sw = (b - a) / n;
+        const mat = new T3.MeshBasicMaterial({ map: fenceArt, alphaTest: 0.4, side: T3.DoubleSide });
+        tinted.push(mat);
+        for (let i = 0; i < n; i++) {
+          const geo = new T3.PlaneGeometry(sw, h);
+          geo.translate(0, h / 2, 0);
+          const m = new T3.Mesh(geo, mat);
+          m.position.set(a + sw * (i + 0.5), 0, -7.4);
+          scene.add(m);
+        }
+      } else {
+        for (let x = a; x <= b + 0.01; x += (b - a) / 5) box(0.16, 1.1, 0.16, 0, x, 0, -7.4, { mat: postMat });
+        box(b - a, 0.12, 0.08, 0, (a + b) / 2, 0.85, -7.4, { mat: postMat });
+        box(b - a, 0.12, 0.08, 0, (a + b) / 2, 0.45, -7.4, { mat: postMat });
+      }
       colliders.push([a, -7.7, b, -7.1]);
     }
 
     // the cabin
+    // Its front (door and porch) faces the yard, +x. The gable ends are the
+    // sides, as in the painted cabinFront and cabinSide.
     const cab = { x: -17.5, z: 13 };
-    box(5, 3, 4.2, 0x7a4a2e, cab.x, 0, cab.z, { map: grain });
-    roof(5.8, 1.9, 4.8, 0x4f2f1d, cab.x, 3, cab.z).rotation.y = Math.PI / 2;
-    box(1.1, 2, 0.1, 0x1e1b18, cab.x + 2.51, 0, cab.z, { ry: Math.PI / 2 });
-    box(0.1, 0.9, 1, 0x1e1b18, cab.x + 2.52, 1.4, cab.z - 1.4);
-    box(0.7, 1.4, 0.7, 0x4f2f1d, cab.x - 1.6, 3.4, cab.z + 1.3);
+    const [cw, cr] = fit("cabinSide", 5.8, 3, 1.9);
+    box(5, cw, 4.2, 0x7a4a2e, cab.x, 0, cab.z, { mat: surface(0x7a4a2e, "wallPlanks", 0xffffff, grain) });
+    roof(5.8, cr, 4.8, 0x4f2f1d, cab.x, cw, cab.z, surface(0x4f2f1d, "roofShingle"));
     box(2.2, 0.2, 4.2, 0x5a3a24, cab.x + 3.4, 0, cab.z);
+    if (!flat("cabinFront", 4.8, cab.x + 2.93, 0, cab.z, Math.PI / 2)) {
+      box(1.1, 2, 0.1, 0x1e1b18, cab.x + 2.51, 0, cab.z, { ry: Math.PI / 2 });
+      box(0.1, 0.9, 1, 0x1e1b18, cab.x + 2.52, 1.4, cab.z - 1.4);
+    }
+    if (!hasFlat("cabinSide")) box(0.9, 4.4, 0.6, 0x6d5f52, cab.x - 0.8, 0, cab.z + 2.4, { map: grain });   // stone chimney
+    flat("cabinSide", 5.8, cab.x, 0, cab.z + 2.43, 0);
+    flat("cabinSide", 5.8, cab.x, 0, cab.z - 2.43, Math.PI);
     colliders.push([cab.x - 2.6, cab.z - 2.2, cab.x + 2.6, cab.z + 2.2]);
 
     // store and gin house
+    // Its front faces the road, -z; the tin roof's gables are the sides.
     const st = { x: 17.5, z: 12 };
-    box(7, 4, 5, 0xc7b08a, st.x, 0, st.z, { map: grain });
-    roof(7.8, 2, 5.6, 0x7a4a2e, st.x, 4, st.z);
-    box(1.4, 2.4, 0.1, 0x2e3b56, st.x - 1.6, 0, st.z - 2.51);
+    const [stW, stR] = fit("storeSide", 5.6, 4, 2);
+    box(7, stW, 5, 0xc7b08a, st.x, 0, st.z, { mat: surface(0xc7b08a, "wallClapboard", 0xe6d3ae, grain) });
+    roof(5.6, stR, 7.8, 0x7a4a2e, st.x, stW, st.z, surface(0x7a4a2e, "roofTin")).rotation.y = Math.PI / 2;
+    const storeFlat = flat("storeFront", 7.8, st.x, 0, st.z - 2.83, Math.PI);
+    if (!storeFlat) box(1.4, 2.4, 0.1, 0x2e3b56, st.x - 1.6, 0, st.z - 2.51);
+    flat("storeSide", 5.6, st.x + 3.93, 0, st.z, Math.PI / 2);
+    flat("storeSide", 5.6, st.x - 3.93, 0, st.z, -Math.PI / 2);
     const sign = new T3.Mesh(new T3.PlaneGeometry(4.2, 1.1), new T3.MeshBasicMaterial({ map: textTexture(["HOLLIDAY", "STORE & GIN"], { size: 46 }) }));
-    sign.position.set(st.x + 0.6, 3.1, st.z - 2.53);
+    sign.position.set(st.x + 0.6, storeFlat ? 3.1 : Math.min(3.1, stW - 0.7), st.z - (storeFlat ? 2.9 : 2.53));
     sign.rotation.y = Math.PI;
     scene.add(sign);
     mats.storeSign = sign;
@@ -350,12 +500,19 @@ const World = (() => {
     colliders.push([sc.x - 1.2, sc.z - 1.2, sc.x + 1.5, sc.z + 1.2]);
 
     // the big house on the hill
+    // Its front and porch face down the hill, +z; the roof's gables are the sides.
     const bh = { x: 0, z: -32.5, y: HILL.h };
-    box(13, 6.4, 7, 0xefe6d2, bh.x, bh.y, bh.z, { map: grain });
-    roof(14, 2.6, 7.8, 0xa3271f, bh.x, bh.y + 6.4, bh.z);
+    const [bw, br] = fit("bigHouseSide", 10.4, 6.4, 2.6);
+    box(13, bw, 7, 0xefe6d2, bh.x, bh.y, bh.z, { mat: surface(0xefe6d2, "wallClapboard", 0xffffff, grain) });
+    roof(7.8, br, 14, 0xa3271f, bh.x, bh.y + bw, bh.z, surface(0xa3271f, "roofShingle", 0xe08c7c)).rotation.y = Math.PI / 2;
     box(13, 0.4, 3, 0xe2d4b6, bh.x, bh.y, bh.z + 5);
-    for (let i = 0; i < 6; i++) box(0.36, 4.6, 0.36, 0xf6efdf, bh.x - 5.6 + i * 2.24, bh.y + 0.4, bh.z + 6.2);
-    box(13.4, 0.4, 3.4, 0xe2d4b6, bh.x, bh.y + 5, bh.z + 5);
+    // the painted front stands at the porch's edge, columns and all
+    if (!flat("bigHouseFront", 14, bh.x, bh.y, bh.z + 6.4, 0)) {
+      for (let i = 0; i < 6; i++) box(0.36, 4.6, 0.36, 0xf6efdf, bh.x - 5.6 + i * 2.24, bh.y + 0.4, bh.z + 6.2);
+      box(13, 0.4, 3.4, 0xe2d4b6, bh.x, bh.y + 5, bh.z + 5);
+    }
+    flat("bigHouseSide", 10.4, bh.x + 7.03, bh.y, bh.z + 1.3, Math.PI / 2);
+    flat("bigHouseSide", 10.4, bh.x - 7.03, bh.y, bh.z + 1.3, -Math.PI / 2);
     for (let i = 0; i < 4; i++) box(1.1, 1.5, 0.1, 0x2e3b56, bh.x - 4.5 + i * 3, bh.y + 1.4, bh.z + 3.52);
     box(1.6, 2.6, 0.1, 0x2e3b56, bh.x, bh.y + 0.4, bh.z + 3.53);
     for (let i = 0; i < 3; i++) box(3, 0.14, 0.5, 0xe2d4b6, bh.x, bh.y - 0.14 * (i + 1) + 0.28, bh.z + 6.8 + i * 0.5);
@@ -364,17 +521,35 @@ const World = (() => {
     // the church school, shown once the school card is drawn
     school = new T3.Group();
     const sx = -27, sz = -9;
-    const sb = new T3.Mesh(new T3.BoxGeometry(5, 3.2, 6), lambert(0xf6efdf, grain));
-    sb.position.set(sx, 1.6, sz); school.add(sb);
-    const sr = roof(5.8, 2.2, 6.6, 0xa3271f, sx, 3.2, sz); scene.remove(sr); sr.rotation.y = Math.PI / 2; school.add(sr);
-    const st2 = new T3.Mesh(new T3.BoxGeometry(1.1, 2.4, 1.1), lambert(0xf6efdf)); st2.position.set(sx + 2.2, 5, sz); school.add(st2);
+    // Its gable front, with the bell tower, faces +x toward the road.
+    const wallMat = surface(0xf6efdf, "wallClapboard", 0xffffff, grain);
+    const [hw, hr] = fit("schoolSide", 5.8, 3.2, 2.2);
+    const sbGeo = new T3.BoxGeometry(5, hw, 6);
+    if (wallMat.userData.painted) boxUV(sbGeo, 5, hw, 6);
+    const sb = new T3.Mesh(sbGeo, wallMat);
+    sb.position.set(sx, hw / 2, sz); school.add(sb);
+    const sr = roof(6.6, hr, 5.8, 0xa3271f, sx, hw, sz, surface(0xa3271f, "roofShingle", 0xe08c7c)); scene.remove(sr); sr.rotation.y = Math.PI / 2; school.add(sr);
+    if (!flat("schoolFront", 6.6, sx + 2.93, 0, sz, Math.PI / 2, school)) {
+      const st2 = new T3.Mesh(new T3.BoxGeometry(1.1, 2.4, 1.1), lambert(0xf6efdf)); st2.position.set(sx + 2.2, 5, sz); school.add(st2);
+    }
+    flat("schoolSide", 5.8, sx, 0, sz + 3.33, 0, school);
+    flat("schoolSide", 5.8, sx, 0, sz - 3.33, Math.PI, school);
     school.visible = false;
     scene.add(school);
 
     // trees and distant paper hills
     const treeSpots = [[-30, 18], [-24, 24], [-8, 26], [10, 25], [26, 22], [32, 4], [30, -14], [16, -22], [-16, -22], [-32, -2], [-36, 10], [22, -34], [-22, -36], [38, -26], [-40, -22], [6, 30], [-14, 32]];
     treeSpots.forEach(([x, z], i) => cutout(i % 2 ? "tree1" : "tree2", 6 + (i % 3), x, z));
-    [[110, "hills2", 18], [130, "hills1", 30]].forEach(([rad, t, h]) => {
+    // painted sky and horizon bands, where you added them
+    if (tex.bd_skyDay || tex.bd_skyDusk) {
+      sky = band(tex.bd_skyDay || tex.bd_skyDusk, 150, 177, 3, -20, false);
+      sky.renderOrder = -1;
+      sky.userData.maps = { day: tex.bd_skyDay && wrapMap(tex.bd_skyDay, 3), dusk: tex.bd_skyDusk && wrapMap(tex.bd_skyDusk, 3) };
+    }
+    const far = tex.bd_hillsFar && band(tex.bd_hillsFar, 130, 40, 12, -3, true);
+    const near = tex.bd_treeLine && band(tex.bd_treeLine, 110, 24, 16, -2, true);
+    [far, near].forEach((m) => m && tinted.push(m.material));
+    [[110, "hills2", 18], [130, "hills1", 30]].filter(([, t]) => !(t === "hills2" ? near : far)).forEach(([rad, t, h]) => {
       for (let a = 0; a < 12; a++) {
         const ang = (a / 12) * Math.PI * 2;
         const m = new T3.Mesh(new T3.PlaneGeometry(rad * 0.58, h), new T3.MeshBasicMaterial({ map: tex[t], transparent: true, fog: false }));
@@ -387,9 +562,13 @@ const World = (() => {
     // optional props from your own art
     PROPS.forEach((p) => {
       if (!tex["prop_" + p.name]) return;
-      const m = cutout("prop_" + p.name, p.h, p.x, p.z, { y: p.y });
+      const y = (p.y != null ? p.y : heightAt(p.x, p.z)) + (p.onTable && tex.prop_ledgerTable ? p.onTable : 0);
+      const m = cutout("prop_" + p.name, p.h, p.x, p.z, { y, billboard: !p.face, blob: p.blob });
+      // wide things (a clothesline, a plow) keep one facing, toward where Papa usually stands
+      if (p.face) m.rotation.y = Math.atan2(p.face.x - p.x, p.face.z - p.z);
       m.userData.click = { kind: "person", id: p.name };
       clickables.push(m);
+      if (p.stages || p.skies) propMeshes.push({ m, p });
     });
 
     // the family and the planter
@@ -682,14 +861,41 @@ const World = (() => {
     spring: [0xe8d6a8, 0x9fa262], summer: [0xe3c587, 0x8c9550], fall: [0xd9b16a, 0xa38f54],
     dusk: [0x3a4466, 0x5b5a40], drought: [0xe7b56a, 0xb9965a],
   };
+  // A painted sky is warmed or darkened to suit the season.
+  const SKY_TINT = { spring: 0xffffff, summer: 0xfff4e0, fall: 0xf6e2c0, dusk: 0x5c6690, drought: 0xffdcae };
   function setSky(name) {
-    const [sky, grass] = SKIES[name] || SKIES.spring;
-    scene.background.setHex(sky);
-    scene.fog.color.setHex(sky);
-    groundMats.forEach((m) => m.color.setHex(grass));
+    skyName = name;
+    const [skyHex, grass] = SKIES[name] || SKIES.spring;
+    scene.background.setHex(skyHex);
+    scene.fog.color.setHex(skyHex);
+    if (sky) {
+      const own = name === "dusk" ? tex.bd_skyDusk : tex.bd_skyDay;
+      const t = own || tex.bd_skyDay || tex.bd_skyDusk;
+      const maps = sky.userData.maps;
+      sky.material.map = (name === "dusk" ? maps.dusk : maps.day) || maps.day || maps.dusk;
+      sky.material.needsUpdate = true;
+      sky.material.color.setHex(own ? 0xffffff : SKY_TINT[name] || 0xffffff);
+      // the fog fades into the painted horizon; above the band, the top of the sky
+      const k = sky.material.color;
+      scene.fog.color.copy(edgeColor(t, false)).multiply(k);
+      scene.background.copy(edgeColor(t, true)).multiply(k);
+    }
+    // a painted ground keeps its own colors; the season only tints it
+    groundMats.forEach((m) => {
+      if (!m.userData.painted) m.color.setHex(grass);
+      else if (name === "dusk") m.color.setHex(0x767b96);
+      else m.color.setHex(0xffffff).lerp(new T3.Color(grass), 0.25);
+    });
     const tint = name === "dusk" ? 0xb8bccc : 0xffffff;
-    billboards.forEach((b) => b.material.color.setHex(tint));
+    tinted.forEach((m) => m.color.setHex(tint));
     Object.keys(mats).forEach((k) => { if (k.startsWith("plant_")) mats[k].color.setHex(tint); });
+    showProps();
+  }
+  // Seasonal props: cotton baskets at harvest, the lantern at settling time.
+  function showProps() {
+    propMeshes.forEach(({ m, p }) => {
+      m.visible = (!p.stages || p.stages.includes(stage)) && (!p.skies || p.skies.includes(skyName));
+    });
   }
 
   function clearObjective() {
@@ -724,10 +930,22 @@ const World = (() => {
         const mine = custom("sprites", n);
         tex[n] = (mine && await loadTexture(mine)) || await loadTexture(svgURL(SPRITES[n]()));
       });
-      PROPS.forEach((p) => {
-        const src = custom("props", p.name);
-        if (src) jobs.push(loadTexture(src).then((t) => { if (t) tex["prop_" + p.name] = t; }));
+      [...PROPS.map((p) => p.name), "fence"].forEach((n) => {
+        const src = custom("props", n);
+        if (src) jobs.push(loadTexture(src).then((t) => { if (t) tex["prop_" + n] = t; }));
       });
+      // painted building fronts, ground and wall textures, sky and horizon
+      for (const [kind, prefix] of [["facades", "facade_"], ["textures", "tx_"], ["backdrops", "bd_"]]) {
+        const all = (typeof CUSTOM_ART !== "undefined" && CUSTOM_ART[kind]) || {};
+        Object.entries(all).forEach(([n, src]) => jobs.push(loadTexture(src).then((t) => {
+          if (!t) return;
+          if (kind === "textures") {
+            t.wrapS = t.wrapT = T3.RepeatWrapping;
+            t.repeat.set(1 / (TILE[n] || 3), 1 / (TILE[n] || 3));
+          }
+          tex[prefix + n] = t;
+        })));
+      }
       await Promise.all(jobs);
       if (Object.keys(SPRITES).some((n) => !tex[n])) throw new Error("art failed to load");
 
@@ -798,6 +1016,7 @@ const World = (() => {
       if (s === "plan") plants.forEach((p) => { p.sown = false; p.picked = false; });
       if (s === "grow") plants.forEach((p) => { p.sown = true; p.picked = false; });
       refreshPlants();
+      showProps();
     },
     // The family finishes whatever rows Papa didn't walk.
     finishRows() {

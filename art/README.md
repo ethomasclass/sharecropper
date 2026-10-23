@@ -8,7 +8,7 @@ Every person, animal, crop, and prop in the 3D farm is a flat 2D cutout standing
 
 1. Save your image into the right folder, named exactly after its slot (for example `art/sprites/mama.png`).
 2. Rebuild the game with `npm run build`, or ask Claude to rebuild it.
-3. The build packs your art into `Settling-Up.html`, so the game stays one file that works offline.
+3. The build packs your art into `Settling-Up.html`, so the game stays one file that works offline. For GitHub Pages, it writes the prepared art to `assets/art/` and `index.html` loads it from there, so the page stays small. Commit `assets/` along with `index.html`.
 
 The build does the fiddly parts for you:
 
@@ -103,6 +103,48 @@ These only appear if you add them. Each has a set place in the world.
 | `fieldhand` | A neighbor in the distance, by the woods | 1.65 m |
 | `church` | A church in the distance, flat like stage scenery | 7 m |
 | `oak` | A large shade tree behind the cabin | 9 m |
+| `fence` | Replaces the drawn rail fence behind the field, section by section | 1.25 m |
+| `clothesline` | In the cabin yard, facing where Papa starts each spring | 1.9 m |
+| `baskets` | At the edge of the field, at harvest only | 1.0 m |
+| `bales` | Beside the store and gin | 1.4 m |
+| `crates` | Outside the store, by the bench | 1.3 m |
+| `ledgerTable` | On the big house porch, beside Mr. Holliday | 1.0 m |
+| `lantern` | On the ledger table, at settling time only | 0.42 m |
+| `rainBarrel` | At the back corner of the cabin | 1.2 m |
+| `plow` | At the west edge of the field | 1.1 m |
+| `outhouse` | Behind the cabin | 2.4 m |
+
+### Building fronts (`art/facades/`)
+
+Each painting stands on its 3D building like a stage flat, fronts and both sides. The build trims the magenta, so the bottom of the painting is the ground line. The width is set by the building; the height comes from your painting, and the 3D wall and roof shrink or grow to match the side painting so no roof pokes out above it. With a front painting in place, the drawn door, windows, and (on the big house) columns are hidden.
+
+`cabinFront`, `cabinSide`, `storeFront`, `storeSide`, `bigHouseFront`, `bigHouseSide`, `schoolFront`, `schoolSide`
+
+### Ground and wall textures (`art/textures/`, square, seamless)
+
+| File name | Where it goes | One tile covers |
+| --- | --- | --- |
+| `grass` | The ground | 6 m |
+| `hill` | The hill under the big house | 6 m |
+| `soil` | The field plots (corn plots are tinted lighter) | one plot, 3.7 m |
+| `road` | The roads | 3 m |
+| `roofShingle` | The cabin roof; tinted brick red for the big house and school | 2 m |
+| `roofTin` | The store roof | 2.5 m |
+| `wallPlanks` | The cabin walls | 2.5 m |
+| `wallClapboard` | The store, big house, and school walls | 2.5 m |
+
+The seasons tint a painted ground lightly, and dusk darkens it.
+
+### Sky and horizon (`art/backdrops/`, 16:9, seamless left and right)
+
+| File name | What it does |
+| --- | --- |
+| `skyDay` | Wraps the world as the daytime sky, warmed for summer, fall, and drought |
+| `skyDusk` | The sky at settling time, Christmas evening |
+| `hillsFar` | Replaces the drawn far hills |
+| `treeLine` | Replaces the drawn near hills |
+
+The fog fades into the bottom color of the sky painting, so distant things melt into it.
 
 ### Cutscene panels (`art/scenes/`, 16:9, at least 1600 × 900)
 
