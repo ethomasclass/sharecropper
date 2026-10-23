@@ -2,12 +2,13 @@
 //   node tools/script.mjs   ->  story/SCRIPT.md, story/vo-lines.csv
 import fs from "node:fs";
 import { SCENES, ARC, TAGS, DYK } from "../story/lines.mjs";
+import { VO } from "../story/vo.mjs";
 
 const root = new URL("..", import.meta.url).pathname;
 const WPM = 140;                                   // unhurried narration
 const words = (s) => s.split(/\s+/).filter(Boolean).length;
 const secs = (s) => Math.max(1.5, (words(s) / WPM) * 60);
-const voText = (l) => l.vo || [l.tag || TAGS[l.delivery] || "", l.text].filter(Boolean).join(" ");
+const voText = (l) => VO[l.id] || [l.tag || TAGS[l.delivery] || "", l.text].filter(Boolean).join(" ");
 const file = (l) => `${l.id.toLowerCase()}_${l.voice}.mp3`;
 const all = SCENES.flatMap((s) => s.lines.map((l) => ({ ...l, scene: s })));
 const voiced = all.filter((l) => l.voice);
@@ -22,6 +23,15 @@ const typicalSecs = typical.reduce((s, l) => s + secs(l.text), 0) + 5 * perYear.
 const byVoice = (v) => voiced.filter((l) => l.voice === v);
 const chars = (ls) => ls.reduce((s, l) => s + voText(l).length, 0);
 const mins = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+
+// Every voiced line needs a tagged version whose words match the subtitle.
+const bare = (t) => t.replace(/\[[^\]]*\]/g, " ").replace(/[^A-Za-z0-9']+/g, " ").trim().toLowerCase();
+const problems = voiced.filter((l) => !VO[l.id] || bare(VO[l.id]) !== bare(l.text)).map((l) => l.id);
+const extra = Object.keys(VO).filter((id) => !voiced.some((l) => l.id === id));
+if (problems.length || extra.length) {
+  console.error("Tagged text missing or words don't match:", problems.join(", ") || "none", "| Tags for unknown lines:", extra.join(", ") || "none");
+  process.exit(1);
+}
 
 // ---- CSV for ElevenLabs ------------------------------------------------------
 const csvCell = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;

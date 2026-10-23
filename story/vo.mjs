@@ -1,0 +1,180 @@
+// Emotion-tagged text for every voiced line, sent to ElevenLabs Eleven v4.
+// The words must match the line in lines.mjs exactly; only [tags] and
+// ellipses are added. `node tools/script.mjs` checks this.
+// Tags describe how the SPEAKER sounds, never what happens in the scene
+// (a [whispering] tag on "Hannah whispers it" makes Papa whisper).
+export const VO = {
+  // prologue: Papa narrating, steady and unhurried
+  "PRO-01": "[thoughtful] Mississippi. January, eighteen sixty-nine. [quietly proud] Four years since freedom came down the road.",
+  "PRO-02": "[warmly] Five of us in a one-room cabin. Hannah. Our girl Lucy, ten. [fond] Our boy Sam, six. [gently] And my mother, Ruth.",
+  "PRO-03": "[wry] In sixty-five, folks said the bottom rail was on top. [quietly, with a dry half-laugh] I'll believe it when I'm holding a deed.",
+  "PRO-04": "[matter-of-fact] Mr. Holliday has land and nobody to work it. [quiet resolve] I have two hands, a family, and nothing else.",
+  "PRO-05": "[steady, a little nervous] So this morning I walk up to the big house to make my mark.",
+
+  // contract
+  "CON-01": "[quietly] Hannah says make him read every word. [rueful] I can't read a one of them. [flat] He knows that.",
+  "CON-02": "[pleasantly, brisk] Sit down, Robert. I'll read it, you listen. [chuckles] Saves us both some time.",
+  "CON-03": "[reading aloud quickly, flat] For every thirty acres, I'll provide a mule team, plow, and farming tools. You can have half of the cotton and corn you grow.",
+  "CON-04": "[reading aloud quickly, flat] Nothing can be sold from your crop until my rent is all paid, and all amounts you owe me are paid in full.",
+  "CON-05": "[reading aloud quickly, flat] The sale of your part of the cotton to be made by me, when and where I choose to sell, and after taking all you owe me.",
+  "CON-06": "[businesslike] Fifteen acres. Five in corn, no more. Your account's at my commissary. Ten percent on anything you carry over. [pleasantly] Make your mark right there.",
+  "CON-07": "[quietly, uneasy] He read it fast, like a grocery list. I caught 'half.' [slower] I caught 'all you owe me.'",
+  "CON-08": "[respectfully] Yes, sir.",
+  "CON-09": "[quietly] My mark. An X. [softly, determined] Lucy is going to learn to write our name.",
+
+  // 1869: hope
+  "Y1869-01": "[hopeful] Spring comes early. First stop, the commissary. [matter-of-fact] Seed, and meat, meal, and molasses on account.",
+  "Y1869-02": "[quietly] Only store for nine miles. Whatever we take, he writes down. [a small smile] Hannah ties a knot.",
+  "Y1869-03": "[proud, looking out] Fifteen acres. More than I ever worked for myself. [quieter] Not one of them mine.",
+  "Y1869-04": "[thinking it over] Cotton pays at settling time. Corn feeds us all year. Hannah wants corn. [wry] Mr. Holliday wants cotton.",
+  "Y1869-05": "[steady] Walk the rows. [warmly] Hannah and the children come behind me with the seed.",
+  "Y1869-06": "[satisfied, tired] Field's in. [wry] Now it's up to the rain, the Lord, and the price.",
+  "Y1869-07": "[easy] By June we chop cotton. By the Fourth of July it's laid by. [warmly] Home for supper.",
+  "Y1869-08": "[quiet pride] September. The bolls are open. [steady] Picking time runs till frost.",
+  "Y1869-09": "[hopeful] Every row we walk is money. [wary] Whose money, we'll find out at Christmas.",
+  "Y1869-10": "[quietly] The bales are tied and loaded. [flat] His gin. His scale. His book.",
+  "Y1869-11": "[quietly watchful] His man reads the needle and writes it down. I watch the needle. [firmly] I can read a needle.",
+  "Y1869-12": "[proud, moved] First of December, I voted. First time in my life. [steadier] A week later, I walk up the hill to settle.",
+  "Y1869-13": "[warmly, genial] Come on up, Robert. [pleasantly] I've got your number right here.",
+  "Y1869-14": "[quietly, resolved] Our first year free and settled. Whatever that number is, it's ours to carry.",
+
+  // interlude 1870
+  "I1870-01": "[thoughtful] February, eighteen seventy. The Fifteenth Amendment. I already voted once. [proud] Now the Constitution says no state can take it from me because of my color.",
+  "I1870-02": "[quietly] Voteless. That word gets crossed out. [heavier] Landless... That one stays.",
+  "I1870-03": "[wonder] Same month, a Black man from Mississippi, Hiram Revels, takes a seat in the United States Senate. [excited, under his breath] Now watch, I tell Hannah. Now watch.",
+
+  // 1870: pride, then doubt
+  "Y1870-01": "[wry] New year, same road. I tell Hannah this is the year we come out ahead. [rueful] I say that every spring.",
+  "Y1870-02": "[quietly] Hannah asks what the flour costs. [dry] The clerk says, 'Same as always,' and writes it down.",
+  "Y1870-03": "[warmly] Lucy walks beside me. She says the church is starting a school. [tender] She wants to go.",
+  "Y1870-04": "[thinking it over] Cotton was down last fall. [wry] Corn doesn't care about New York.",
+  "Y1870-05": "[fond, proud] Sam drags his own sack this year. Taller every spring.",
+  "Y1870-06": "[quiet, heavy] Mother told me tonight my father would have walked ten miles to vote. [softly, slow] They sold him to Alabama when I was six.",
+  "Y1870-07": "[fond] Picking time. Sam fills his first whole sack. [warmly, smiling] He's prouder of it than anything.",
+  "Y1870-08": "[warm, amused] Hannah sings in the next row. Sam sings louder, and wrong. [chuckles] Lucy laughs.",
+  "Y1870-09": "[focused] Loaded. I count the bales twice. [firm] I want to know the number before he tells me.",
+  "Y1870-10": "[quietly, concentrating] The needle stops. I hold that number in my head all the way up the hill.",
+  "Y1870-11": "[quiet dignity] I put on my good shirt. [gently] Hannah walks up with me.",
+  "Y1870-12": "[genial, unbothered] Evening, Robert. Cotton's down this year. [shrugging it off] Nothing I can do about New York.",
+  "Y1870-13": "[tired, quiet] Walking home, I don't say much. I never do after settling.",
+
+  // 1871: the turn
+  "Y1871-01": "[grave, quiet] Word came from Meridian. A fire, a trial, then shooting in the courthouse. [heavy] Our people, mostly.",
+  "Y1871-02": "[quietly] Hannah keeps her own count now. One knot for every dollar he writes.",
+  "Y1871-03": "[thoughtful] Mother says the land doesn't care whose name is on it. [softly] It just wants working.",
+  "Y1871-04": "[weighing it] Every acre of corn is a little less owed. Every acre of cotton is a little more hope.",
+  "Y1871-05": "[tender, proud] The preacher's wife is teaching Lucy her letters on Sundays. She writes them in the dirt between rows.",
+  "Y1871-06": "[quiet, uneasy] Laid by. Evenings on the porch, I count on my fingers. Hannah counts on her string.",
+  "Y1871-07": "[watchful] Hannah watches the wagon fill. She doesn't say anything. [quietly] She's counting.",
+  "Y1871-08": "[certain, tired] I know what a wagon of cotton weighs. [firmly] My back knows.",
+  "Y1871-09": "[quietly] Hannah walks beside the wagon this year. She wants to see the needle too.",
+  "Y1871-10": "[quietly] Hannah leans close and whispers it. [tense, holding back anger] She's right... [sighs] And there's not a thing I can say.",
+  "Y1871-11": "[flat, tired] Up the hill. He won't look up from his book. He never does.",
+  "Y1871-12": "[cool, without looking up] Robert. Let's see where you stand.",
+  "Y1871-13": "[quiet, bitter] Hannah unties her string on the table tonight. We count the knots together. [slowly] His book has more.",
+
+  // 1872: holding on
+  "Y1872-01": "[weary, wry] Election year. Grant is running again. Men argue about it on every porch.",
+  "Y1872-02": "[quietly, sad] New shoes in the commissary window. Hannah walks right past them.",
+  "Y1872-03": "[worried, gentle] Mother can't walk out to the field this year. Her knees won't carry her.",
+  "Y1872-04": "[rueful, fond] Hannah says plant more corn. Owe less. Eat. She's not wrong. [small laugh] She's never wrong.",
+  "Y1872-05": "[gently] Sam asks if his grandmother is coming out today. [softly] Not today, son.",
+  "Y1872-06": "[moved, proud] Lucy read me the sign on the store today. Every letter. [voice catching] My daughter reads.",
+  "Y1872-07": "[tired but steady] Long picking this year. We sing to keep the rows even.",
+  "Y1872-08": "[tense, low] Hannah says we could leave. Leave owing, and he takes the mule, the crop, the stove. [bitter] Then where?",
+  "Y1872-09": "[weary, flat] Same wagon. Same road. Same scale.",
+  "Y1872-10": "[bitter, quiet] Four years of that needle. It never once comes out on my side.",
+  "Y1872-11": "[resigned] Four Christmases on that porch. I could find it in the dark.",
+  "Y1872-12": "[warmly] Another year, Robert. [chuckles softly] You're a good worker. [lower, a quiet warning under the warmth] I'd hate to lose you.",
+  "Y1872-13": "[quietly, shaken] 'I'd hate to lose you.' He means it. [slowly] That's the worst part.",
+
+  // 1873: the panic
+  "Y1873-01": "[uneasy] Hannah counts every coin twice this spring. Something's coming. [quietly] We can all feel it.",
+  "Y1873-02": "[flat] The prices on the shelf haven't changed. [dry] They never do.",
+  "Y1873-03": "[hopeful, then rueful] One more good year. That's all we need. [sighs] I've said that before.",
+  "Y1873-04": "[tired, searching] Corn or cotton. Five years of the same question, and I still don't know the right answer.",
+  "Y1873-05": "[tender, a small smile] Lucy asks, when we have our own land, can she name the mule?",
+  "Y1873-06": "[worried] Hard rain this summer, and fever down in Grenada and Vicksburg. [protective] We keep the children close.",
+  "Y1873-07": "[proud, quiet] Best crop we ever grew.",
+  "Y1873-08": "[stunned, bitter] Best crop we ever grew, and nobody wants to buy it.",
+  "Y1873-09": "[heavy, slow] I lead the wagon slow. No hurry to hear it.",
+  "Y1873-10": "[resigned] The needle stops. It doesn't matter now. [bitter] The price was decided in New York.",
+  "Y1873-11": "[gently, heavy] Lucy follows me up the hill this time and stands on the step to listen.",
+  "Y1873-12": "[sighs, weary but composed] Sit down, Robert. Bad year for everybody. [dry] Even me.",
+  "I1873-01": "[grave] September, eighteen seventy-three. A bank in New York fails, [quietly] and then the whole country seems to.",
+  "I1873-02": "[flat, heavy] Cotton falls to sixty dollars a bale. [bitter] We grew it all year at the old price.",
+
+  // every year
+  "STORE-LEAN": "[resigned, determined] No shoes this year. We'll make do. [quietly] We always make do.",
+  "STORE-BASIC": "[cautious] That should see us through, if nothing goes wrong.",
+  "STORE-EXTRA": "[relieved] Medicine on the shelf. Hannah will sleep better. [softly] So will I.",
+  "FIELD-LIMIT": "[dry] Five acres of corn. That's all the contract allows. [flat] He wants cotton.",
+  "FIELD-SOWN": "[tired, satisfied] That's enough. The family will finish the rest.",
+  "FIELD-PICKED": "[tired, grateful] Hannah and the children will bring in the rest.",
+
+  // settling up
+  "SET-AHEAD": "[pleasantly surprised] Well. Your share comes out ahead this year. [chuckles] Don't spend it all in one place.",
+  "SET-EVEN": "[matter-of-fact] Comes out even. Nothing owed, nothing coming.",
+  "SET-OWE": "[pleasantly, unhurried] You come up short. [generous, as if doing a favor] I'll carry it over to next year... ten percent, same as always.",
+  "SET-OWE-AGAIN": "[sighs, patient] Short again, Robert. [smoothly] I'll carry it. I always do.",
+  "SET-EVICT-VOTE": "[calm, cold] I hear you went to town on Election Day. I'll keep your share for the trouble. [quietly final] Be gone by New Year's.",
+  "SET-REACT-AHEAD": "[quietly elated] Ahead. Say it again. Ahead. [warmly] Hannah squeezes my hand all the way down the hill.",
+  "SET-REACT-EVEN": "[tired, flat] Even. A whole year of work, and we're right where we started.",
+  "SET-REACT-SHORT": "[quietly, bitter] Short. Hannah's string says we're closer than that. [sighs] I keep my mouth shut.",
+  "SET-REACT-DEEP": "[heavy, quiet] Every year we work harder, and every year we owe more.",
+  "SET-REACT-EVICT": "[stunned, then steadying] Put off the place. We load the wagon. [resolute] We've moved before. We'll move again.",
+  "SET-YES": "[respectfully, swallowing his pride] Yes, sir.",
+
+  // demanding the books
+  "BOOKS-01": "[tense, quiet] A man asking to see the books. On this porch. Hannah is holding her breath.",
+  "BOOKS-02": "[carefully, respectful but firm] Sir... I'd like to see the books.",
+  "BOOKS-EVICT": "[quiet, ice cold] You'd call me a liar on my own porch? [flat] Your share stays with me. Be gone by New Year's.",
+  "BOOKS-MARKUP": "[patient, condescending] That's the time price. Goods on credit cost more than cash. Always have. [pleasantly] It's in the contract.",
+  "BOOKS-MARKUP-T": "[quietly, bitter] Forty cents on every dollar, just for waiting till Christmas.",
+  "BOOKS-WEIGHT": "[calm, a little cold] The scale is the scale, Robert. [mildly amused] You want to weigh your own cotton... buy your own gin.",
+  "BOOKS-WEIGHT-T": "[quietly, vindicated] So the wagon did weigh more. Hannah was right.",
+  "BOOKS-INTEREST": "[dismissive, smooth] Ten, twenty-five... interest is interest. [lightly, with an edge] You want land of your own someday or not?",
+  "BOOKS-INTEREST-T": "[quiet, angry] Twenty-five percent. He said ten. [slowly] He said it to my face.",
+
+  // leaving, renting
+  "LEAVE-OWING": "[tense, low] If we leave owing, his lien takes the crop, the mule, everything we can't carry. [grim] No planter in the county will sign me.",
+  "LEAVE-FREE": "[cool, indifferent] Suit yourself. Plenty of men want this place.",
+  "RENT-01": "[surprised, a little stiff] Renting. Well. You've got the mule and the money. [grudgingly polite] I won't stand in your way.",
+
+  // event cards
+  "CARD-RAINS": "[relieved] Rain at planting, and dry at picking. The cotton stands tall. [cautious] A good year, if the price holds.",
+  "CARD-DROUGHT": "[worried] No rain from June to August. The bolls come in small and hard. [quietly] I can hear them rattle.",
+  "CARD-FLOOD": "[grim] The river comes up over the low fields. It takes the corn patch and some of the cotton.",
+  "CARD-MULEDIES": "[sad, quiet] Old Jack lies down in his stall and doesn't get up. [bitter] The mule was in my hands, so the cost goes in his book.",
+  "CARD-MULEDIES-OWN": "[heartbroken, quiet] Our own mule, lying in the stall. Sixty dollars of savings. [sighs] Back to half shares.",
+  "CARD-SICK": "[worried, low] Sam takes the chills and fever in July. Hannah sits up with him nine nights. [tired] We're a pair of hands short.",
+  "CARD-SICK-EXTRA": "[worried, then relieved] Sam takes the chills and fever. We have medicine on the shelf this time. [softly] Thank God for that.",
+  "CARD-SCHOOL-1869": "[torn] The church is starting a school for children. Lucy wants to go. [quietly] That's one less pair of hands in the field.",
+  "CARD-SCHOOL": "[torn] The new public school opens, free. [rueful] But it runs in the same months as chopping and picking.",
+  "CARD-SCHOOL-YES": "[proud, warm] Lucy goes to school. The rows are a little longer without her. [gently] I don't mind the walk.",
+  "CARD-SCHOOL-NO": "[guilty, quiet] Lucy stays in the field. She keeps asking. [sighs] I keep saying next year.",
+  "CARD-ELECTION": "[tense] Election Day. I can vote, and he knows it. [low] He says a man who votes against him can find another place to live.",
+  "CARD-ELECTION-YES": "[quiet pride] I walk to town and vote. [uneasy] Nobody says a word to me on the road home. [grim] Nobody needs to.",
+  "CARD-ELECTION-NO": "[ashamed, quiet] I stay home. I don't say a word all day. [softly] Neither does Hannah.",
+  "CARD-MULEBUY": "[hopeful, careful] A neighbor moving west to Texas will sell his mule for sixty dollars, cash money.",
+  "CARD-MULEBUY-YES": "[proud, quietly thrilled] I count out sixty dollars. The mule is ours. [determined] Two-thirds of the crop from now on.",
+  "CARD-MULEBUY-NO": "[wistful] I watch the mule go down the road. [sighs] Maybe next year.",
+  "CARD-MULEBUY-CANT": "[rueful] Sixty dollars cash. We don't have it. [flat] Not close.",
+  "CARD-EGGS": "[warmly] Mother's garden comes in thick. Hannah walks to town on Saturday with eggs and greens.",
+  "CARD-EGGS-YES": "[delighted, quiet] She comes home with fifteen dollars in her apron. Cash. [proud] Ours.",
+  "CARD-EGGS-NONE": "[rueful] The garden's too small this year to spare anything for town.",
+  "CARD-RIDERS": "[afraid, controlled] Word of masked men riding at night, two farms over. [low, tense] I bar the door and sit up with the lamp out.",
+  "CARD-PANIC": "[uneasy] Nobody in town will name a price. The buyers say wait. [bitter] The planter says sell.",
+
+  // endings
+  "END-STAY-01": "[quiet, resigned] 'Next year,' he says. 'Cotton will come back.' [slowly] 'Yes, sir,' I say.",
+  "END-STAY-02": "[weary, steady] We plant again the next spring, and the spring after that. The rows stay the same. [quietly bitter] Only the number in his book gets bigger.",
+  "END-RENT-01": "[hopeful, moved] January. We load the wagon and drive our own mule down the road. The land still isn't ours. [proud] But the crop will be.",
+  "END-RENT-02": "[quiet pride] That fall I sell our cotton myself. I read the price off the board in town, [warmly] and I count the money twice.",
+  "END-LEFT-01": "[tense, quiet] We leave at night, owing. [heavy] We make it as far as the county line.",
+  "END-LEFT-02": "[bitter] His lien takes the crop, the mule, even Hannah's stove. [flat] The justice of the peace sides with him.",
+  "END-LEFT-03": "[weary, low] No planter in the county will sign a man who walked off owing. [resigned] I hire out by the day, to whoever will have me.",
+
+  "AUD-01": "[quietly, a hint of pride] Hannah's string was right. [firm] Now see for yourself.",
+  "TALK-HOLLIDAY": "[genial, dismissive] Get on back to work, Robert. We'll settle up at Christmas.",
+};

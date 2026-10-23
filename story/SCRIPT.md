@@ -50,11 +50,11 @@ The supporting question is the spine: *Can you be free if you can't leave?* Each
 | | Papa | Mr. Holliday | Total |
 | --- | --- | --- | --- |
 | Lines | 123 | 22 | 145 |
-| Characters (credits for one take) | 10,584 | 1,874 | 12,458 |
+| Characters (credits for one take) | 11,894 | 2,459 | 14,353 |
 | Audio if every line is recorded | 12:44 | 2:21 | 15:05 |
 
 - **One playthrough hears about 11:01 of voice.** Most of it plays while Papa walks, so it adds little to play time.
-- **Three takes of every line** come to about 37,374 credits.
+- **Three takes of every line** come to about 43,059 credits.
 - **Play time stays inside 30 minutes** with the cuts in `node tools/timing.mjs --proposed`: about 29 minutes as modeled, before the voice that plays during walking.
 - **Spoken lines are short.** Lines heard while walking stay between 3 and 8 seconds. Longer moments sit in cutscenes and pages the student moves through.
 
