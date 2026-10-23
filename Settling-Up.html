@@ -799,7 +799,7 @@ function closeYear(g, y, decision) {
   g.years[g.yearIndex] = y;
 
   if (decision === "rent") { g.ending = "rent"; return g; }
-  if (decision === "leave" && owed && !y.evicted) { g.ending = "vagrancy"; return g; }
+  if (decision === "leave" && owed && !y.evicted) { g.ending = "left"; return g; }
   if (decision === "leave" || y.evicted) g.planterIndex += 1;
   if (g.yearIndex >= CONFIG.years.length - 1) { g.ending = "cropping"; return g; }
   g.yearIndex += 1;
@@ -1073,12 +1073,13 @@ const ENDINGS = {
       { art: "ownField", caption: "Papa sold our cotton himself that fall.", sub: "He read the price off the board in town and counted the money twice." },
     ],
   },
-  vagrancy: {
-    title: "Arrested for vagrancy",
+  left: {
+    title: "Lost to the lien",
     panels: [
-      { art: "emptyRoad", caption: "We left at night, owing.", sub: "On the second day, the sheriff stopped Papa on the road." },
-      { art: "emptyDoor", caption: "The law called a man without a contract a vagrant.", sub: "The judge fined Papa money he didn't have." },
-      { art: "emptyDoor", caption: "A planter paid the fine, and Papa had to work for him until it was paid off.", sub: "We didn't see him for most of a year." },
+      { art: "emptyRoad", caption: "We leave at night, owing.", sub: "We make it as far as the county line." },
+      { art: "emptyDoor", caption: "His lien takes the crop, the mule, even Hannah's stove.", sub: "The justice of the peace sides with him." },
+      { art: "longRows", caption: "No planter in the county will sign a man who walked off owing.", sub: "I hire out by the day, to whoever will have me." },
+      { art: "emptyRoad", caption: "After 1876, Mississippi's new laws made it easy to arrest a Black man for almost nothing and hire him out to work off the fine.", sub: "For a family that left owing, the risk only grew." },
     ],
   },
 };

@@ -268,7 +268,7 @@ function closeYear(g, y, decision) {
   g.years[g.yearIndex] = y;
 
   if (decision === "rent") { g.ending = "rent"; return g; }
-  if (decision === "leave" && owed && !y.evicted) { g.ending = "vagrancy"; return g; }
+  if (decision === "leave" && owed && !y.evicted) { g.ending = "left"; return g; }
   if (decision === "leave" || y.evicted) g.planterIndex += 1;
   if (g.yearIndex >= CONFIG.years.length - 1) { g.ending = "cropping"; return g; }
   g.yearIndex += 1;

@@ -12,6 +12,8 @@
 //     game. Fixed game values (sixty dollars, ten percent, five acres) are OK,
 //     but re-record them if config.js changes.
 //   - Papa says "Mr. Holliday" only in 1869, before the family could move.
+//   - Only Mr. Holliday is voiced. If the family moves, the new planter's
+//     lines show as text, and Papa's thoughts stay voiced.
 //   - Standard spelling. The voice comes from word choice, not dialect.
 // ============================================================================
 

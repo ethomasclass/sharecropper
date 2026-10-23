@@ -59,7 +59,7 @@ function mulberry(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = 
 
 const N = 20000;
 for (const [name, style] of Object.entries(STYLES)) {
-  const counts = { cropping: 0, rent: 0, vagrancy: 0 };
+  const counts = { cropping: 0, rent: 0, left: 0 };
   let debt = 0, sum = 0, honestRent = 0;
   for (let i = 0; i < N; i++) {
     const g = playFamily("fam" + seedCounter++, style, mulberry(seedCounter * 7919));
@@ -69,7 +69,7 @@ for (const [name, style] of Object.entries(STYLES)) {
     if (E.auditTotals(g).wouldRent) honestRent++;
   }
   const pct = (n) => (100 * n / N).toFixed(1) + "%";
-  console.log(`${name.padEnd(26)} rent ${pct(counts.rent).padStart(6)}  vagrancy ${pct(counts.vagrancy).padStart(6)}  in debt ${pct(debt).padStart(6)}  avg $${(sum / N).toFixed(0).padStart(5)}  honest books ≥$150 ${pct(honestRent)}`);
+  console.log(`${name.padEnd(26)} rent ${pct(counts.rent).padStart(6)}  left owing ${pct(counts.left).padStart(6)}  in debt ${pct(debt).padStart(6)}  avg $${(sum / N).toFixed(0).padStart(5)}  honest books ≥$150 ${pct(honestRent)}`);
 }
 
 if (process.argv.includes("--check")) {

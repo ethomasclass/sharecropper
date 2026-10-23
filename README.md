@@ -33,7 +33,7 @@ Papa walks everywhere himself:
 
 **Handling the field work.** Walking is the only thing students do in the field. There's no tapping, picking, or scoring, and once Papa has walked most of the rows, the family finishes the rest. The decisions sit where the lesson is: the split between cotton and corn, the store, and the porch.
 
-**Endings.** Three endings: still cropping, renting a farm, or arrested for vagrancy (leaving while in debt, told in words and never shown). Every family ends at the audit.
+**Endings.** Three endings: still cropping, renting a farm, or lost to the lien (leaving while in debt: the planter's claim takes the crop and goods, and no other planter will sign Papa). Every family ends at the audit.
 
 ## Adding your own art
 

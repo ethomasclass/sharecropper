@@ -112,11 +112,11 @@ These come from the history fact-check. Each needs a small code change when the 
 
 **Cotton prices.** The real New York prices for the 1869–73 crops ran about $106, $75, $90, $80, and $75 a bale. The game's $110, $95, $85, $85, $60 keep the downward trend and are labeled as game values. Matching them exactly would make 1870 much harsher; that's a tuning choice for later.
 
-## Decisions for you
+## Decisions made
 
-1. **"Left owing" ending.** I wrote the historically accurate version. Your spec named a vagrancy arrest, which fits 1865–67 or after 1876 but not 1869–73. Keep the new one, or restore the old?
-2. **Papa's father** (\`Y1870-06\`), sold to Alabama before he could vote. It is one line, offstage, but it is the heaviest line in the script. Keep or cut?
-3. **Mr. Holliday after a move.** If the family moves, the new planter (Mr. Pruitt) speaks with the same voice. Record a second planter voice later, or accept it.
+1. **The ending when a family leaves owing is "Lost to the lien."** The planter's claim takes the crop and goods, and no planter in the county will sign Papa. It replaces the spec's vagrancy arrest, which fits 1865–67 and after 1876 but not 1869–73. A final silent card says that after 1876 arrest-and-hire-out became the real risk, so the debrief question "Why didn't you just leave?" still lands.
+2. **Papa's father stays** (\`Y1870-06\`). It is brief and offstage, and it is the one line that makes the vote personal. Flag it for the reviewer.
+3. **There is no second planter voice.** If the family moves, the new planter's words appear as text only, and Papa's thoughts stay voiced. Only Mr. Holliday is ever heard, so one voice never plays two men.
 
 `;
 
