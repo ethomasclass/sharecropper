@@ -1,6 +1,10 @@
 {
   "sprites": ["mama", "lucy", "sam", "ruth", "holliday", "mamaWork", "lucyWork", "samWork", "mule", "tree1", "tree2", "cottonSprout", "cottonGrow", "cottonRipe", "cottonPicked", "cornSprout", "cornGrow", "cornRipe", "cornPicked", "flag"],
-  "props": ["chickens", "dog", "washtub", "woodpile", "rocker", "well", "bench", "clerk", "neighbors", "church", "oak", "fieldhand"],
+  "props": ["chickens", "dog", "washtub", "woodpile", "rocker", "well", "bench", "clerk", "neighbors", "church", "oak", "fieldhand", "fence", "clothesline", "baskets", "bales", "crates", "lantern", "ledgerTable", "rainBarrel", "plow", "outhouse"],
+  "facades": ["cabinFront", "cabinSide", "storeFront", "storeSide", "bigHouseFront", "bigHouseSide", "schoolFront", "schoolSide"],
+  "textures": ["grass", "soil", "road", "hill", "roofShingle", "roofTin", "wallPlanks", "wallClapboard"],
+  "backdrops": ["skyDay", "skyDusk", "hillsFar", "treeLine"],
   "scenes": ["fieldSun", "family", "plow", "bigHouse", "contractDesk", "newspaper15", "tracker", "senate", "newspaperPanic", "priceChart", "porchLantern", "longRows", "muleRoad", "ownField", "emptyRoad", "emptyDoor", "schoolLetters", "grandmother"],
-  "cards": ["rain", "drought", "flood", "mule", "sick", "school", "ballot", "mulebuy", "eggs", "headline", "panic"]
+  "cards": ["rain", "drought", "flood", "mule", "sick", "school", "ballot", "mulebuy", "eggs", "headline", "panic"],
+  "reference": ["papa", "mama", "lucy", "sam", "ruth", "holliday", "mule", "styleTest"]
 }

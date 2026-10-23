@@ -1,5 +1,7 @@
 # Adding your own art
 
+**Making the whole set with an AI agent?** Give it [`FLOW_BRIEF.md`](FLOW_BRIEF.md): the style, the characters, and a prompt and filename for all 93 images.
+
 Every person, animal, crop, and prop in the 3D farm is a flat 2D cutout standing in the world. Every cutscene panel and event card is a flat picture. You can replace any of them with your own art, including images you make with an AI image generator. Any slot you leave empty keeps the drawn version, so you can swap art in one piece at a time.
 
 ## How it works

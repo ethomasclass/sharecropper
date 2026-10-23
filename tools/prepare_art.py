@@ -56,7 +56,7 @@ def paper_edge(img):
     edge.alpha_composite(canvas)
     return edge
 
-for kind in ("sprites", "props", "scenes", "cards"):
+for kind in ("sprites", "props", "facades", "textures", "backdrops", "scenes", "cards"):
     folder = root / "art" / kind
     if not folder.exists():
         continue
@@ -68,7 +68,16 @@ for kind in ("sprites", "props", "scenes", "cards"):
             notes.append(f"skipped art/{kind}/{f.name}: no slot named '{name}' (see art/README.md)")
             continue
         img = Image.open(f).convert("RGBA")
-        if kind in ("sprites", "props"):
+        if kind in ("facades", "backdrops") and img.getchannel("A").getextrema()[0] == 255:
+            img, keyed = key_out(img)
+            if keyed:
+                notes.append(f"art/{kind}/{f.name}: removed the magenta background")
+        if kind in ("facades", "textures", "backdrops"):
+            limit = 1024 if kind == "textures" else 2048
+            if max(img.size) > limit:
+                k = limit / max(img.size)
+                img = img.resize((round(img.width * k), round(img.height * k)), Image.LANCZOS)
+        elif kind in ("sprites", "props"):
             if img.getchannel("A").getextrema()[0] == 255:
                 img, keyed = key_out(img)
                 if keyed:
