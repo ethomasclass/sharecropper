@@ -7,7 +7,7 @@ const root = new URL("..", import.meta.url).pathname;
 const WPM = 140;                                   // unhurried narration
 const words = (s) => s.split(/\s+/).filter(Boolean).length;
 const secs = (s) => Math.max(1.5, (words(s) / WPM) * 60);
-const voText = (l) => [l.tag || TAGS[l.delivery] || "", l.text].filter(Boolean).join(" ");
+const voText = (l) => l.vo || [l.tag || TAGS[l.delivery] || "", l.text].filter(Boolean).join(" ");
 const file = (l) => `${l.id.toLowerCase()}_${l.voice}.mp3`;
 const all = SCENES.flatMap((s) => s.lines.map((l) => ({ ...l, scene: s })));
 const voiced = all.filter((l) => l.voice);
