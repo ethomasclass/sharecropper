@@ -1,0 +1,727 @@
+[
+ {
+  "id": "PRO-01",
+  "score": 77,
+  "heard": "Mississippi, January 1869. Four years since freedom came down the road"
+ },
+ {
+  "id": "PRO-03",
+  "score": 89,
+  "heard": "In '65, folks said the bottom rail was on top. [chuckles] I'll believe it when I'm holding a deed."
+ },
+ {
+  "id": "PRO-02",
+  "score": 100,
+  "heard": "Five of us in a one-room cabin. Hannah, our girl Lucy, ten, our boy Sam, six, and my mother, Ruth"
+ },
+ {
+  "id": "PRO-05",
+  "score": 100,
+  "heard": "So this morning, I walk up to the big house to make my mark"
+ },
+ {
+  "id": "PRO-04",
+  "score": 94,
+  "heard": "Mr. Holiday has land and nobody to work it. I have two hands, a family, and nothing else"
+ },
+ {
+  "id": "CON-01",
+  "score": 100,
+  "heard": "Hannah says make him read every word. I can't read a one of them. He knows that"
+ },
+ {
+  "id": "CON-02",
+  "score": 100,
+  "heard": "Sit down, Robert. I'll read it, you listen. [laughs] Saves us both some time"
+ },
+ {
+  "id": "CON-04",
+  "score": 100,
+  "heard": "Nothing can be sold from your crop until my rent is all paid and all amounts you owe me are paid in full"
+ },
+ {
+  "id": "CON-03",
+  "score": 96,
+  "heard": "For every 30 acres, I'll provide a mule team, plow, and farming tools. You can have half of the cotton and corn you grow"
+ },
+ {
+  "id": "CON-05",
+  "score": 100,
+  "heard": "The sale of your part of the cotton to be made by me when and where I choose to sell and after taking all you owe me"
+ },
+ {
+  "id": "CON-08",
+  "score": 100,
+  "heard": "Yes, sir"
+ },
+ {
+  "id": "CON-07",
+  "score": 79,
+  "heard": "He read it fast, like a grocery list. I caught half. I caught all you owe me"
+ },
+ {
+  "id": "CON-06",
+  "score": 100,
+  "heard": "Fifteen acres. Five in corn, no more. Your account's at my commissary. Ten percent on anything you carry over. Make your mark right there"
+ },
+ {
+  "id": "CON-09",
+  "score": 100,
+  "heard": "My mark, an X. Lucy is going to learn to write our name"
+ },
+ {
+  "id": "Y1869-01",
+  "score": 100,
+  "heard": "Spring comes early. First stop, the commissary. Seed and meat, meal and molasses on account"
+ },
+ {
+  "id": "Y1869-02",
+  "score": 100,
+  "heard": "Only store for nine miles. Whatever we take, he writes down. Hannah ties a knot"
+ },
+ {
+  "id": "Y1869-03",
+  "score": 100,
+  "heard": "Fifteen acres. More than I ever worked for myself. Not one of them mine"
+ },
+ {
+  "id": "Y1869-05",
+  "score": 100,
+  "heard": "Walk the rows. Hannah and the children come behind me with the seed"
+ },
+ {
+  "id": "Y1869-04",
+  "score": 88,
+  "heard": "Cotton pays its settling time. Corn feeds us all year. Hannah wants corn. Mr. Holiday wants cotton"
+ },
+ {
+  "id": "Y1869-06",
+  "score": 100,
+  "heard": "Field's in. Now it's up to the rain, the Lord, and the price"
+ },
+ {
+  "id": "Y1869-07",
+  "score": 100,
+  "heard": "By June we chop cotton. By the Fourth of July it's laid by. Home for supper"
+ },
+ {
+  "id": "Y1869-08",
+  "score": 90,
+  "heard": "September. The bowls are open. Picking time runs till frost."
+ },
+ {
+  "id": "Y1869-09",
+  "score": 100,
+  "heard": "Every row we walk is money Whose money? We'll find out at Christmas"
+ },
+ {
+  "id": "Y1869-10",
+  "score": 100,
+  "heard": "The bales are tied and loaded. His gin, his scale, his book"
+ },
+ {
+  "id": "Y1869-11",
+  "score": 100,
+  "heard": "His man reads the needle and writes it down. I watch the needle. I can read a needle"
+ },
+ {
+  "id": "Y1869-13",
+  "score": 100,
+  "heard": "Come on up, Robert. I've got your number right here"
+ },
+ {
+  "id": "Y1869-14",
+  "score": 100,
+  "heard": "Our first year free and settled. Whatever that number is, it's ours to carry"
+ },
+ {
+  "id": "Y1869-12",
+  "score": 100,
+  "heard": "First of December, I voted. First time in my life. A week later, I walk up the hill to settle"
+ },
+ {
+  "id": "I1870-02",
+  "score": 100,
+  "heard": "Voteless. That word gets crossed out. Landless. That one stays"
+ },
+ {
+  "id": "I1870-01",
+  "score": 92,
+  "heard": "February 1870, the Fifteenth Amendment. I already voted once. Now the Constitution says no state can take it from me because of my color"
+ },
+ {
+  "id": "I1870-03",
+  "score": 100,
+  "heard": "Same month, a Black man from Mississippi, Hiram Revels, takes a seat in the United States Senate. \"Now watch,\" I tell Hannah. \"Now watch.\""
+ },
+ {
+  "id": "Y1870-02",
+  "score": 82,
+  "heard": "Hannah asks what the flower costs. The clerk says, \"Same as always,\" and writes it down"
+ },
+ {
+  "id": "Y1870-03",
+  "score": 100,
+  "heard": "Lucy walks beside me. She says the church is starting a school. She wants to go"
+ },
+ {
+  "id": "Y1870-01",
+  "score": 100,
+  "heard": "New year, same road. I tell Hannah this is the year we come out ahead. I say that every spring"
+ },
+ {
+  "id": "Y1870-04",
+  "score": 100,
+  "heard": "Cotton was down last fall. Corn doesn't care about New York"
+ },
+ {
+  "id": "Y1870-05",
+  "score": 100,
+  "heard": "Sam drags his own sack this year, taller every spring"
+ },
+ {
+  "id": "Y1870-06",
+  "score": 100,
+  "heard": "Mother told me tonight my father would have walked ten miles to vote. They sold him to Alabama when I was six"
+ },
+ {
+  "id": "Y1870-07",
+  "score": 100,
+  "heard": "Picking time. Sam fills his first whole sack. He's prouder of it than anything"
+ },
+ {
+  "id": "Y1870-08",
+  "score": 100,
+  "heard": "Hannah sings in the next row. Sam sings louder and wrong. [laughs] Lucy laughs"
+ },
+ {
+  "id": "Y1870-09",
+  "score": 100,
+  "heard": "Loaded. I count the bales twice. I want to know the number before he tells me"
+ },
+ {
+  "id": "Y1870-10",
+  "score": 100,
+  "heard": "The needle stops. I hold that number in my head all the way up the hill"
+ },
+ {
+  "id": "Y1870-11",
+  "score": 100,
+  "heard": "I put on my good shirt. Hannah walks up with me"
+ },
+ {
+  "id": "Y1870-12",
+  "score": 100,
+  "heard": "Evening, Robert. Cotton's down this year. Nothing I can do about New York"
+ },
+ {
+  "id": "Y1870-13",
+  "score": 100,
+  "heard": "Walking home, I don't say much. I never do after settling"
+ },
+ {
+  "id": "Y1871-01",
+  "score": 100,
+  "heard": "Word came from Meridian. A fire, a trial, then shooting in the courthouse. Our people, mostly"
+ },
+ {
+  "id": "Y1871-03",
+  "score": 100,
+  "heard": "Mother says the land doesn't care whose name is on it. It just wants working"
+ },
+ {
+  "id": "Y1871-02",
+  "score": 100,
+  "heard": "Hannah keeps her own count now. One knot for every dollar he writes"
+ },
+ {
+  "id": "Y1871-04",
+  "score": 100,
+  "heard": "Every acre of corn is a little less owed. Every acre of cotton is a little more hope"
+ },
+ {
+  "id": "Y1871-05",
+  "score": 100,
+  "heard": "The preacher's wife is teaching Lucy her letters on Sundays. She writes them in the dirt between rows."
+ },
+ {
+  "id": "Y1871-06",
+  "score": 100,
+  "heard": "Laid by. Evenings on the porch, I count on my fingers. Hannah counts on her string"
+ },
+ {
+  "id": "Y1871-07",
+  "score": 100,
+  "heard": "Hannah watches the wagon fill. She doesn't say anything. She's counting"
+ },
+ {
+  "id": "Y1871-08",
+  "score": 100,
+  "heard": "I know what a wagon of cotton weighs. My back knows"
+ },
+ {
+  "id": "Y1871-09",
+  "score": 100,
+  "heard": "Hannah walks beside the wagon this year. She wants to see the needle too"
+ },
+ {
+  "id": "Y1871-11",
+  "score": 100,
+  "heard": "Up the hill. He won't look up from his book. He never does"
+ },
+ {
+  "id": "Y1871-12",
+  "score": 100,
+  "heard": "Robert, let's see where you stand"
+ },
+ {
+  "id": "Y1871-10",
+  "score": 100,
+  "heard": "Hannah leans close and whispers it. She's right. She's right. And there's not a thing I can say"
+ },
+ {
+  "id": "Y1872-01",
+  "score": 100,
+  "heard": "Election year. Grant is running again. Men argue about it on every porch"
+ },
+ {
+  "id": "Y1872-02",
+  "score": 100,
+  "heard": "New shoes in the commissary window. Hannah walks right past them"
+ },
+ {
+  "id": "Y1871-13",
+  "score": 100,
+  "heard": "Hannah unties her string on the table tonight. We count the knots together. His book has more"
+ },
+ {
+  "id": "Y1872-03",
+  "score": 100,
+  "heard": "Mother can't walk out to the field this year. Her knees won't carry her"
+ },
+ {
+  "id": "Y1872-05",
+  "score": 100,
+  "heard": "Sam asks if his grandmother is coming out today. \"Not today, son.\""
+ },
+ {
+  "id": "Y1872-04",
+  "score": 100,
+  "heard": "Hannah says plant more corn, owe less, eat. She's not wrong. [chuckles] She's never wrong"
+ },
+ {
+  "id": "Y1872-07",
+  "score": 100,
+  "heard": "Long picking this year. We sing to keep the rows even"
+ },
+ {
+  "id": "Y1872-06",
+  "score": 100,
+  "heard": "Lucy read me the sign on the store today, every letter. My daughter reads"
+ },
+ {
+  "id": "Y1872-09",
+  "score": 100,
+  "heard": "Same wagon, same road, same scale"
+ },
+ {
+  "id": "Y1872-08",
+  "score": 100,
+  "heard": "Hannah says we could leave. Leave owing, and he takes the mule, the crop, the stove. Then where?"
+ },
+ {
+  "id": "Y1872-10",
+  "score": 100,
+  "heard": "Four years of that needle. It never once comes out on my side"
+ },
+ {
+  "id": "Y1872-11",
+  "score": 100,
+  "heard": "Four Christmases on that porch. I could find it in the dark"
+ },
+ {
+  "id": "Y1872-12",
+  "score": 100,
+  "heard": "Another year, Robert. You're a good worker. I'd hate to lose you. I'd hate to lose you"
+ },
+ {
+  "id": "Y1872-13",
+  "score": 85,
+  "heard": "I'd hate to lose you. He means it. That's the worst part"
+ },
+ {
+  "id": "Y1873-01",
+  "score": 100,
+  "heard": "Hannah counts every coin twice this spring. Something's coming. We can all feel it"
+ },
+ {
+  "id": "Y1873-02",
+  "score": 100,
+  "heard": "The prices on the shelf haven't changed. They never do"
+ },
+ {
+  "id": "Y1873-03",
+  "score": 100,
+  "heard": "One more good year. That's all we need. [sighs] I've said that before"
+ },
+ {
+  "id": "Y1873-04",
+  "score": 100,
+  "heard": "Corn or cotton? Five years of the same question, and I still don't know the right answer"
+ },
+ {
+  "id": "Y1873-05",
+  "score": 100,
+  "heard": "Lucy asks, \"When we have our own land, can she name the mule?\""
+ },
+ {
+  "id": "Y1873-07",
+  "score": 100,
+  "heard": "Best crop we ever grew"
+ },
+ {
+  "id": "Y1873-08",
+  "score": 100,
+  "heard": "Best crop we ever grew and nobody wants to buy it"
+ },
+ {
+  "id": "Y1873-06",
+  "score": 100,
+  "heard": "Hard rain this summer and fever down in Grenada and Vicksburg. We keep the children close"
+ },
+ {
+  "id": "Y1873-09",
+  "score": 100,
+  "heard": "I lead the wagon slow. No hurry to hear it"
+ },
+ {
+  "id": "Y1873-10",
+  "score": 100,
+  "heard": "The needle stops. It doesn't matter now. The price was decided in New York"
+ },
+ {
+  "id": "Y1873-11",
+  "score": 100,
+  "heard": "Lucy follows me up the hill this time and stands on the step to listen"
+ },
+ {
+  "id": "Y1873-12",
+  "score": 100,
+  "heard": "[sighs] Sit down, Robert. Bad year for everybody, even me"
+ },
+ {
+  "id": "I1873-02",
+  "score": 88,
+  "heard": "Cotton falls to $60 a bale. We grew it all year at the old price"
+ },
+ {
+  "id": "I1873-01",
+  "score": 82,
+  "heard": "September 1873, a bank in New York fails, and then the whole country seems to"
+ },
+ {
+  "id": "STORE-LEAN",
+  "score": 100,
+  "heard": "No shoes this year. We'll make do. We always make do"
+ },
+ {
+  "id": "STORE-BASIC",
+  "score": 100,
+  "heard": "That should see us through, if nothing goes wrong"
+ },
+ {
+  "id": "STORE-EXTRA",
+  "score": 100,
+  "heard": "Medicine on the shelf. Hannah will sleep better. So will I"
+ },
+ {
+  "id": "FIELD-LIMIT",
+  "score": 100,
+  "heard": "Five acres of corn. That's all the contract allows. He wants cotton"
+ },
+ {
+  "id": "FIELD-SOWN",
+  "score": 100,
+  "heard": "That's enough. The family will finish the rest"
+ },
+ {
+  "id": "FIELD-PICKED",
+  "score": 100,
+  "heard": "Hannah and the children will bring in the rest"
+ },
+ {
+  "id": "SET-AHEAD",
+  "score": 100,
+  "heard": "Well, your share comes out ahead this year. [chuckles] Don't spend it all in one place"
+ },
+ {
+  "id": "SET-EVEN",
+  "score": 100,
+  "heard": "Comes out even. Nothing owed, nothing coming"
+ },
+ {
+  "id": "SET-OWE",
+  "score": 100,
+  "heard": "You come up short. I'll carry it over to next year. Ten percent, same as always"
+ },
+ {
+  "id": "SET-OWE-AGAIN",
+  "score": 100,
+  "heard": "[sighs] Short again, Robert. I'll carry it. I'll carry it. I always do"
+ },
+ {
+  "id": "SET-REACT-AHEAD",
+  "score": 100,
+  "heard": "Ahead. Say it again. Ahead. Hannah squeezes my hand all the way down the hill"
+ },
+ {
+  "id": "SET-EVICT-VOTE",
+  "score": 100,
+  "heard": "I hear you went to town on election day. I'll keep your share for the trouble. Be gone by New Year's"
+ },
+ {
+  "id": "SET-REACT-EVEN",
+  "score": 100,
+  "heard": "Even. A whole year of work and we're right where we started"
+ },
+ {
+  "id": "SET-REACT-DEEP",
+  "score": 100,
+  "heard": "Every year we work harder and every year we owe more"
+ },
+ {
+  "id": "SET-REACT-SHORT",
+  "score": 100,
+  "heard": "Short. Hannah's string says we're closer than that. [sighs] I keep my mouth shut"
+ },
+ {
+  "id": "SET-REACT-EVICT",
+  "score": 100,
+  "heard": "Put off the place. We load the wagon. We've moved before. We'll move again"
+ },
+ {
+  "id": "SET-YES",
+  "score": 100,
+  "heard": "Yes, sir. Yes, sir"
+ },
+ {
+  "id": "BOOKS-01",
+  "score": 100,
+  "heard": "A man asking to see the books on this porch. Hannah is holding her breath"
+ },
+ {
+  "id": "BOOKS-02",
+  "score": 100,
+  "heard": "Sir, I'd like to see the books. Sir, I'd like to see the books"
+ },
+ {
+  "id": "BOOKS-EVICT",
+  "score": 100,
+  "heard": "You'd call me a liar on my own porch? Your share stays with me. Be gone by New Year's"
+ },
+ {
+  "id": "BOOKS-MARKUP",
+  "score": 100,
+  "heard": "That's the time price. Goods on credit cost more than cash. Always have. It's in the contract"
+ },
+ {
+  "id": "BOOKS-MARKUP-T",
+  "score": 90,
+  "heard": "40 cents on every dollar just for waiting till Christmas"
+ },
+ {
+  "id": "BOOKS-WEIGHT",
+  "score": 88,
+  "heard": "The scale is the scale, Robert. You wanna weigh your own cotton, buy your own gin"
+ },
+ {
+  "id": "BOOKS-WEIGHT-T",
+  "score": 100,
+  "heard": "So the wagon did weigh more. Hannah was right"
+ },
+ {
+  "id": "BOOKS-INTEREST",
+  "score": 87,
+  "heard": "Ten, 25. Interest is interest. You want land of your own someday or not?"
+ },
+ {
+  "id": "BOOKS-INTEREST-T",
+  "score": 67,
+  "heard": "25%. He said 10. He said it to my face"
+ },
+ {
+  "id": "LEAVE-FREE",
+  "score": 100,
+  "heard": "Suit yourself. Plenty of men want this place"
+ },
+ {
+  "id": "LEAVE-OWING",
+  "score": 100,
+  "heard": "If we leave owing, his lien takes the crop, the mule, everything we can't carry. No planter in the county will sign me"
+ },
+ {
+  "id": "RENT-01",
+  "score": 100,
+  "heard": "Renting? Well, you've got the mule and the money. I won't stand in your way"
+ },
+ {
+  "id": "CARD-DROUGHT",
+  "score": 94,
+  "heard": "No rain from June to August. The bowls come in small and hard. I can hear them rattle"
+ },
+ {
+  "id": "CARD-RAINS",
+  "score": 100,
+  "heard": "Rain at planting and dry at picking. The cotton stands tall. A good year if the price holds"
+ },
+ {
+  "id": "CARD-FLOOD",
+  "score": 100,
+  "heard": "The river comes up over the low fields. It takes the corn patch and some of the cotton"
+ },
+ {
+  "id": "CARD-MULEDIES",
+  "score": 100,
+  "heard": "Old Jack lies down in his stall and doesn't get up. The mule was in my hands, so the cost goes in his book"
+ },
+ {
+  "id": "CARD-MULEDIES-OWN",
+  "score": 100,
+  "heard": "Our own mule lying in the stall. Sixty dollars of savings. [sighs] Back to half shares"
+ },
+ {
+  "id": "CARD-SICK",
+  "score": 95,
+  "heard": "Damn takes the chills and fever in July. Hannah sits up with him nine nights. We're a pair of hands short"
+ },
+ {
+  "id": "CARD-SICK-EXTRA",
+  "score": 100,
+  "heard": "Sam takes the chills and fever. We have medicine on the shelf this time. Thank God for that"
+ },
+ {
+  "id": "CARD-SCHOOL-1869",
+  "score": 100,
+  "heard": "The church is starting a school for children. Lucy wants to go. That's one less pair of hands in the field"
+ },
+ {
+  "id": "CARD-SCHOOL",
+  "score": 100,
+  "heard": "The new public school opens, free, but it runs in the same months as chopping and picking"
+ },
+ {
+  "id": "CARD-SCHOOL-YES",
+  "score": 100,
+  "heard": "Lucy goes to school. The rows are a little longer without her. I don't mind the walk"
+ },
+ {
+  "id": "CARD-SCHOOL-NO",
+  "score": 100,
+  "heard": "Lucy stays in the field. She keeps asking. I keep saying next year"
+ },
+ {
+  "id": "CARD-ELECTION",
+  "score": 100,
+  "heard": "Election day. I can vote, and he knows it. He says a man who votes against him can find another place to live"
+ },
+ {
+  "id": "CARD-ELECTION-YES",
+  "score": 100,
+  "heard": "I walk to town and vote. Nobody says a word to me on the road home. Nobody needs to"
+ },
+ {
+  "id": "CARD-ELECTION-NO",
+  "score": 100,
+  "heard": "I stay home. I don't say a word all day. Neither does Hannah"
+ },
+ {
+  "id": "CARD-MULEBUY",
+  "score": 87,
+  "heard": "A neighbor moving west to Texas will sell his mule for $60, cash money"
+ },
+ {
+  "id": "CARD-MULEBUY-YES",
+  "score": 100,
+  "heard": "I count out sixty dollars. The mule is ours. Two-thirds of the crop from now on"
+ },
+ {
+  "id": "CARD-MULEBUY-NO",
+  "score": 91,
+  "heard": "I watched the mule go down the road. Maybe next year"
+ },
+ {
+  "id": "CARD-MULEBUY-CANT",
+  "score": 78,
+  "heard": "$60 cash. We don't have it. Not close"
+ },
+ {
+  "id": "CARD-EGGS",
+  "score": 100,
+  "heard": "Mother's garden comes in thick. Hannah walks to town on Saturday with eggs and greens."
+ },
+ {
+  "id": "CARD-EGGS-YES",
+  "score": 82,
+  "heard": "She comes home with $15 in her apron, cash, ours"
+ },
+ {
+  "id": "CARD-EGGS-NONE",
+  "score": 100,
+  "heard": "The garden's too small this year to spare anything for town"
+ },
+ {
+  "id": "CARD-RIDERS",
+  "score": 100,
+  "heard": "Word of masked men riding at night, two farms over. I bar the door and sit up with the lamp out"
+ },
+ {
+  "id": "CARD-PANIC",
+  "score": 100,
+  "heard": "Nobody in town will name a price. The buyers say wait. The planter says sell"
+ },
+ {
+  "id": "END-STAY-01",
+  "score": 60,
+  "heard": "\"Next year,\" he says, \"Cotton will come back.\" \"Yes, sir,\" I say"
+ },
+ {
+  "id": "END-STAY-02",
+  "score": 100,
+  "heard": "We plant again the next spring and the spring after that. The rows stay the same. Only the number in his book gets bigger"
+ },
+ {
+  "id": "END-RENT-02",
+  "score": 100,
+  "heard": "That fall, I sell our cotton myself. I read the price off the board in town, and I count the money twice"
+ },
+ {
+  "id": "END-RENT-01",
+  "score": 100,
+  "heard": "January. We load the wagon and drive our own mule down the road. The land still isn't ours, but the crop will be"
+ },
+ {
+  "id": "END-LEFT-01",
+  "score": 100,
+  "heard": "We leave at night, owing. We make it as far as the county line"
+ },
+ {
+  "id": "END-LEFT-02",
+  "score": 100,
+  "heard": "His lien takes the crop, the mule, even Hannah's stove. The justice of the peace sides with him"
+ },
+ {
+  "id": "END-LEFT-03",
+  "score": 100,
+  "heard": "No planter in the county will sign a man who walked off owing. I hire out by the day to whoever will have me"
+ },
+ {
+  "id": "AUD-01",
+  "score": 88,
+  "heard": "Hannah String was right. Now see for yourself"
+ },
+ {
+  "id": "TALK-HOLLIDAY",
+  "score": 100,
+  "heard": "Get on back to work, Robert. We'll settle up at Christmas"
+ }
+]
