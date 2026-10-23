@@ -1,8 +1,9 @@
 // Assembles the whole game into one self-contained HTML page: the 3D
 // library, the fonts, and any art you added in art/ are all packed inside,
 // so it runs offline with no accounts and nothing to install.
-//   dist/settling-up.html  the page body (for publishing as a Claude artifact)
-//   Settling-Up.html       the standalone file to download, share, and open
+//   Settling-Up.html       the standalone file, voice included: download, share, open
+//   index.html             for GitHub Pages; plays the voice from audio/vo/
+//   dist/settling-up.html  the page body for a Claude artifact (no voice)
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 
@@ -47,21 +48,40 @@ function customArt() {
   return art;
 }
 
-const scripts = ["src/config.js", "src/engine.js", "src/story.js", "src/art.js", "src/world.js", "src/ui.js"];
+// story/lines.mjs and story/vo.mjs are modules; wrap them so they live in the page's script.
+function storyInline() {
+  const strip = (f) => read(f).replace(/^export /gm, "");
+  return `const { SCENES, ARC, TAGS, VOICES, DYK } = (() => {\n${strip("story/lines.mjs")}\nreturn { SCENES, ARC, TAGS, VOICES, DYK };\n})();`;
+}
+
+// The recorded lines in audio/vo/, as data URIs for the standalone file.
+function audioInline() {
+  const dir = root + "audio/vo/";
+  if (!fs.existsSync(dir)) return {};
+  return Object.fromEntries(fs.readdirSync(dir).filter((f) => f.endsWith(".mp3"))
+    .map((f) => [f, "data:audio/mpeg;base64," + fs.readFileSync(dir + f).toString("base64")]));
+}
+
+const before = ["src/config.js", "src/engine.js"];
+const scripts = ["src/story.js", "src/art.js", "src/world.js", "src/voice.js", "src/ui.js"];
 const art = customArt();
 const head = read("src/head.html").replace("/*FONTS*/", fontFaces());
-const page = [
+// One page, three ways to get its voice: packed in, from a folder, or none.
+const pageWith = (voice) => [
   head,
   read("src/body.html"),
-  `<script type="module">\n${threeInline()}\nconst CUSTOM_ART = ${JSON.stringify(art)};\n${scripts.map(read).join("\n")}\nwindow.SettlingUp = { Game, World, auditTotals };\nGame.boot();\n</script>\n`,
+  `<script type="module">\n${threeInline()}\nconst CUSTOM_ART = ${JSON.stringify(art)};\n${voice}\n${before.map(read).join("\n")}\n${storyInline()}\n${scripts.map(read).join("\n")}\nwindow.SettlingUp = { Game, World, Voice, auditTotals };\nGame.boot();\n</script>\n`,
 ].join("\n");
+const audio = audioInline();
+const page = pageWith(""); // the Claude artifact: no voice files can ride along
+const standalone = pageWith(`const VO_AUDIO = ${JSON.stringify(audio)};`);
+const pages = pageWith(`const VO_BASE = "audio/vo/";`);
+const doc = (body) => `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<style>[hidden]{display:none!important}body{margin:0}</style>\n</head>\n<body>\n${body}</body>\n</html>\n`;
 
 fs.mkdirSync(root + "dist", { recursive: true });
 fs.writeFileSync(root + "dist/settling-up.html", page);
-fs.writeFileSync(
-  root + "Settling-Up.html",
-  `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<style>[hidden]{display:none!important}body{margin:0}</style>\n</head>\n<body>\n${page}</body>\n</html>\n`
-);
-const kb = (page.length / 1024).toFixed(0);
+fs.writeFileSync(root + "Settling-Up.html", doc(standalone));
+fs.writeFileSync(root + "index.html", doc(pages));
+const kb = (standalone.length / 1024).toFixed(0);
 const count = Object.values(art).reduce((s, m) => s + Object.keys(m).length, 0);
-console.log(`Built Settling-Up.html (${kb} KB, ${count} custom art file${count === 1 ? "" : "s"}).`);
+console.log(`Built Settling-Up.html (${kb} KB, ${Object.keys(audio).length} voice lines packed in, ${count} custom art file${count === 1 ? "" : "s"}), index.html for GitHub Pages, and dist/settling-up.html.`);

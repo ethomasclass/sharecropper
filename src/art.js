@@ -152,7 +152,7 @@ function newspaper(x, y, w, h, mast, head, sub) {
   return out;
 }
 
-const SCENES = {
+const PANEL_ART = {
   fieldSun() {
     return R(0, 0, 1600, 900, AC.sky) + C(1160, 300, 190, AC.brick) +
       P([[0, 470], [300, 400], [620, 450], [940, 380], [1300, 440], [1600, 400], [1600, 520], [0, 520]], AC.indigo) +
@@ -303,7 +303,7 @@ const SCENES = {
 
 // Card art, 400 x 240.
 const CARD_ART = {
-  fieldSun: () => SCENES.fieldSun(),
+  fieldSun: () => PANEL_ART.fieldSun(),
   rain() {
     let out = R(0, 0, 1600, 900, AC.indigoLt) + fieldRows(520, 900, 10, AC.green, AC.greenLt);
     out += `<ellipse cx="520" cy="200" rx="300" ry="110" fill="${AC.paper2}"/><ellipse cx="900" cy="170" rx="330" ry="130" fill="${AC.cream}"/><ellipse cx="1220" cy="220" rx="260" ry="100" fill="${AC.paper2}"/>`;
@@ -356,7 +356,7 @@ const CARD_ART = {
     return out;
   },
   headline() { return R(0, 0, 1600, 900, AC.night) + newspaper(300, 60, 1000, 780, "THE COUNTY WEEKLY", ["NIGHT RIDERS", "IN THE COUNTY"], "Families warned to keep inside after dark"); },
-  panic() { return SCENES.newspaperPanic(); },
+  panic() { return PANEL_ART.newspaperPanic(); },
 };
 
 // Your own art in art/scenes/ or art/cards/ replaces a drawn panel of the same name.
@@ -367,12 +367,12 @@ function customImg(kind, name, label) {
 function sceneSVG(name, label) {
   const mine = customImg("scenes", name, label);
   if (mine) return mine;
-  const fn = SCENES[name] || CARD_ART[name] || SCENES.fieldSun;
+  const fn = PANEL_ART[name] || CARD_ART[name] || PANEL_ART.fieldSun;
   return svgWrap(1600, 900, fn(), label);
 }
 function cardSVG(name, label) {
   const mine = customImg("cards", name, label) || customImg("scenes", name, label);
   if (mine) return mine;
-  const fn = CARD_ART[name] || SCENES[name] || SCENES.fieldSun;
+  const fn = CARD_ART[name] || PANEL_ART[name] || PANEL_ART.fieldSun;
   return svgWrap(1600, 900, fn(), label);
 }

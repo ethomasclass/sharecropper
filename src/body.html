@@ -3,6 +3,7 @@
     <p class="brand">Settling Up</p>
     <ol id="years" aria-label="Crop years"></ol>
     <span id="fam"></span>
+    <button class="topbtn" id="voice-btn" type="button" aria-pressed="true">Voice on</button>
     <button class="topbtn" id="journal-btn" type="button">Journal</button>
   </header>
 
@@ -14,6 +15,8 @@
   </div>
 
   <div class="world-bubble" hidden aria-live="polite"></div>
+
+  <div id="captions" hidden aria-live="polite"><span class="cap-who"></span><span class="cap-what"></span></div>
 
   <div id="compass" hidden aria-live="polite">
     <span class="c-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 L20 20 L12 15 L4 20 Z" fill="#A3271F"/></svg></span>

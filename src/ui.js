@@ -1,5 +1,7 @@
 // ============================================================================
 // GAME — the flow: join, contract, five crop years, ending, audit.
+// What Papa and Mr. Holliday say comes from story/lines.mjs through cue()
+// and Voice (voice.js). This file decides when.
 // ============================================================================
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -12,24 +14,32 @@ function fmt(n) {
 const fmtLbs = (n) => Math.round(n).toLocaleString("en-US") + " lb";
 const fmtBales = (n) => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
-const SAVE_KEY = "settling-up:v1";
+const SAVE_KEY = "settling-up:v2";
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage off */ } },
   del(k) { try { localStorage.removeItem(k); } catch { /* storage off */ } },
 };
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const say = (id) => LINES[id]?.text || "";
+
+// Names shown when the pointer rests on someone in the world.
+const NAMES = { mama: "Hannah", lucy: "Lucy", sam: "Sam", ruth: "Mother Ruth", holliday: "Mr. {P}", mule: "Old Jack", clerk: "The store clerk", neighbors: "The neighbors", fieldhand: "A neighbor" };
+// What each person says when Papa taps them.
+const TALK = { mama: "TALK-HANNAH", lucy: "TALK-LUCY", sam: "TALK-SAM", ruth: "TALK-RUTH", holliday: "TALK-HOLLIDAY" };
 
 const Game = {
   g: null,
   y: null,
   els: {},
   corn: new Set(),
+  arrivals: {},
 
-  // ---- text helpers -------------------------------------------------------
+  // ---- helpers ---------------------------------------------------------------
   planter() { return PLANTERS[Math.min(this.g?.planterIndex || 0, PLANTERS.length - 1)]; },
+  planterIsHolliday() { return !this.g || !this.g.planterIndex; },
   t(s) {
     return String(s || "")
-      .replaceAll("{F}", this.g?.family || "")
       .replaceAll("{P}", this.planter())
       .replaceAll("{Y}", this.y?.year || "")
       .replaceAll("Mr. Holliday", "Mr. " + this.planter());
@@ -48,8 +58,9 @@ const Game = {
     store.set(SAVE_KEY, this.g);
     this.renderTopbar();
   },
+  sceneOf(y) { return "Y" + y.year; },
 
-  // ---- boot ----------------------------------------------------------------
+  // ---- boot ------------------------------------------------------------------
   async boot() {
     this.els = {
       topbar: $("#topbar"), world: $("#world"), flat: $("#world-flat"), dock: $("#dock"),
@@ -58,13 +69,17 @@ const Game = {
     };
     World.on({
       plot: (i) => this.togglePlot(i),
-      progress: (f) => this.onProgress(f),
+      progress: (f) => this.progressFn?.(f),
       arrive: (id) => this.onArrive(id),
       interact: (name) => this.onInteract(name),
       nameOf: (id) => NAMES[id] ? this.t(NAMES[id]) : "",
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
+    const vb = $("#voice-btn");
+    const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
+    vb.addEventListener("click", () => { Voice.setOn(!Voice.on); showVoice(); });
+    showVoice();
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !this.els.journal.hidden) this.els.journal.hidden = true;
     });
@@ -97,20 +112,19 @@ const Game = {
     this.els.flat.innerHTML = sceneSVG(art, "");
   },
 
-  // ---- top bar ------------------------------------------------------------
+  // ---- top bar ------------------------------------------------------------------
   renderTopbar() {
     const g = this.g;
-    const yrs = CONFIG.years.map((yr, i) => {
+    $("#years").innerHTML = CONFIG.years.map((yr, i) => {
       const done = g && g.years[i];
       const cur = g && !g.ending && i === g.yearIndex;
       const bal = done ? `<span class="chip-bal ${done.ledger.balance < 0 ? "neg" : ""}">${fmt(done.ledger.balance)}</span>` : "";
       return `<li class="${cur ? "cur" : ""} ${done ? "done" : ""}" aria-current="${cur ? "step" : "false"}"><span class="chip-yr">${yr}</span>${bal}</li>`;
     }).join("");
-    $("#years").innerHTML = yrs;
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
   },
 
-  // ---- dock, sheet, objective -----------------------------------------------
+  // ---- dock, sheet, objectives ----------------------------------------------------
   dock(html) {
     this.els.dock.innerHTML = html;
     this.els.dock.hidden = !html;
@@ -124,43 +138,49 @@ const Game = {
     World.setMode("locked");
     World.clearObjective();
     World.hush();
+    Voice.caption(null);
     const first = this.els.sheetBody.querySelector("[autofocus], input, button.primary");
     setTimeout(() => first?.focus({ preventScroll: true }), 30);
   },
-  closeSheet() { this.els.sheet.hidden = true; },
+  closeSheet() {
+    this.els.sheet.hidden = true;
+    // A focused button left under the sheet would take the next Enter press.
+    if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+  },
 
   // Send Papa somewhere. Resolves when he walks there himself.
   goTo(id, spot, text, r) {
     return new Promise((resolve) => {
       this.arrivals[id] = resolve;
       $("#compass .c-text").textContent = text;
-      this.log(text, "goal");
       World.setMode("walk");
       World.objective(id, spot, r);
     });
   },
-  arrivals: {},
   onArrive(id) {
     const fn = this.arrivals[id];
     delete this.arrivals[id];
     fn?.();
   },
 
-  // ---- cutscenes -----------------------------------------------------------
+  // ---- cutscenes: panels are {art, id} for a script line, or {art, text} -----------
   cutscene(panels) {
     return new Promise((resolve) => {
       let i = 0;
       const el = this.els.cut;
       World.setMode("locked");
+      World.hush();
       const show = () => {
         const p = panels[i];
-        const cap = this.t(p.caption), sub = this.t(p.sub || "");
-        this.log(cap + (sub ? " " + sub : ""), "cutscene");
+        const l = p.id ? LINES[p.id] : null;
+        const text = l ? l.text : p.text;
+        const art = p.art || l?.art || "fieldSun";
+        if (l && l.voice) Voice.play(l.id, { caption: false });
+        else { Voice.stop(); this.log(text, "cutscene"); }
         el.innerHTML = `
-          <div class="cut-frame"><div class="cut-art">${sceneSVG(p.art, cap)}</div></div>
+          <div class="cut-frame"><div class="cut-art">${sceneSVG(art, text)}</div></div>
           <div class="cut-text">
-            <p class="cut-cap">${esc(cap)}</p>
-            ${sub ? `<p class="cut-sub">${esc(sub)}</p>` : ""}
+            <p class="cut-cap ${l && l.voice ? "spoken" : "silent"}">${esc(text)}</p>
             <div class="cut-nav">
               <span class="cut-count">${i + 1} / ${panels.length}</span>
               <button class="ghost" data-skip>Skip</button>
@@ -172,6 +192,7 @@ const Game = {
       };
       const next = () => { i++; if (i >= panels.length) finish(); else show(); };
       const finish = () => {
+        Voice.stop();
         el.hidden = true;
         el.removeEventListener("click", onClick);
         document.removeEventListener("keydown", onKey);
@@ -188,8 +209,9 @@ const Game = {
       show();
     });
   },
+  scenePanels(sceneId) { return SCENE_OF[sceneId].lines.map((l) => ({ id: l.id, art: l.art })); },
 
-  // ---- join -----------------------------------------------------------------
+  // ---- join -----------------------------------------------------------------------
   showJoin() {
     const saved = store.get(SAVE_KEY);
     const resume = saved && saved.v === 1 && saved.step !== "done" ? saved : null;
@@ -210,8 +232,9 @@ const Game = {
           <p><strong>Walk:</strong> W A S D or the arrow keys${World.ok ? ". Hold Shift to hurry." : "."}</p>
           <p><strong>Look:</strong> drag on the screen.</p>
           <p><strong>Talk:</strong> tap a person.</p>
+          <p><strong>Listen:</strong> you hear Papa's thoughts and Mr. Holliday. Subtitles are always on.</p>
         </div>
-        <p class="fine">About 25 minutes. Follow the red flag to see where Papa goes next.</p>
+        <p class="fine">About 25 minutes. Follow the red flag to see where Papa goes next. The voices are AI-generated.</p>
       </div>`);
     if (resume) $("#resume-btn").addEventListener("click", () => this.resume(resume));
     $("#join-form").addEventListener("submit", (e) => {
@@ -223,6 +246,7 @@ const Game = {
   },
 
   start(family) {
+    if (this.running) return;
     this.g = newGame(family, "");
     this.g.step = "prologue";
     this.g.journal = [];
@@ -232,8 +256,8 @@ const Game = {
     this.closeSheet();
     this.run();
   },
-
   resume(saved) {
+    if (this.running) return;
     this.g = saved;
     this.y = saved.cur || null;
     this.corn = new Set(saved.cornPlots || []);
@@ -241,18 +265,15 @@ const Game = {
     this.run();
   },
 
-  // ---- the main sequence ----------------------------------------------------
+  // ---- the main sequence ------------------------------------------------------------
+  // Only one story runs at a time.
   async run() {
+    if (this.running) return;
+    this.running = true;
     const g = this.g;
     this.renderTopbar();
-    if (g.step === "prologue") {
-      await this.cutscene(PROLOGUE);
-      g.step = "contract"; this.save();
-    }
-    if (g.step === "contract") {
-      await this.contract();
-      g.step = "store"; this.save();
-    }
+    if (g.step === "prologue") { await this.cutscene(this.scenePanels("PRO")); g.step = "contract"; this.save(); }
+    if (g.step === "contract") { await this.contract(); g.step = "store"; this.save(); }
     while (!g.ending) {
       if (!this.y || this.y.year !== currentYear(g)) {
         this.y = blankYear(g);
@@ -261,21 +282,14 @@ const Game = {
       }
       await this.playYear();
     }
-    if (g.step !== "audit" && g.step !== "done") {
-      await this.endingScene();
-      g.step = "audit"; this.save();
-    }
-    if (g.step === "audit") {
-      await this.audit();
-      g.step = "done"; this.save();
-    }
+    if (g.step !== "audit" && g.step !== "done") { await this.endingScene(); g.step = "audit"; this.save(); }
+    if (g.step === "audit") { await this.audit(); g.step = "done"; this.save(); }
     this.done();
   },
 
   async playYear() {
     const g = this.g;
-    const steps = ["store", "plant", "event", "harvest", "settle"];
-    if (!steps.includes(g.step)) g.step = "store";
+    if (!["store", "plant", "event", "harvest", "settle"].includes(g.step)) g.step = "store";
     if (g.step === "store") { this.newSpring(); await this.storeStep(); g.step = "plant"; this.save(); }
     if (g.step === "plant") { await this.plant(); g.step = "event"; this.save(); }
     if (g.step === "event") { await this.eventStep(); g.step = "harvest"; this.save(); }
@@ -286,7 +300,7 @@ const Game = {
       if (!g.ending) {
         g.step = "store";
         this.save();
-        if (g.yearIndex !== before && INTERLUDES[currentYear(g)]) await this.cutscene(INTERLUDES[currentYear(g)]);
+        if (g.yearIndex !== before && currentYear(g) === 1870) await this.cutscene(this.scenePanels("I1870"));
       }
     }
   },
@@ -301,30 +315,31 @@ const Game = {
     World.setPlanter(this.planter());
   },
 
-  // ---- contract -------------------------------------------------------------
+  // ---- the contract ------------------------------------------------------------------
   async contract() {
     World.place("home");
     World.setSky("spring");
     World.setPeople("home");
     this.showFlat("bigHouse");
-    this.dock(`<p class="eyebrow">January 1869</p><p class="voice">${esc(this.t("Mr. Holliday sent word: come up to the big house and sign for the year."))}</p>`);
-    World.say("mama", "Go on up, Robert. We'll be right here.");
+    this.dock(`<p class="eyebrow">January 1869</p><p class="voice">Walk up the hill to the big house and sign for the year.</p>`);
+    cue("CON", "At the cabin");
+    setTimeout(() => cue("CON", "Walking up the hill"), 1400);
     await this.goTo("contract", "porch", "Walk up the hill to the big house", 3.4);
     this.dock("");
     this.showFlat("contractDesk");
-    this.log(CONTRACT.narration);
     await new Promise((resolve) => {
       this.sheet(`
         <p class="eyebrow">January 1869 · The big house</p>
         <h2>The contract</h2>
-        <p class="voice">${esc(this.t(CONTRACT.narration))}</p>
+        <blockquote class="said">${esc(say("CON-02"))}</blockquote>
         <div class="contract">
           <p class="doc-label">Labor contract with freedmen</p>
-          ${CONTRACT.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
+          ${CONTRACT.lines.map((l, i) => `<p data-clause="${i}">${esc(l)}</p>`).join("")}
           <p class="doc-credit">${esc(CONTRACT.credit)}</p>
         </div>
-        <h3>The terms Mr. Holliday read out loud</h3>
+        <h3>The terms Mr. Holliday reads out loud</h3>
         <dl class="terms">${CONTRACT.terms.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
+        <p class="voice thought">${esc(say("CON-07"))}</p>
         <p class="game-note">Game values. The contract excerpt is real and adapted. The dollar amounts are simplified.</p>
         <div class="mark-row">
           <button class="mark" id="mark-btn" aria-label="Make your mark">
@@ -333,26 +348,41 @@ const Game = {
           </button>
           <p class="hint-small">Tap the line to make your mark.</p>
         </div>`);
-      $("#mark-btn").addEventListener("click", (e) => {
+      // Mr. Holliday reads; the clause he is reading lights up.
+      (async () => {
+        for (const id of ["CON-02", "CON-03", "CON-04", "CON-05", "CON-06", "CON-07"]) {
+          const clause = CONTRACT.reading[id];
+          this.els.sheetBody.querySelectorAll("[data-clause]").forEach((p) => p.classList.toggle("reading", +p.dataset.clause === clause));
+          const my = Voice.token + 1;
+          await Voice.play(id, { caption: false });
+          if (Voice.token !== my) return;
+          await wait(250);
+        }
+        this.els.sheetBody.querySelectorAll("[data-clause]").forEach((p) => p.classList.remove("reading"));
+      })();
+      $("#mark-btn").addEventListener("click", async (e) => {
         const b = e.currentTarget;
         if (b.classList.contains("made")) return;
         b.classList.add("made");
         this.g.signed = true;
-        setTimeout(() => { this.closeSheet(); resolve(); }, 900);
-      }, { once: true });
+        await Voice.play("CON-08", { caption: false });
+        this.closeSheet();
+        resolve();
+        Voice.play("CON-09");
+      });
     });
   },
 
-  // ---- spring: the store, then the field -----------------------------------
+  // ---- spring: the store, then the field ----------------------------------------------
   async storeStep() {
     const y = this.y;
     this.showFlat("bigHouse");
-    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">${esc(this.t(YEAR_LINES[y.year].plant))}</p>`);
+    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">Seed, tools, and food for the year, all on account.</p>`);
+    cue(this.sceneOf(y), "Walk to the store");
     await this.goTo("store", "store", `Walk to Mr. ${this.planter()}'s store for seed and supplies`, 2.4);
-    const line = this.t(YEAR_LINES[y.year].store);
-    this.log(line);
+    const page = cueLines(this.sceneOf(y), "Store page")[0];
     const cornNote = `Every acre of corn you plant takes about ${fmt(CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup))} off this bill at settling up.`;
-    return new Promise((resolve) => {
+    await new Promise((resolve) => {
       const opts = ["lean", "basic", "extra"].map((k) => {
         const b = CONFIG.baskets[k];
         return `<button class="basket" data-basket="${k}">
@@ -366,40 +396,42 @@ const Game = {
       this.sheet(`
         <p class="eyebrow">Spring ${y.year} · ${esc(this.planter())} plantation store</p>
         <h2>Furnish for the year</h2>
-        <p class="voice">${esc(line)}</p>
+        ${page ? `<p class="voice thought">${esc(page.text)}</p>` : ""}
         <div class="baskets">${opts}</div>
         <p class="fine">${esc(cornNote)} Everything goes on account until settling up.</p>
         <p class="fine warn">A lean basket saves money, but a family without shoes and cloth gets sick more easily in a bad year.</p>`, { wide: true });
+      if (page) Voice.play(page.id, { caption: false });
       this.els.sheetBody.querySelectorAll("[data-basket]").forEach((b) => b.addEventListener("click", () => {
         y.basket = b.dataset.basket;
-        const say = { lean: "No shoes this year, then. We'll make do.", basic: "That will see us through, if nothing goes wrong.", extra: "Medicine on the shelf. I'll sleep better." }[y.basket];
-        this.log(`Mama: "${say}"`);
         this.closeSheet();
+        Voice.play({ lean: "STORE-LEAN", basic: "STORE-BASIC", extra: "STORE-EXTRA" }[y.basket]);
         resolve();
       }));
     });
   },
 
   async plant() {
-    const y = this.y;
+    const y = this.y, sc = this.sceneOf(y);
     World.setPeople("home");
     this.showFlat("plow");
-    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The seed was on the wagon. Now the field.</p>`);
+    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The seed is on the wagon. Now the field.</p>`);
+    cue(sc, "Walk to the field");
     await this.goTo("field", "field", "Walk to the field", 3.2);
-    // Decide the split first: a choice, made standing at the field's edge.
+    // The split is a choice, made standing at the field's edge.
     await new Promise((resolve) => {
       this.planDone = () => { this.planDone = null; resolve(); };
       World.setMode("plan");
-      World.say("mama", "Cotton pays. Corn feeds us. The contract allows five acres of corn.");
+      cue(sc, "Planning the field");
       this.renderPlan();
     });
     y.corn = this.corn.size;
     y.cornPlots = [...this.corn];
-    // Then walk the rows. The family follows with the seed.
+    // Then Papa walks the rows. The family follows with the seed.
     World.setStage("sown");
     World.setPeople("field");
-    await this.walkRows("sow", `Spring ${y.year} · Planting`, "Walk the rows to plant. Mama and the children follow behind with the seed.", "Walk every row of the field");
-    World.say("mama", "That's the field in. Now we wait on the weather.");
+    cue(sc, "Planting");
+    await this.walkRows("sow", `Spring ${y.year} · Planting`, "Walk the rows to plant. Hannah and the children follow behind with the seed.", "Walk every row of the field", "FIELD-SOWN");
+    cue(sc, "Planting done");
   },
   renderPlan() {
     const y = this.y;
@@ -427,7 +459,7 @@ const Game = {
     if (!this.planDone) return;
     if (this.corn.has(i)) this.corn.delete(i);
     else if (this.corn.size < CONFIG.maxCornAcres) this.corn.add(i);
-    else { World.say("mama", "The contract only allows five acres of corn."); this.flashLimit(); return; }
+    else { Voice.play("FIELD-LIMIT"); this.flashLimit(); return; }
     World.setCorn(this.corn);
     this.renderPlan();
     this.els.dock.querySelector(`[data-acre="${i}"]`)?.focus({ preventScroll: true });
@@ -438,21 +470,22 @@ const Game = {
     el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
   },
 
-  // Papa walks the rows himself. When most of the field is done, the
+  // Papa walks the rows himself. Once he has walked most of the field, the
   // family finishes the rest.
-  walkRows(kind, eyebrow, how, goal) {
+  walkRows(kind, eyebrow, how, goal, earlyLine) {
     return new Promise((resolve) => {
-      const finish = () => {
+      const finish = (early) => {
         this.progressFn = null;
         this.els.compass.hidden = true;
         this.els.compass.classList.remove("no-arrow");
         World.finishRows();
         World.setMode("locked");
+        if (early) Voice.play(earlyLine);
         resolve();
       };
       if (!World.ok) {
         this.dock(`<p class="eyebrow">${esc(eyebrow)}</p><p class="how">${esc(how)}</p><button class="primary" id="rows-done">Walk the rows</button>`);
-        $("#rows-done").addEventListener("click", finish, { once: true });
+        $("#rows-done").addEventListener("click", () => finish(false), { once: true });
         return;
       }
       $("#compass .c-text").textContent = goal;
@@ -464,97 +497,117 @@ const Game = {
         <div class="progress" aria-hidden="true"><span id="rows-bar"></span></div>
         <p class="pickcount" id="rows-pct" aria-live="polite">Rows walked: 0%</p>
         <button class="secondary" id="rows-done" disabled>Leave the rest to the family</button>`);
-      $("#rows-done").addEventListener("click", finish);
+      $("#rows-done").addEventListener("click", () => finish(true));
       this.progressFn = (f) => {
         const pct = Math.round(f * 100);
         $("#rows-bar").style.width = pct + "%";
         $("#rows-pct").textContent = `Rows walked: ${pct}%`;
         if (f >= 0.6) $("#rows-done").disabled = false;
-        if (f >= 0.92) finish();
+        if (f >= 0.92) finish(false);
       };
       World.setMode(kind);
     });
   },
-  onProgress(f) { this.progressFn?.(f); },
 
-  // ---- summer: news at the cabin ------------------------------------------------
+  // ---- summer: news at the cabin ---------------------------------------------------------
   async eventStep() {
-    const y = this.y, g = this.g;
+    const y = this.y;
     World.setStage("sown");
-    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The planting was done. Papa walked home for supper.</p>`);
+    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The planting is done. Home for supper.</p>`);
+    cue(this.sceneOf(y), "Walk home to the cabin");
     await this.goTo("cabin", "cabin", "Walk home to the cabin", 3.2);
     World.setSky("summer");
     World.setStage("grow");
     World.setPeople("home");
-    const card = CARDS[y.event] || CARDS.none;
-    this.showFlat(card.art);
-    const title = this.t(card.title);
-    await new Promise((resolve) => {
-      const choice = !!card.question;
-      let effect = card.effect;
-      if (y.event === "muledies" && g.ownMule) effect = card.effectOwn;
-      if (y.event === "sickness" && y.basket === "extra") effect = card.effectExtra;
-      if (y.event === "eggs" && y.corn < CONFIG.eggsMinCorn) effect = card.effectNone;
-      const muleBlocked = y.event === "mulebuy" && !canBuyMule(g);
-      this.log(`${title}. ${this.t(card.body)}`, "card");
-      this.sheet(`
-        <div class="card">
-          <div class="card-art">${cardSVG(card.art, title)}</div>
-          <div class="card-text">
-            <p class="eyebrow">Summer ${y.year}</p>
-            <h2>${esc(title)}</h2>
-            <p>${esc(this.t(card.body))}</p>
-            ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(effect))}</p>`}
-            ${muleBlocked ? `<p class="effect">${esc(card.cantAfford)}</p>` : ""}
-            <div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>
-            <div class="card-actions" id="card-actions">
-              ${choice && !muleBlocked
-                ? `<button class="primary" data-choice="yes">${esc(this.t(card.yes))}</button><button class="secondary" data-choice="no">${esc(this.t(card.no))}</button>`
-                : `<button class="primary" data-choice="ok">Continue</button>`}
-            </div>
-          </div>
-        </div>`, { wide: true });
-      const finish = () => { this.closeSheet(); resolve(); };
-      this.els.sheetBody.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => {
-        const c = b.dataset.choice;
-        if (c === "ok") { y.choice = muleBlocked ? "no" : null; finish(); return; }
-        y.choice = c;
-        if (y.event === "mulebuy" && c === "yes") { y.muleBought = CONFIG.muleCost; g.ownMule = true; }
-        if (y.event === "school" && c === "yes") g.education += 1;
-        const res = this.t(c === "yes" ? card.effectYes : card.effectNo);
-        this.log(res, "card");
-        $("#card-actions").innerHTML = `<p class="effect">${esc(res)}</p><button class="primary" data-done>Continue</button>`;
-        $("#card-actions [data-done]").addEventListener("click", finish);
-        $("#card-actions [data-done]").focus();
-      }));
-    });
-    applyEvent(g, y);
+    if (y.event === "panic") { this.save(); return; } // 1873: the Panic comes in the fall
+    await this.eventCard();
     World.setWeather({ rains: "rain", drought: "drought", flood: "flood" }[y.event] || "none");
     if (y.event === "muledies") World.setFlags({ mule: "none" });
     if (y.event === "school") World.setFlags({ school: true });
     this.save();
   },
 
-  // ---- fall: the harvest, the wagon, the scale ------------------------------------
-  async harvestStep() {
+  // Show the year's card. Papa voices it; the effect and the note are text.
+  async eventCard() {
     const y = this.y, g = this.g;
-    harvest(g, y);
-    const line = this.t(YEAR_LINES[y.year].harvest);
-    this.dock(`<p class="eyebrow">Summer ${y.year}</p><p class="voice">The cotton grew through the heat. By September the bolls were open.</p>`);
+    const card = CARDS[y.event] || CARDS.none;
+    this.showFlat(card.art);
+    const title = this.t(card.title);
+    let line = card.line;
+    if (y.event === "muledies" && g.ownMule) line = card.lineOwn;
+    if (y.event === "sickness" && y.basket === "extra") line = card.lineExtra;
+    if (y.event === "school" && y.year === 1869) line = card.line1869;
+    let effect = card.effect;
+    if (y.event === "muledies" && g.ownMule) effect = card.effectOwn;
+    if (y.event === "sickness" && y.basket === "extra") effect = card.effectExtra;
+    let after = null;
+    if (y.event === "eggs") { after = y.corn >= CONFIG.eggsMinCorn ? card.lineYes : card.lineNone; if (y.corn < CONFIG.eggsMinCorn) effect = card.effectNone; }
+    const muleBlocked = y.event === "mulebuy" && !canBuyMule(g);
+    if (muleBlocked) after = card.lineCant;
+    const choice = !!card.question && !muleBlocked;
+    this.log(title, "card");
+    await new Promise((resolve) => {
+      this.sheet(`
+        <div class="card">
+          <div class="card-art">${cardSVG(card.art, title)}</div>
+          <div class="card-text">
+            <p class="eyebrow">${y.event === "panic" ? "Fall" : "Summer"} ${y.year}</p>
+            <h2>${esc(title)}</h2>
+            ${line ? `<p class="voice thought">${esc(say(line))}</p>` : ""}
+            ${after ? `<p class="voice thought">${esc(say(after))}</p>` : ""}
+            ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(muleBlocked ? card.cantAfford : effect))}</p>`}
+            ${card.dyk ? `<div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>` : ""}
+            <div class="card-actions" id="card-actions">
+              ${choice
+                ? `<button class="primary" data-choice="yes">${esc(this.t(card.yes))}</button><button class="secondary" data-choice="no">${esc(this.t(card.no))}</button>`
+                : `<button class="primary" data-choice="ok">Continue</button>`}
+            </div>
+          </div>
+        </div>`, { wide: true });
+      Voice.seq([line, after].filter(Boolean), { caption: false });
+      const finish = () => { Voice.stop(); this.closeSheet(); resolve(); };
+      this.els.sheetBody.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => {
+        const c = b.dataset.choice;
+        if (c === "ok") { y.choice = muleBlocked ? "no" : null; finish(); return; }
+        y.choice = c;
+        if (y.event === "mulebuy" && c === "yes") { y.muleBought = CONFIG.muleCost; g.ownMule = true; }
+        if (y.event === "school" && c === "yes") g.education += 1;
+        const outLine = c === "yes" ? card.lineYes : card.lineNo;
+        const res = this.t(c === "yes" ? card.effectYes : card.effectNo);
+        $("#card-actions").innerHTML = `${outLine ? `<p class="voice thought">${esc(say(outLine))}</p>` : ""}<p class="effect">${esc(res)}</p><button class="primary" data-done>Continue</button>`;
+        if (outLine) Voice.play(outLine, { caption: false });
+        $("#card-actions [data-done]").addEventListener("click", finish);
+        $("#card-actions [data-done]").focus();
+      }));
+    });
+    applyEvent(g, y);
+  },
+
+  // ---- fall: the harvest, the wagon, the scale ------------------------------------------------
+  async harvestStep() {
+    const y = this.y, g = this.g, sc = this.sceneOf(y);
+    this.dock(`<p class="eyebrow">Summer ${y.year}</p><p class="voice">The cotton grows through the heat. By September the bolls are open.</p>`);
+    cue(sc, "Walk to the field in the fall");
     await this.goTo("field-fall", "field", "Walk to the field to bring in the crop", 3.2);
+    if (y.event === "panic") {
+      // 1873: the best crop they ever grew, then the news from New York.
+      await Voice.play("Y1873-07");
+      await this.cutscene(this.scenePanels("I1873"));
+      await this.eventCard();
+    }
+    harvest(g, y);
     World.setWeather(y.event === "drought" ? "drought" : y.event === "flood" ? "flood" : "none");
     World.setSky(y.event === "drought" ? "drought" : "fall");
     World.setStage("ripe");
     World.setPeople("field");
     this.showFlat("longRows");
-    this.log(line);
-    World.say("mama", "Sun's up. Let's get these rows in before the frost.");
-    await this.walkRows("harvest", `Fall ${y.year} · Harvest`, line, "Walk the rows with the family");
+    cue(sc, "Harvest");
+    await this.walkRows("harvest", `Fall ${y.year} · Harvest`, "Walk the rows with the family. They pick; you lead.", "Walk the rows with the family", "FIELD-PICKED");
     World.readyWagon(y.totalBales);
-    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">It took until frost. The bales were tied and loaded on the wagon.</p>`);
+    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">It takes until frost. The bales are tied and loaded on the wagon.</p>`);
+    cue(sc, "Walk to the wagon");
     await this.goTo("wagon", "wagon", "Walk to the loaded wagon at the end of the field", 2.6);
     World.hitchWagon();
-    World.say("mama", "Watch the scale, Robert.");
     await this.goTo("gin", "ginFront", `Lead the wagon to Mr. ${this.planter()}'s gin scale`, 2.2);
     World.setMode("locked");
     const maxLbs = (CONFIG.acres / CONFIG.acresPerBale) * 1.2 * CONFIG.poundsPerBale;
@@ -568,59 +621,65 @@ const Game = {
         <span class="scale-v">${fmtLbs(y.scaleLbs)}</span>
         <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${y.shareRate > 0.5 ? "two-thirds" : "half"}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
       </div>
-      <p class="voice">${y.year === 1871 ? "Mama looked at the wagon, then at the needle. \"That felt heavier than that,\" she said, very quietly." : "The clerk wrote the weight in Mr. " + esc(this.planter()) + "'s book."}</p>
       <button class="primary" id="to-settle">Continue</button>`);
+    cue(sc, "At the scale");
     await new Promise((r) => $("#to-settle").addEventListener("click", r, { once: true }));
   },
 
   onInteract(name) {
-    const y = this.y;
-    const talk = FAMILY_TALK[name];
-    if (talk && y) {
-      const line = talk[y.year] || talk.any;
-      if (line) {
-        World.say(name, this.t(line));
-        const who = { mama: "Mama", lucy: "Lucy", sam: "Sam", ruth: "Grandma Ruth", holliday: "Mr. " + this.planter() }[name];
-        this.log(who ? `${who}: "${this.t(line)}"` : this.t(line));
-      }
-    }
+    const id = TALK[name];
+    if (!id) return;
+    const l = LINES[id];
+    if (l.voice) Voice.play(id, { voiced: this.planterIsHolliday() });
+    else { World.say(name, l.text); this.log(`${l.who}: "${l.text}"`, "line"); }
   },
 
-  // ---- settling up --------------------------------------------------------------
+  // ---- settling up ---------------------------------------------------------------------
   async settleStep() {
-    const y = this.y, g = this.g;
+    const y = this.y, g = this.g, sc = this.sceneOf(y);
     World.setSky("dusk");
     World.setStage("picked");
     World.setPeople("porch");
     this.showFlat("porchLantern");
-    this.dock(`<p class="eyebrow">Christmas ${y.year} · Settling up</p><p class="voice">${esc(this.t(YEAR_LINES[y.year].settle))}</p>`);
-    this.log(this.t(YEAR_LINES[y.year].settle));
+    this.dock(`<p class="eyebrow">Christmas ${y.year} · Settling up</p><p class="voice">Every Christmas, the planter reads each family one number.</p>`);
+    cue(sc, "Walk to the big house");
     await this.goTo("porch", "porch", "Walk up to the big house to settle up", 3.4);
-    this.log(`Mr. ${this.planter()}: "Come on up. I've got your number right here."`);
+    await cue(sc, "Arriving at the porch");
     buildLedger(g, y);
     if (!y.evicted && voteEviction(g, y)) { y.evicted = true; y.evictedBy = "vote"; buildLedger(g, y); }
     this.dock("");
     await new Promise((resolve) => {
       this.settleResolve = resolve;
-      this.renderSettle(null);
+      this.renderSettle(null, true);
     });
   },
-  renderSettle(revealed) {
+
+  // What Mr. Holliday says, and what Papa thinks, for this year's number.
+  settleLines() {
+    const y = this.y, g = this.g;
+    const bal = y.ledger.balance;
+    const prev = g.years[g.yearIndex - 1];
+    let said, react;
+    if (y.evicted) { said = y.evictedBy === "vote" ? "SET-EVICT-VOTE" : "BOOKS-EVICT"; react = "SET-REACT-EVICT"; }
+    else if (bal > 0.005) { said = "SET-AHEAD"; react = "SET-REACT-AHEAD"; }
+    else if (bal > -0.005) { said = "SET-EVEN"; react = "SET-REACT-EVEN"; }
+    else { said = prev && prev.ledger.balance < 0 ? "SET-OWE-AGAIN" : "SET-OWE"; react = bal > -50 ? "SET-REACT-SHORT" : "SET-REACT-DEEP"; }
+    return { said, react };
+  },
+
+  renderSettle(revealed, speak) {
     const y = this.y, g = this.g;
     const bal = y.ledger.balance;
     const price = CONFIG.pricePerBale[y.year];
-    let said;
-    if (y.evicted) said = y.evictedBy === "vote" ? SETTLE_TEXT.evictedVote : SETTLE_TEXT.evictedDemand;
-    else if (bal < -0.005) said = SETTLE_TEXT.owe.replace("${N}", fmt(-bal));
-    else if (bal > 0.005) said = SETTLE_TEXT.ahead.replace("${N}", fmt(bal));
-    else said = SETTLE_TEXT.even;
-    this.log(`Mr. ${this.planter()}: ${said}`, "settle");
+    const { said, react } = this.settleLines();
     const rent = !y.evicted && canRent(g, bal);
     const isLast = g.yearIndex >= CONFIG.years.length - 1;
-    const revealHtml = revealed ? (() => {
-      const r = REVEALS[revealed];
-      return `<div class="reveal"><p class="eyebrow">${esc(r.title)}</p><p>${esc(this.t(r.text))}</p><p class="figure-line">${esc(r.detail(y))}</p></div>`;
-    })() : "";
+    const REVEAL = {
+      markup: { h: "BOOKS-MARKUP", t: "BOOKS-MARKUP-T", detail: `This year: ${fmt(y.ledger.store + y.ledger.doctor)} on account. Cash price: ${fmt(y.honest.store + y.honest.doctor)}.` },
+      weight: { h: "BOOKS-WEIGHT", t: "BOOKS-WEIGHT-T", detail: `Your wagon: ${fmtLbs(y.trueLbs)}. His scale: ${fmtLbs(y.scaleLbs)}.` },
+      interest: { h: "BOOKS-INTEREST", t: "BOOKS-INTEREST-T", detail: y.startBalance < 0 ? `This year: ${fmt(y.ledger.interest)} in interest. At 10% it would be ${fmt(-y.startBalance * CONFIG.interestTold)}.` : "You weren't carrying debt this year, but it will apply the next time you are." },
+    };
+    const r = revealed ? REVEAL[revealed] : null;
     const nextPlanter = PLANTERS[Math.min(g.planterIndex + 1, PLANTERS.length - 1)];
     let actions;
     if (y.evicted) {
@@ -637,55 +696,75 @@ const Game = {
       <div class="settle">
         <p class="eyebrow">Christmas ${y.year} · ${esc(this.planter())}'s porch</p>
         <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
-        <blockquote class="said">${esc(said)}</blockquote>
+        <blockquote class="said">${esc(say(r ? r.h : said))}</blockquote>
         <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
-        ${revealHtml}
-        ${rent ? `<p class="voice">${esc(SETTLE_TEXT.rentReady)}</p>` : ""}
+        ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
+        <p class="voice thought">${esc(say(r ? r.t : react))}</p>
+        ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
         <div class="settle-actions">${actions}</div>
-        ${!y.evicted && bal < 0 ? `<p class="fine">${esc(SETTLE_TEXT.leaveOwing)}</p>` : ""}
         ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
       </div>`, { low: true });
+    const voiced = this.planterIsHolliday();
+    if (speak) {
+      (async () => {
+        const my = Voice.token + 1;
+        await Voice.play(r ? r.h : said, { caption: false, voiced });
+        if (Voice.token !== my) return;
+        await wait(300);
+        Voice.play(r ? r.t : react, { caption: false });
+      })();
+    }
     this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
   },
-  settleAct(act) {
+
+  async settleAct(act) {
     const y = this.y, g = this.g;
+    const voiced = this.planterIsHolliday();
     if (act === "demand") {
-      this.log(SETTLE_TEXT.demandIntro, "settle");
-      const r = demandBooks(g, y);
+      this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => { b.disabled = true; });
+      await Voice.play("BOOKS-01", { caption: false });
+      await Voice.play("BOOKS-02", { caption: false });
+      const res = demandBooks(g, y);
       this.save();
-      if (r.evicted) World.say("holliday", "Get off my porch.");
-      this.renderSettle(r.evicted ? null : r.item);
+      this.renderSettle(res.evicted ? null : res.item, true);
       return;
     }
     if (act === "leave" && y.ledger.balance < 0 && !this.confirmLeave) {
       this.confirmLeave = true;
       const box = this.els.sheetBody.querySelector(".settle-actions");
-      box.innerHTML = `<p class="voice">Mama held Papa's arm. "We owe him ${fmt(-y.ledger.balance)}. If we go owing, the sheriff will come after you."</p>
+      box.innerHTML = `<p class="voice thought">${esc(say("LEAVE-OWING"))}</p>
         <button class="primary" data-act="stay">Stay</button><button class="secondary danger" data-act="leave">Leave anyway</button>`;
+      Voice.play("LEAVE-OWING", { caption: false });
       box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
       return;
     }
     this.confirmLeave = false;
     const decision = act === "move" ? "stay" : act;
+    const owed = y.ledger.balance < 0;
     closeYear(g, y, decision);
-    this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}. ${{ stay: y.evicted ? "We moved to a new place." : "We stayed.", leave: "We left.", rent: "We rented a farm." }[decision]}`, "settle");
+    this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}.`, "settle");
     this.closeSheet();
     this.save();
+    if (decision === "stay" && !y.evicted) await Voice.play("SET-YES");
+    else if (decision === "rent") await Voice.play("RENT-01", { voiced });
+    else if (decision === "leave" && !owed) await Voice.play("LEAVE-FREE", { voiced });
+    if (!g.ending) cue(this.sceneOf(y), "Leaving the porch");
     const done = this.settleResolve;
     this.settleResolve = null;
     done?.();
   },
 
-  // ---- ending and epilogue ---------------------------------------------------
+  // ---- ending ------------------------------------------------------------------------------
   async endingScene() {
     const g = this.g;
-    const e = ENDINGS[g.ending];
     World.setSky("dusk");
-    const panels = [...e.panels, g.education ? EPILOGUE.school : EPILOGUE.noschool];
+    const ep = g.education ? EPILOGUE.school : EPILOGUE.noschool;
+    const panels = ENDINGS[g.ending].lines.map((id) => ({ id, art: LINES[id].art || "emptyRoad" }));
+    panels.push({ id: ep.id, art: ep.art });
     await this.cutscene(panels);
   },
 
-  // ---- the audit -------------------------------------------------------------
+  // ---- the audit -----------------------------------------------------------------------------
   audit() {
     return new Promise((resolve) => {
       const g = this.g;
@@ -723,9 +802,11 @@ const Game = {
         <div class="audit">
           <p class="eyebrow">The audit · ${esc(ENDINGS[g.ending].title)}</p>
           <h2>Open the books</h2>
-          <p class="voice">${esc(this.t(AUDIT_INTRO))}</p>
+          <p class="voice thought">${esc(say("AUD-01"))}</p>
+          <p>You are the auditors now. Here is the planter's book next to what the family really bought, at cash prices, with honest weights.</p>
           ${table}
           <p class="fine">Red figures in the honest column are where his book and the truth part ways. Game values, rebuilt from your own play. This is a reconstruction, not a primary source.</p>
+          <blockquote class="source">${esc(say("AUD-QUOTE"))}</blockquote>
           <div class="findings">
             <div class="finding"><span class="f-k">You were told</span><span class="f-v">10% interest</span></div>
             <div class="finding"><span class="f-k">He charged</span><span class="f-v neg">25% interest</span><span class="f-s">${fmt(a.extraInterest)} extra</span></div>
@@ -749,6 +830,7 @@ const Game = {
           </form>
           <div id="audit-next" hidden><button class="primary big" id="audit-done">Finish</button></div>
         </div>`, { wide: true });
+      Voice.play("AUD-01", { caption: false });
       let tries = 0;
       $("#audit-form").addEventListener("submit", (e) => {
         e.preventDefault();
@@ -774,14 +856,14 @@ const Game = {
         if (right === 3 || tries >= 2) $("#audit-next").hidden = false;
         this.save();
       });
-      $("#audit-done").addEventListener("click", () => { this.closeSheet(); resolve(); });
+      $("#audit-done").addEventListener("click", () => { Voice.stop(); this.closeSheet(); resolve(); });
     });
   },
 
   done() {
     const g = this.g;
     const a = auditTotals(g);
-    World.setMode("free");
+    World.setMode("walk");
     World.setSky("dusk");
     this.dock("");
     this.sheet(`
@@ -801,7 +883,7 @@ const Game = {
         </div>
       </div>`);
     $("#final-journal").addEventListener("click", () => this.openJournal());
-    $("#final-new").addEventListener("click", () => { store.del(SAVE_KEY); location.hash = ""; this.g = null; this.y = null; this.renderTopbar(); this.showJoin(); });
+    $("#final-new").addEventListener("click", () => { store.del(SAVE_KEY); this.g = null; this.y = null; this.renderTopbar(); this.showJoin(); });
   },
 
   openJournal() {
@@ -810,21 +892,8 @@ const Game = {
     j.forEach((e) => { (byYear[e.year] = byYear[e.year] || []).push(e); });
     $("#journal-list").innerHTML = j.length
       ? Object.entries(byYear).map(([yr, es]) => `<section><h3>${yr}</h3>${es.map((e) => `<p class="j-${e.kind}">${esc(e.text)}</p>`).join("")}</section>`).join("")
-      : `<p class="fine">Everything you read in the game shows up here, so you can look back at anything you missed.</p>`;
+      : `<p class="fine">Everything said in the game shows up here, so you can look back at anything you missed.</p>`;
     this.els.journal.hidden = false;
     $("#journal-close").focus();
   },
-};
-
-// Names shown when the pointer rests on someone in the world.
-const NAMES = { mama: "Mama", lucy: "Lucy", sam: "Sam", ruth: "Grandma Ruth", holliday: "Mr. {P}", mule: "The mule", clerk: "The store clerk", neighbors: "The neighbors", fieldhand: "A neighbor" };
-
-// Short lines when Papa taps a family member in the world.
-const FAMILY_TALK = {
-  mama: { 1869: "I'm keeping my own count, Robert. In my head.", 1871: "Somebody in this house should know what we really owe.", 1873: "Whatever he says up there, we stay together.", any: "Go on. The rows won't plant themselves." },
-  lucy: { 1869: "Papa, is the land ours now?", 1870: "Mama says I could learn to read, if there was a school.", 1872: "I counted the bales. I got a different number than he did.", any: "I'll carry the water bucket." },
-  sam: { 1869: "When I'm big I'm gonna pick a whole bale by myself.", any: "Can I ride the mule?" },
-  ruth: { 1869: "I was born on this place. Never thought I'd see it from this side.", 1870: "Your grandfather would have walked ten miles to vote.", 1873: "Hard times come round. So do we.", any: "Plant the corn close to the house. Hungry is worse than broke." },
-  holliday: { any: "Get on back to work. We'll settle up at Christmas." },
-  mule: { any: "The mule flicks an ear and goes back to grazing." },
 };

@@ -126,6 +126,22 @@ button, input, select { font: inherit; color: inherit; }
 @media (pointer: coarse) and (max-width: 760px) {
   #dock { max-height: 40%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
 }
+#captions {
+  position: absolute; z-index: 47; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px));
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--ink) 88%, transparent); color: var(--paper); pointer-events: none;
+}
+@media (min-width: 1100px) { #captions { left: calc(50% + 140px); width: min(600px, calc(100% - 500px)); } }
+@media (max-width: 760px) { #captions { bottom: auto; top: calc(var(--top, 56px) + 64px); } }
+.cap-who { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ochre); }
+.cap-what { font-size: 1.05rem; line-height: 1.4; }
+.cap-what.thought, .voice.thought { font-style: italic; }
+.contract p[data-clause] { transition: background .3s; padding: 2px 4px; margin-inline: -4px; }
+.contract p.reading { background: color-mix(in srgb, var(--ochre) 30%, transparent); }
+blockquote.source { margin: 0; padding: 10px 14px; border-left: 4px solid var(--ochre); background: #F7F2E6; font-family: Georgia, "Times New Roman", serif; font-size: .95rem; }
+.cut-cap.silent { font-family: var(--body); font-weight: 600; font-stretch: 100%; }
+.j-thought { font-style: italic; }
 .controls-help { display: grid; gap: 2px; border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); padding-block: 8px; font-size: .92rem; }
 .controls-help p { margin: 0; }
 .art-img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -391,6 +407,22 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 @media (pointer: coarse) and (max-width: 760px) {
   #dock { max-height: 40%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
 }
+#captions {
+  position: absolute; z-index: 47; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px));
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--ink) 88%, transparent); color: var(--paper); pointer-events: none;
+}
+@media (min-width: 1100px) { #captions { left: calc(50% + 140px); width: min(600px, calc(100% - 500px)); } }
+@media (max-width: 760px) { #captions { bottom: auto; top: calc(var(--top, 56px) + 64px); } }
+.cap-who { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ochre); }
+.cap-what { font-size: 1.05rem; line-height: 1.4; }
+.cap-what.thought, .voice.thought { font-style: italic; }
+.contract p[data-clause] { transition: background .3s; padding: 2px 4px; margin-inline: -4px; }
+.contract p.reading { background: color-mix(in srgb, var(--ochre) 30%, transparent); }
+blockquote.source { margin: 0; padding: 10px 14px; border-left: 4px solid var(--ochre); background: #F7F2E6; font-family: Georgia, "Times New Roman", serif; font-size: .95rem; }
+.cut-cap.silent { font-family: var(--body); font-weight: 600; font-stretch: 100%; }
+.j-thought { font-style: italic; }
 .controls-help { display: grid; gap: 2px; border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); padding-block: 8px; font-size: .92rem; }
 .controls-help p { margin: 0; }
 .art-img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -408,6 +440,7 @@ button:disabled { opacity: .45; cursor: not-allowed; }
     <p class="brand">Settling Up</p>
     <ol id="years" aria-label="Crop years"></ol>
     <span id="fam"></span>
+    <button class="topbtn" id="voice-btn" type="button" aria-pressed="true">Voice on</button>
     <button class="topbtn" id="journal-btn" type="button">Journal</button>
   </header>
 
@@ -419,6 +452,8 @@ button:disabled { opacity: .45; cursor: not-allowed; }
   </div>
 
   <div class="world-bubble" hidden aria-live="polite"></div>
+
+  <div id="captions" hidden aria-live="polite"><span class="cap-who"></span><span class="cap-what"></span></div>
 
   <div id="compass" hidden aria-live="polite">
     <span class="c-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2 L20 20 L12 15 L4 20 Z" fill="#A3271F"/></svg></span>
@@ -459,6 +494,7 @@ const t="170",e={LEFT:0,MIDDLE:1,RIGHT:2,ROTATE:0,DOLLY:1,PAN:2},n={ROTATE:0,PAN
 return {ACESFilmicToneMapping:et,AddEquation:y,AddOperation:J,AdditiveAnimationBlendMode:ze,AdditiveBlending:g,AgXToneMapping:it,AlphaFormat:Bt,AlwaysCompare:Tn,AlwaysDepth:V,AlwaysStencilFunc:gn,AmbientLight:fp,AnimationAction:rm,AnimationClip:zd,AnimationLoader:Yd,AnimationMixer:am,AnimationObjectGroup:im,AnimationUtils:Ed,ArcCurve:Wh,ArrayCamera:Xl,ArrowHelper:Qm,AttachedBindMode:st,Audio:Hp,AudioAnalyser:Yp,AudioContext:Cp,AudioListener:Vp,AudioLoader:Ip,AxesHelper:tf,BackSide:d,BasicDepthPacking:Ge,BasicShadowMap:o,BatchedMesh:mh,Bone:Fc,BooleanKeyframeTrack:Ld,Box2:ym,Box3:Li,Box3Helper:Ym,BoxGeometry:ks,BoxHelper:qm,BufferAttribute:cs,BufferGeometry:Es,BufferGeometryLoader:Sp,ByteType:At,Cache:Vd,Camera:js,CameraHelper:Wm,CanvasTexture:Vh,CapsuleGeometry:uu,CatmullRomCurve3:Jh,CineonToneMapping:tt,CircleGeometry:du,ClampToEdgeWrapping:mt,Clock:Np,Color:Kr,ColorKeyframeTrack:Ud,ColorManagement:ai,CompressedArrayTexture:zh,CompressedCubeTexture:kh,CompressedTexture:Bh,CompressedTextureLoader:Zd,ConeGeometry:mu,ConstantAlphaFactor:B,ConstantColorFactor:O,Controls:nf,CubeCamera:$s,CubeReflectionMapping:lt,CubeRefractionMapping:ct,CubeTexture:Qs,CubeTextureLoader:Kd,CubeUVReflectionMapping:dt,CubicBezierCurve:tu,CubicBezierCurve3:eu,CubicInterpolant:Rd,CullFaceBack:r,CullFaceFront:s,CullFaceFrontBack:a,CullFaceNone:i,Curve:Hh,CurvePath:lu,CustomBlending:x,CustomToneMapping:nt,CylinderGeometry:pu,Cylindrical:vm,Data3DTexture:Ei,DataArrayTexture:Ti,DataTexture:Bc,DataTextureLoader:$d,DataUtils:as,DecrementStencilOp:sn,DecrementWrapStencilOp:on,DefaultLoadingManager:Gd,DepthFormat:Gt,DepthStencilFormat:Wt,DepthTexture:Ya,DetachedBindMode:at,DirectionalLight:mp,DirectionalLightHelper:Vm,DiscreteInterpolant:Id,DodecahedronGeometry:gu,DoubleSide:p,DstAlphaFactor:P,DstColorFactor:U,DynamicCopyUsage:Ln,DynamicDrawUsage:En,DynamicReadUsage:Cn,EdgesGeometry:Mu,EllipseCurve:Gh,EqualCompare:xn,EqualDepth:W,EqualStencilFunc:un,EquirectangularReflectionMapping:ht,EquirectangularRefractionMapping:ut,Euler:fr,EventDispatcher:Bn,ExtrudeGeometry:Ku,FileLoader:qd,Float16BufferAttribute:vs,Float32BufferAttribute:_s,FloatType:Lt,Fog:ic,FogExp2:nc,FramebufferTexture:Fh,FrontSide:u,Frustum:oa,GLBufferAttribute:um,GLSL1:Dn,GLSL3:Nn,GreaterCompare:Mn,GreaterDepth:j,GreaterEqualCompare:bn,GreaterEqualDepth:X,GreaterEqualStencilFunc:fn,GreaterStencilFunc:pn,GridHelper:Om,Group:jl,HalfFloatType:Ut,HemisphereLight:ep,HemisphereLightHelper:Nm,IcosahedronGeometry:Qu,ImageBitmapLoader:Ap,ImageLoader:Jd,ImageUtils:fi,IncrementStencilOp:rn,IncrementWrapStencilOp:an,InstancedBufferAttribute:Hc,InstancedBufferGeometry:Mp,InstancedInterleavedBuffer:hm,InstancedMesh:Jc,Int16BufferAttribute:ps,Int32BufferAttribute:fs,Int8BufferAttribute:hs,IntType:It,InterleavedBuffer:sc,InterleavedBufferAttribute:oc,Interpolant:Ad,InterpolateDiscrete:Le,InterpolateLinear:Ue,InterpolateSmooth:De,InvertStencilOp:ln,KeepStencilOp:en,KeyframeTrack:Pd,LOD:Ec,LatheGeometry:hu,Layers:gr,LessCompare:_n,LessDepth:H,LessEqualCompare:yn,LessEqualDepth:G,LessEqualStencilFunc:dn,LessStencilFunc:hn,Light:tp,LightProbe:_p,Line:bh,Line3:bm,LineBasicMaterial:fh,LineCurve:nu,LineCurve3:iu,LineDashedMaterial:yd,LineLoop:Rh,LineSegments:Ah,LinearFilter:Mt,LinearInterpolant:Cd,LinearMipMapLinearFilter:wt,LinearMipMapNearestFilter:bt,LinearMipmapLinearFilter:Tt,LinearMipmapNearestFilter:St,LinearSRGBColorSpace:Ke,LinearToneMapping:$,LinearTransfer:$e,Loader:Wd,LoaderUtils:yp,LoadingManager:Hd,LoopOnce:Ce,LoopPingPong:Pe,LoopRepeat:Ie,LuminanceAlphaFormat:Ht,LuminanceFormat:Vt,MOUSE:e,Material:ts,MaterialLoader:xp,MathUtils:Zn,Matrix2:_m,Matrix3:Kn,Matrix4:sr,MaxEquation:T,Mesh:Bs,MeshBasicMaterial:es,MeshDepthMaterial:Ol,MeshDistanceMaterial:Fl,MeshLambertMaterial:_d,MeshMatcapMaterial:xd,MeshNormalMaterial:vd,MeshPhongMaterial:fd,MeshPhysicalMaterial:md,MeshStandardMaterial:pd,MeshToonMaterial:gd,MinEquation:b,MirroredRepeatWrapping:ft,MixOperation:Z,MultiplyBlending:_,MultiplyOperation:Y,NearestFilter:gt,NearestMipMapLinearFilter:yt,NearestMipMapNearestFilter:_t,NearestMipmapLinearFilter:xt,NearestMipmapNearestFilter:vt,NeutralToneMapping:rt,NeverCompare:vn,NeverDepth:k,NeverStencilFunc:cn,NoBlending:m,NoColorSpace:Ze,NoToneMapping:K,NormalAnimationBlendMode:Be,NormalBlending:f,NotEqualCompare:Sn,NotEqualDepth:q,NotEqualStencilFunc:mn,NumberKeyframeTrack:Dd,Object3D:Lr,ObjectLoader:bp,ObjectSpaceNormalMap:Ye,OctahedronGeometry:td,OneFactor:E,OneMinusConstantAlphaFactor:z,OneMinusConstantColorFactor:F,OneMinusDstAlphaFactor:L,OneMinusDstColorFactor:D,OneMinusSrcAlphaFactor:I,OneMinusSrcColorFactor:R,OrthographicCamera:ba,PCFShadowMap:l,PCFSoftShadowMap:c,PMREMGenerator:Na,Path:cu,PerspectiveCamera:Js,Plane:ra,PlaneGeometry:ha,PlaneHelper:Zm,PointLight:dp,PointLightHelper:Pm,Points:Dh,PointsMaterial:Ch,PolarGridHelper:Fm,PolyhedronGeometry:fu,PositionalAudio:qp,PropertyBinding:nm,PropertyMixer:Zp,QuadraticBezierCurve:ru,QuadraticBezierCurve3:su,Quaternion:Ri,QuaternionKeyframeTrack:Od,QuaternionLinearInterpolant:Nd,RED_GREEN_RGTC2_Format:Ae,RED_RGTC1_Format:we,REVISION:t,RGBADepthPacking:We,RGBAFormat:kt,RGBAIntegerFormat:Jt,RGBA_ASTC_10x10_Format:xe,RGBA_ASTC_10x5_Format:ge,RGBA_ASTC_10x6_Format:ve,RGBA_ASTC_10x8_Format:_e,RGBA_ASTC_12x10_Format:ye,RGBA_ASTC_12x12_Format:Me,RGBA_ASTC_4x4_Format:le,RGBA_ASTC_5x4_Format:ce,RGBA_ASTC_5x5_Format:he,RGBA_ASTC_6x5_Format:ue,RGBA_ASTC_6x6_Format:de,RGBA_ASTC_8x5_Format:pe,RGBA_ASTC_8x6_Format:me,RGBA_ASTC_8x8_Format:fe,RGBA_BPTC_Format:Se,RGBA_ETC2_EAC_Format:oe,RGBA_PVRTC_2BPPV1_Format:re,RGBA_PVRTC_4BPPV1_Format:ie,RGBA_S3TC_DXT1_Format:$t,RGBA_S3TC_DXT3_Format:Qt,RGBA_S3TC_DXT5_Format:te,RGBDepthPacking:Xe,RGBFormat:zt,RGBIntegerFormat:Zt,RGB_BPTC_SIGNED_Format:be,RGB_BPTC_UNSIGNED_Format:Te,RGB_ETC1_Format:se,RGB_ETC2_Format:ae,RGB_PVRTC_2BPPV1_Format:ne,RGB_PVRTC_4BPPV1_Format:ee,RGB_S3TC_DXT1_Format:Kt,RGDepthPacking:je,RGFormat:qt,RGIntegerFormat:Yt,RawShaderMaterial:dd,Ray:rr,Raycaster:pm,RectAreaLight:gp,RedFormat:Xt,RedIntegerFormat:jt,ReinhardToneMapping:Q,RenderTarget:Si,RepeatWrapping:pt,ReplaceStencilOp:nn,ReverseSubtractEquation:S,RingGeometry:ed,SIGNED_RED_GREEN_RGTC2_Format:Re,SIGNED_RED_RGTC1_Format:Ee,SRGBColorSpace:Je,SRGBTransfer:Qe,Scene:rc,ShaderChunk:ua,ShaderLib:pa,ShaderMaterial:Xs,ShadowMaterial:ud,Shape:Su,ShapeGeometry:nd,ShapePath:ef,ShapeUtils:Yu,ShortType:Rt,Skeleton:Vc,SkeletonHelper:Cm,SkinnedMesh:Oc,Source:vi,Sphere:Ji,SphereGeometry:id,Spherical:gm,SphericalHarmonics3:vp,SplineCurve:au,SpotLight:op,SpotLightHelper:wm,Sprite:Sc,SpriteMaterial:lc,SrcAlphaFactor:C,SrcAlphaSaturateFactor:N,SrcColorFactor:A,StaticCopyUsage:Pn,StaticDrawUsage:wn,StaticReadUsage:Rn,StereoCamera:Dp,StreamCopyUsage:Un,StreamDrawUsage:An,StreamReadUsage:In,StringKeyframeTrack:Fd,SubtractEquation:M,SubtractiveBlending:v,TOUCH:n,TangentSpaceNormalMap:qe,TetrahedronGeometry:rd,Texture:yi,TextureLoader:Qd,TextureUtils:Hl,TorusGeometry:sd,TorusKnotGeometry:ad,Triangle:jr,TriangleFanDrawMode:He,TriangleStripDrawMode:Ve,TrianglesDrawMode:ke,TubeGeometry:od,UVMapping:ot,Uint16BufferAttribute:ms,Uint32BufferAttribute:gs,Uint8BufferAttribute:us,Uint8ClampedBufferAttribute:ds,Uniform:om,UniformsGroup:cm,UniformsLib:da,UniformsUtils:Ws,UnsignedByteType:Et,UnsignedInt248Type:Ot,UnsignedInt5999Type:Ft,UnsignedIntType:Pt,UnsignedShort4444Type:Dt,UnsignedShort5551Type:Nt,UnsignedShortType:Ct,VSMShadowMap:h,Vector2:Jn,Vector3:Ci,Vector4:Mi,VectorKeyframeTrack:Bd,VideoTexture:Oh,WebGL3DRenderTarget:Ai,WebGLArrayRenderTarget:wi,WebGLCoordinateSystem:On,WebGLCubeRenderTarget:ta,WebGLMultipleRenderTargets:rf,WebGLRenderTarget:bi,WebGLRenderer:ec,WebGLUtils:Wl,WebGPUCoordinateSystem:Fn,WireframeGeometry:ld,WrapAroundEnding:Fe,ZeroCurvatureEnding:Ne,ZeroFactor:w,ZeroSlopeEnding:Oe,ZeroStencilOp:tn,createCanvasElement:ii};
 })();
 const CUSTOM_ART = {};
+
 // ============================================================================
 // TUNING — every game number lives here. Change prices and odds without
 // touching game logic. All dollar amounts are game values, not history.
@@ -507,7 +543,7 @@ const CONFIG = {
 };
 
 // The event deck. Weights set how often each card is drawn.
-// 1873 is always the Panic. Election only in 1870 or 1872.
+// 1873 is always the Panic. Election only in 1871 or 1872 (Mississippi had no 1870 election).
 const DECK = [
   { id: "rains",    weight: 2.5 },
   { id: "drought",  weight: 1.2, bad: true },
@@ -515,7 +551,7 @@ const DECK = [
   { id: "muledies", weight: 0.8, bad: true },
   { id: "sickness", weight: 1.2, bad: true },
   { id: "school",   weight: 1.5 },
-  { id: "election", weight: 2.0, years: [1870, 1872] },
+  { id: "election", weight: 2.0, years: [1871, 1872] },
   { id: "mulebuy",  weight: 3.5, years: [1870, 1871, 1872] },
   { id: "eggs",     weight: 2.0 },
   { id: "riders",   weight: 1.0, bad: true },
@@ -819,27 +855,294 @@ function auditTotals(g) {
   };
 }
 
+const { SCENES, ARC, TAGS, VOICES, DYK } = (() => {
 // ============================================================================
-// STORY — every word students read. Lucy tells it, looking back.
-// {F} = the family name students type. {P} = the current planter.
+// SCRIPT LINES — the single source for the script, the voiceover sheet, and
+// (next) the game's text. Only two voices speak:
+//   PAPA      Robert's inner voice (thought), his narration in cutscenes
+//             (narration), and the few words he says out loud (aloud).
+//   HOLLIDAY  the planter, out loud.
+// Everyone else is heard through Papa, or appears as a silent speech bubble
+// in the world (voice: null).
+//
+// Rules for voiced lines (they are recorded once and can't change per game):
+//   - No family surname (students choose it) and no amounts that change per
+//     game. Fixed game values (sixty dollars, ten percent, five acres) are OK,
+//     but re-record them if config.js changes.
+//   - Papa says "Mr. Holliday" only in 1869, before the family could move.
+//   - Only Mr. Holliday is voiced. If the family moves, the new planter's
+//     lines show as text, and Papa's thoughts stay voiced.
+//   - Standard spelling. The voice comes from word choice, not dialect.
+// ============================================================================
+
+const P = (id, delivery, text, o = {}) => ({ id, voice: "papa", delivery, text, ...o });
+const H = (id, text, o = {}) => ({ id, voice: "holliday", delivery: "aloud", text, ...o });
+const B = (id, who, text, o = {}) => ({ id, voice: null, delivery: "bubble", who, text, ...o });
+const TXT = (id, text, o = {}) => ({ id, voice: null, delivery: "card", text, ...o });
+
+// Delivery tags for ElevenLabs v4. Thoughts are close and quiet. A line with
+// a `vo` field uses that instead: the same words with emotion tags inside.
+const TAGS = { thought: "[quietly]", narration: "[thoughtful]", aloud: "" };
+
+// ElevenLabs voice IDs.
+const VOICES = { papa: "kzZ2bw7ItjSNWP4M85Xl", holliday: "N3qnQs6q5bYnw2n8I73X" };
+
+const ARC = [
+  { year: "Prologue", title: "Four Years Free", beat: "Papa has freedom, a family, and two hands. He has no land, no money, and no letters. He walks up the hill to sign." },
+  { year: 1869, title: "The Mark", beat: "Hope. He makes his X on a contract he can't read and starts his first crop as a free man. Hannah starts a knotted string to keep her own count. In December he votes for the first time, and a week later he settles up." },
+  { year: 1870, title: "Written Down", beat: "Pride, then the first doubt. The 15th Amendment and Hiram Revels make Papa feel the country turning. Cotton falls. He remembers his father, sold away before he could vote. Lucy asks to go to school." },
+  { year: 1871, title: "The String", beat: "Knowing. News of Meridian. Lucy learns her letters. At the scale Hannah whispers that the wagon felt heavier. That night her string and his book don't match, and there is nothing Papa can safely say. This is the turn of the story." },
+  { year: 1872, title: "Holding On", beat: "Endurance. Grant runs again. Papa's mother can't walk to the field. Hannah says they could leave; Papa knows the lien would take everything. Lucy reads him the store sign. 'I'd hate to lose you,' Mr. Holliday says, and means it." },
+  { year: 1873, title: "The Panic", beat: "The test. Fever in the river towns, then the Panic in September. The best crop they ever grew sells for almost nothing. At the last settling up, Papa chooses: stay, leave, or, rarely, rent land of his own." },
+  { year: "Ending", title: "Next Year", beat: "Papa's last words depend on the choice. A silent card tells what became of Lucy, the girl who learned to read." },
+];
+
+const SCENES = [
+  // ---------------------------------------------------------------- prologue
+  { id: "PRO", title: "Prologue", when: "Cutscene, before play", lines: [
+    P("PRO-01", "narration", "Mississippi. January, eighteen sixty-nine. Four years since freedom came down the road.", { art: "fieldSun" }),
+    P("PRO-02", "narration", "Five of us in a one-room cabin. Hannah. Our girl Lucy, ten. Our boy Sam, six. And my mother, Ruth.", { art: "family" }),
+    P("PRO-03", "narration", "In sixty-five, folks said the bottom rail was on top. I'll believe it when I'm holding a deed.", { art: "plow" }),
+    P("PRO-04", "narration", "Mr. Holliday has land and nobody to work it. I have two hands, a family, and nothing else.", { art: "bigHouse" }),
+    P("PRO-05", "narration", "So this morning I walk up to the big house to make my mark.", { art: "contractDesk" }),
+  ] },
+
+  // ---------------------------------------------------------------- contract
+  { id: "CON", title: "The contract", when: "January 1869: the walk up the hill, then the contract page", lines: [
+    B("CON-B1", "Hannah", "Make him read you every word, Robert.", { when: "At the cabin, as the walk begins" }),
+    P("CON-01", "thought", "Hannah says make him read every word. I can't read a one of them. He knows that.", { when: "Walking up the hill" }),
+    H("CON-02", "Sit down, Robert. I'll read it, you listen. Saves us both some time.", { when: "Contract page opens" }),
+    H("CON-03", "For every thirty acres, I'll provide a mule team, plow, and farming tools. You can have half of the cotton and corn you grow.", { when: "Reading the contract", note: "Adapted from the 1882 Grimes contract (SHEG). Brisk and flat, a man who has read this many times." }),
+    H("CON-04", "Nothing can be sold from your crop until my rent is all paid, and all amounts you owe me are paid in full.", { when: "Reading the contract" }),
+    H("CON-05", "The sale of your part of the cotton to be made by me, when and where I choose to sell, and after taking all you owe me.", { when: "Reading the contract" }),
+    H("CON-06", "Fifteen acres. Five in corn, no more. Your account's at my commissary. Ten percent on anything you carry over. Make your mark right there.", { when: "After the clauses" }),
+    P("CON-07", "thought", "He read it fast, like a grocery list. I caught 'half.' I caught 'all you owe me.'", { when: "Before the mark" }),
+    P("CON-08", "aloud", "Yes, sir.", { when: "As the student makes the mark", tag: "[respectfully]" }),
+    P("CON-09", "thought", "My mark. An X. Lucy is going to learn to write our name.", { when: "After the mark" }),
+  ] },
+
+  // -------------------------------------------------------------------- 1869
+  { id: "Y1869", year: 1869, title: "1869: The Mark", when: "Spring to Christmas, 1869", lines: [
+    P("Y1869-01", "thought", "Spring comes early. First stop, the commissary. Seed, and meat, meal, and molasses on account.", { when: "Walk to the store" }),
+    B("Y1869-B1", "Hannah", "Every time he writes in that book, I tie a knot in this string.", { when: "Walk to the store" }),
+    P("Y1869-02", "thought", "Only store for nine miles. Whatever we take, he writes down. Hannah ties a knot.", { when: "Store page" }),
+    P("Y1869-03", "thought", "Fifteen acres. More than I ever worked for myself. Not one of them mine.", { when: "Walk to the field" }),
+    P("Y1869-04", "thought", "Cotton pays at settling time. Corn feeds us all year. Hannah wants corn. Mr. Holliday wants cotton.", { when: "Planning the field" }),
+    B("Y1869-B2", "Mother Ruth", "Plant corn close to the house, son. Hungry is worse than broke.", { when: "Planning the field" }),
+    P("Y1869-05", "thought", "Walk the rows. Hannah and the children come behind me with the seed.", { when: "Planting" }),
+    B("Y1869-B3", "Sam", "Papa! I can carry the whole sack!", { when: "Planting" }),
+    P("Y1869-06", "thought", "Field's in. Now it's up to the rain, the Lord, and the price.", { when: "Planting done" }),
+    P("Y1869-07", "thought", "By June we chop cotton. By the Fourth of July it's laid by. Home for supper.", { when: "Walk home to the cabin" }),
+    P("Y1869-08", "thought", "September. The bolls are open. Picking time runs till frost.", { when: "Walk to the field in the fall" }),
+    P("Y1869-09", "thought", "Every row we walk is money. Whose money, we'll find out at Christmas.", { when: "Harvest" }),
+    B("Y1869-B4", "Lucy", "Papa, can I count the bales when we're done?", { when: "Harvest" }),
+    P("Y1869-10", "thought", "The bales are tied and loaded. His gin. His scale. His book.", { when: "Walk to the wagon" }),
+    P("Y1869-11", "thought", "His man reads the needle and writes it down. I watch the needle. I can read a needle.", { when: "At the scale" }),
+    P("Y1869-12", "thought", "First of December, I voted. First time in my life. A week later, I walk up the hill to settle.", { when: "Walk to the big house", note: "Mississippi ratified its new constitution November 30 to December 1, 1869." }),
+    H("Y1869-13", "Come on up, Robert. I've got your number right here.", { when: "Arriving at the porch" }),
+    P("Y1869-14", "thought", "Our first year free and settled. Whatever that number is, it's ours to carry.", { when: "Leaving the porch" }),
+  ] },
+
+  // -------------------------------------------------------------------- 1870
+  { id: "I1870", title: "Interlude: 1870", when: "Cutscene, before spring 1870", lines: [
+    P("I1870-01", "narration", "February, eighteen seventy. The Fifteenth Amendment. I already voted once. Now the Constitution says no state can take it from me because of my color.", { art: "newspaper15" }),
+    P("I1870-02", "narration", "Voteless. That word gets crossed out. Landless. That one stays.", { art: "tracker" }),
+    P("I1870-03", "narration", "Same month, a Black man from Mississippi, Hiram Revels, takes a seat in the United States Senate. Now watch, I tell Hannah. Now watch.", { art: "senate" }),
+  ] },
+  { id: "Y1870", year: 1870, title: "1870: Written Down", when: "Spring to Christmas, 1870", lines: [
+    P("Y1870-01", "thought", "New year, same road. I tell Hannah this is the year we come out ahead. I say that every spring.", { when: "Walk to the store" }),
+    P("Y1870-02", "thought", "Hannah asks what the flour costs. The clerk says, 'Same as always,' and writes it down.", { when: "Store page" }),
+    P("Y1870-03", "thought", "Lucy walks beside me. She says the church is starting a school. She wants to go.", { when: "Walk to the field" }),
+    B("Y1870-B1", "Lucy", "Papa, could I go? Even just in winter?", { when: "Walk to the field" }),
+    P("Y1870-04", "thought", "Cotton was down last fall. Corn doesn't care about New York.", { when: "Planning the field" }),
+    P("Y1870-05", "thought", "Sam drags his own sack this year. Taller every spring.", { when: "Planting" }),
+    B("Y1870-B2", "Sam", "I'm big enough now, Papa.", { when: "Planting" }),
+    P("Y1870-06", "thought", "Mother told me tonight my father would have walked ten miles to vote. They sold him to Alabama when I was six.", { when: "Walk home to the cabin", note: "Review flag: Papa's memory of his father being sold. Brief and offstage, per the house rule." }),
+    P("Y1870-07", "thought", "Picking time. Sam fills his first whole sack. He's prouder of it than anything.", { when: "Walk to the field in the fall" }),
+    P("Y1870-08", "thought", "Hannah sings in the next row. Sam sings louder, and wrong. Lucy laughs.", { when: "Harvest" }),
+    P("Y1870-09", "thought", "Loaded. I count the bales twice. I want to know the number before he tells me.", { when: "Walk to the wagon" }),
+    P("Y1870-10", "thought", "The needle stops. I hold that number in my head all the way up the hill.", { when: "At the scale" }),
+    P("Y1870-11", "thought", "I put on my good shirt. Hannah walks up with me.", { when: "Walk to the big house" }),
+    H("Y1870-12", "Evening, Robert. Cotton's down this year. Nothing I can do about New York.", { when: "Arriving at the porch" }),
+    P("Y1870-13", "thought", "Walking home, I don't say much. I never do after settling.", { when: "Leaving the porch" }),
+  ] },
+
+  // -------------------------------------------------------------------- 1871
+  { id: "Y1871", year: 1871, title: "1871: The String", when: "Spring to Christmas, 1871 (the turn of the story)", lines: [
+    P("Y1871-01", "thought", "Word came from Meridian. A fire, a trial, then shooting in the courthouse. Our people, mostly.", { when: "Walk to the store", note: "Meridian, March 4 to 6, 1871." }),
+    P("Y1871-02", "thought", "Hannah keeps her own count now. One knot for every dollar he writes.", { when: "Store page" }),
+    P("Y1871-03", "thought", "Mother says the land doesn't care whose name is on it. It just wants working.", { when: "Walk to the field" }),
+    P("Y1871-04", "thought", "Every acre of corn is a little less owed. Every acre of cotton is a little more hope.", { when: "Planning the field" }),
+    P("Y1871-05", "thought", "The preacher's wife is teaching Lucy her letters on Sundays. She writes them in the dirt between rows.", { when: "Planting" }),
+    B("Y1871-B1", "Lucy", "That's an R, Papa. R for Robert.", { when: "Planting" }),
+    P("Y1871-06", "thought", "Laid by. Evenings on the porch, I count on my fingers. Hannah counts on her string.", { when: "Walk home to the cabin" }),
+    P("Y1871-07", "thought", "Hannah watches the wagon fill. She doesn't say anything. She's counting.", { when: "Walk to the field in the fall" }),
+    P("Y1871-08", "thought", "I know what a wagon of cotton weighs. My back knows.", { when: "Harvest" }),
+    P("Y1871-09", "thought", "Hannah walks beside the wagon this year. She wants to see the needle too.", { when: "Walk to the wagon" }),
+    B("Y1871-B2", "Hannah", "That wagon felt heavier than that.", { when: "At the scale" }),
+    P("Y1871-10", "thought", "Hannah leans close and whispers it. She's right. And there's not a thing I can say.", { when: "At the scale" }),
+    P("Y1871-11", "thought", "Up the hill. He won't look up from his book. He never does.", { when: "Walk to the big house" }),
+    H("Y1871-12", "Robert. Let's see where you stand.", { when: "Arriving at the porch" }),
+    P("Y1871-13", "thought", "Hannah unties her string on the table tonight. We count the knots together. His book has more.", { when: "Leaving the porch" }),
+  ] },
+
+  // -------------------------------------------------------------------- 1872
+  { id: "Y1872", year: 1872, title: "1872: Holding On", when: "Spring to Christmas, 1872", lines: [
+    P("Y1872-01", "thought", "Election year. Grant is running again. Men argue about it on every porch.", { when: "Walk to the store" }),
+    P("Y1872-02", "thought", "New shoes in the commissary window. Hannah walks right past them.", { when: "Store page" }),
+    P("Y1872-03", "thought", "Mother can't walk out to the field this year. Her knees won't carry her.", { when: "Walk to the field" }),
+    B("Y1872-B1", "Mother Ruth", "Go on. I'll mind the chickens and pray for rain.", { when: "Walk to the field" }),
+    P("Y1872-04", "thought", "Hannah says plant more corn. Owe less. Eat. She's not wrong. She's never wrong.", { when: "Planning the field" }),
+    P("Y1872-05", "thought", "Sam asks if his grandmother is coming out today. Not today, son.", { when: "Planting" }),
+    B("Y1872-B2", "Sam", "Is Grandma coming out today?", { when: "Planting" }),
+    P("Y1872-06", "thought", "Lucy read me the sign on the store today. Every letter. My daughter reads.", { when: "Walk home to the cabin" }),
+    P("Y1872-07", "thought", "Long picking this year. We sing to keep the rows even.", { when: "Walk to the field in the fall" }),
+    P("Y1872-08", "thought", "Hannah says we could leave. Leave owing, and he takes the mule, the crop, the stove. Then where?", { when: "Harvest" }),
+    P("Y1872-09", "thought", "Same wagon. Same road. Same scale.", { when: "Walk to the wagon" }),
+    P("Y1872-10", "thought", "Four years of that needle. It never once comes out on my side.", { when: "At the scale" }),
+    P("Y1872-11", "thought", "Four Christmases on that porch. I could find it in the dark.", { when: "Walk to the big house" }),
+    H("Y1872-12", "Another year, Robert. You're a good worker. I'd hate to lose you.", { when: "Arriving at the porch" }),
+    P("Y1872-13", "thought", "'I'd hate to lose you.' He means it. That's the worst part.", { when: "Leaving the porch" }),
+  ] },
+
+  // -------------------------------------------------------------------- 1873
+  { id: "Y1873", year: 1873, title: "1873: The Panic", when: "Spring to Christmas, 1873", lines: [
+    P("Y1873-01", "thought", "Hannah counts every coin twice this spring. Something's coming. We can all feel it.", { when: "Walk to the store" }),
+    P("Y1873-02", "thought", "The prices on the shelf haven't changed. They never do.", { when: "Store page" }),
+    P("Y1873-03", "thought", "One more good year. That's all we need. I've said that before.", { when: "Walk to the field" }),
+    P("Y1873-04", "thought", "Corn or cotton. Five years of the same question, and I still don't know the right answer.", { when: "Planning the field" }),
+    P("Y1873-05", "thought", "Lucy asks, when we have our own land, can she name the mule?", { when: "Planting" }),
+    B("Y1873-B1", "Lucy", "When we have our own land, can I name the mule?", { when: "Planting" }),
+    P("Y1873-06", "thought", "Hard rain this summer, and fever down in Grenada and Vicksburg. We keep the children close.", { when: "Walk home to the cabin (no event card this summer)", note: "Yellow fever reached Grenada and frightened Vicksburg in 1873." }),
+    P("Y1873-07", "thought", "Best crop we ever grew.", { when: "Arriving at the field in the fall, just before the Panic cutscene" }),
+    P("Y1873-08", "thought", "Best crop we ever grew, and nobody wants to buy it.", { when: "Harvest" }),
+    P("Y1873-09", "thought", "I lead the wagon slow. No hurry to hear it.", { when: "Walk to the wagon" }),
+    P("Y1873-10", "thought", "The needle stops. It doesn't matter now. The price was decided in New York.", { when: "At the scale" }),
+    P("Y1873-11", "thought", "Lucy follows me up the hill this time and stands on the step to listen.", { when: "Walk to the big house" }),
+    H("Y1873-12", "Sit down, Robert. Bad year for everybody. Even me.", { when: "Arriving at the porch" }),
+  ] },
+  { id: "I1873", title: "Interlude: the Panic", when: "Cutscene in the fall of 1873, before the harvest (moved from spring: the Panic began September 18)", lines: [
+    P("I1873-01", "narration", "September, eighteen seventy-three. A bank in New York fails, and then the whole country seems to.", { art: "newspaperPanic" }),
+    P("I1873-02", "narration", "Cotton falls to sixty dollars a bale. We grew it all year at the old price.", { art: "priceChart" }),
+  ] },
+
+  // ------------------------------------------------- lines used every year
+  { id: "STORE", title: "At the store (every year)", when: "After the student picks a basket", lines: [
+    P("STORE-LEAN", "thought", "No shoes this year. We'll make do. We always make do."),
+    P("STORE-BASIC", "thought", "That should see us through, if nothing goes wrong."),
+    P("STORE-EXTRA", "thought", "Medicine on the shelf. Hannah will sleep better. So will I."),
+  ] },
+  { id: "FIELD", title: "In the field (every year)", lines: [
+    P("FIELD-LIMIT", "thought", "Five acres of corn. That's all the contract allows. He wants cotton.", { when: "Trying to plant a sixth acre of corn" }),
+    P("FIELD-SOWN", "thought", "That's enough. The family will finish the rest.", { when: "Planting done early" }),
+    P("FIELD-PICKED", "thought", "Hannah and the children will bring in the rest.", { when: "Harvest done early" }),
+  ] },
+  { id: "SETTLE", title: "Settling up (every year)", when: "On the porch", lines: [
+    H("SET-AHEAD", "Well. Your share comes out ahead this year. Don't spend it all in one place.", { when: "Balance above zero" }),
+    H("SET-EVEN", "Comes out even. Nothing owed, nothing coming.", { when: "Balance zero" }),
+    H("SET-OWE", "You come up short. I'll carry it over to next year. Ten percent, same as always.", { when: "In debt for the first time" }),
+    H("SET-OWE-AGAIN", "Short again, Robert. I'll carry it. I always do.", { when: "In debt again" }),
+    H("SET-EVICT-VOTE", "I hear you went to town on Election Day. I'll keep your share for the trouble. Be gone by New Year's.", { when: "Voted, and the 1-in-4 eviction comes up" }),
+    P("SET-REACT-AHEAD", "thought", "Ahead. Say it again. Ahead. Hannah squeezes my hand all the way down the hill."),
+    P("SET-REACT-EVEN", "thought", "Even. A whole year of work, and we're right where we started."),
+    P("SET-REACT-SHORT", "thought", "Short. Hannah's string says we're closer than that. I keep my mouth shut.", { when: "Owe less than fifty dollars" }),
+    P("SET-REACT-DEEP", "thought", "Every year we work harder, and every year we owe more.", { when: "Owe fifty dollars or more" }),
+    P("SET-REACT-EVICT", "thought", "Put off the place. We load the wagon. We've moved before. We'll move again."),
+    P("SET-YES", "aloud", "Yes, sir.", { tag: "[respectfully]", when: "Choosing to stay" }),
+  ] },
+  { id: "BOOKS", title: "Demanding the books", when: "Optional, once per settling up", lines: [
+    P("BOOKS-01", "thought", "A man asking to see the books. On this porch. Hannah is holding her breath.", { when: "Before the choice" }),
+    P("BOOKS-02", "aloud", "Sir... I'd like to see the books.", { tag: "[carefully]" }),
+    H("BOOKS-EVICT", "You'd call me a liar on my own porch? Your share stays with me. Be gone by New Year's.", { when: "The 1-in-3 eviction" }),
+    H("BOOKS-MARKUP", "That's the time price. Goods on credit cost more than cash. Always have. It's in the contract.", { when: "First reveal" }),
+    P("BOOKS-MARKUP-T", "thought", "Forty cents on every dollar, just for waiting till Christmas."),
+    H("BOOKS-WEIGHT", "The scale is the scale, Robert. You want to weigh your own cotton, buy your own gin.", { when: "Second reveal" }),
+    P("BOOKS-WEIGHT-T", "thought", "So the wagon did weigh more. Hannah was right."),
+    H("BOOKS-INTEREST", "Ten, twenty-five... interest is interest. You want land of your own someday or not?", { when: "Third reveal" }),
+    P("BOOKS-INTEREST-T", "thought", "Twenty-five percent. He said ten. He said it to my face."),
+  ] },
+  { id: "LEAVE", title: "Leaving, renting", when: "Settling-up choices", lines: [
+    P("LEAVE-OWING", "thought", "If we leave owing, his lien takes the crop, the mule, everything we can't carry. No planter in the county will sign me.", { when: "Choosing to leave while in debt" }),
+    H("LEAVE-FREE", "Suit yourself. Plenty of men want this place.", { when: "Leaving with no debt" }),
+    H("RENT-01", "Renting. Well. You've got the mule and the money. I won't stand in your way.", { when: "Choosing to rent" }),
+  ] },
+
+  // ------------------------------------------------------------ event cards
+  { id: "CARD", title: "Event cards", when: "Summer, at the cabin. Papa voices the card; the effect and the Did You Know note stay on screen as text.", lines: [
+    P("CARD-RAINS", "thought", "Rain at planting, and dry at picking. The cotton stands tall. A good year, if the price holds."),
+    P("CARD-DROUGHT", "thought", "No rain from June to August. The bolls come in small and hard. I can hear them rattle."),
+    P("CARD-FLOOD", "thought", "The river comes up over the low fields. It takes the corn patch and some of the cotton."),
+    P("CARD-MULEDIES", "thought", "Old Jack lies down in his stall and doesn't get up. The mule was in my hands, so the cost goes in his book."),
+    P("CARD-MULEDIES-OWN", "thought", "Our own mule, lying in the stall. Sixty dollars of savings. Back to half shares."),
+    P("CARD-SICK", "thought", "Sam takes the chills and fever in July. Hannah sits up with him nine nights. We're a pair of hands short."),
+    P("CARD-SICK-EXTRA", "thought", "Sam takes the chills and fever. We have medicine on the shelf this time. Thank God for that."),
+    P("CARD-SCHOOL-1869", "thought", "The church is starting a school for children. Lucy wants to go. That's one less pair of hands in the field.", { when: "1869" }),
+    P("CARD-SCHOOL", "thought", "The new public school opens, free. But it runs in the same months as chopping and picking.", { when: "1870 and later", note: "Mississippi's school law of July 1870 made public schools free; terms were about four months." }),
+    P("CARD-SCHOOL-YES", "thought", "Lucy goes to school. The rows are a little longer without her. I don't mind the walk."),
+    P("CARD-SCHOOL-NO", "thought", "Lucy stays in the field. She keeps asking. I keep saying next year."),
+    P("CARD-ELECTION", "thought", "Election Day. I can vote, and he knows it. He says a man who votes against him can find another place to live.", { when: "1871 or 1872 only" }),
+    P("CARD-ELECTION-YES", "thought", "I walk to town and vote. Nobody says a word to me on the road home. Nobody needs to."),
+    P("CARD-ELECTION-NO", "thought", "I stay home. I don't say a word all day. Neither does Hannah."),
+    P("CARD-MULEBUY", "thought", "A neighbor moving west to Texas will sell his mule for sixty dollars, cash money."),
+    P("CARD-MULEBUY-YES", "thought", "I count out sixty dollars. The mule is ours. Two-thirds of the crop from now on."),
+    P("CARD-MULEBUY-NO", "thought", "I watch the mule go down the road. Maybe next year."),
+    P("CARD-MULEBUY-CANT", "thought", "Sixty dollars cash. We don't have it. Not close."),
+    P("CARD-EGGS", "thought", "Mother's garden comes in thick. Hannah walks to town on Saturday with eggs and greens."),
+    P("CARD-EGGS-YES", "thought", "She comes home with fifteen dollars in her apron. Cash. Ours.", { when: "Three or more acres of corn" }),
+    P("CARD-EGGS-NONE", "thought", "The garden's too small this year to spare anything for town."),
+    P("CARD-RIDERS", "thought", "Word of masked men riding at night, two farms over. I bar the door and sit up with the lamp out."),
+    P("CARD-PANIC", "thought", "Nobody in town will name a price. The buyers say wait. The planter says sell.", { when: "1873, after the Panic cutscene" }),
+  ] },
+
+  // ---------------------------------------------------------------- endings
+  { id: "END", title: "Endings", when: "Cutscene after the last settling up", lines: [
+    P("END-STAY-01", "narration", "'Next year,' he says. 'Cotton will come back.' 'Yes, sir,' I say.", { art: "porchLantern", when: "Still cropping" }),
+    P("END-STAY-02", "narration", "We plant again the next spring, and the spring after that. The rows stay the same. Only the number in his book gets bigger.", { art: "longRows", when: "Still cropping" }),
+    P("END-RENT-01", "narration", "January. We load the wagon and drive our own mule down the road. The land still isn't ours. But the crop will be.", { art: "muleRoad", when: "Renting a farm" }),
+    P("END-RENT-02", "narration", "That fall I sell our cotton myself. I read the price off the board in town, and I count the money twice.", { art: "ownField", when: "Renting a farm" }),
+    P("END-LEFT-01", "narration", "We leave at night, owing. We make it as far as the county line.", { art: "emptyRoad", when: "Left owing" }),
+    P("END-LEFT-02", "narration", "His lien takes the crop, the mule, even Hannah's stove. The justice of the peace sides with him.", { art: "emptyDoor", when: "Left owing" }),
+    P("END-LEFT-03", "narration", "No planter in the county will sign a man who walked off owing. I hire out by the day, to whoever will have me.", { art: "longRows", when: "Left owing" }),
+    TXT("END-LEFT-CARD", "After 1876, Mississippi's new laws made it easy to arrest a Black man for almost nothing and hire him out to work off the fine. For a family that left owing, the risk only grew.", { when: "Left owing, silent card", note: "The 1876 'pig law' and convict leasing." }),
+    TXT("END-LUCY-SCHOOL", "Lucy learned to read at the church school. Later she taught there. She wrote this story down.", { when: "If Lucy went to school, silent card" }),
+    TXT("END-LUCY-NOSCHOOL", "Lucy never had much schooling. She told this story to her granddaughter, who wrote it down.", { when: "If Lucy never went to school, silent card" }),
+  ] },
+
+  // ------------------------------------------------------------------- audit
+  { id: "AUD", title: "The audit", when: "After the ending", lines: [
+    P("AUD-01", "thought", "Hannah's string was right. Now see for yourself.", { when: "Audit page opens" }),
+    TXT("AUD-QUOTE", "\"A man that didn't know how to count would always lose. He might lose anyhow. They didn't give no itemized statement. No, you just had to take their word.\" Henry Blake, interviewed for the Federal Writers' Project, Arkansas, 1930s.", { when: "On the audit page, silent", note: "Primary source quoted as recorded. Project Gutenberg, WPA Slave Narratives, Arkansas, Part 1." }),
+  ] },
+
+  // ---------------------------------------------------------- tapping people
+  { id: "TALK", title: "Tapping people in the world", when: "Silent bubbles, except Mr. Holliday", lines: [
+    B("TALK-HANNAH", "Hannah", "Go on, Robert. The rows won't plant themselves."),
+    B("TALK-LUCY", "Lucy", "I'll carry the water bucket, Papa."),
+    B("TALK-SAM", "Sam", "Can I ride the mule? Just to the fence?"),
+    B("TALK-RUTH", "Mother Ruth", "I was born on this place. Never thought I'd see it from this side."),
+    H("TALK-HOLLIDAY", "Get on back to work, Robert. We'll settle up at Christmas."),
+  ] },
+];
+
+// The Did You Know notes, rewritten where the fact-check found problems.
+// These stay on screen as text; they are not voiced.
+const DYK = {
+  sickness: { text: "Malaria, called \"chills and fever,\" was common along Mississippi's rivers, and yellow fever reached Grenada and Vicksburg in 1873. With no savings, every doctor's bill went on account at the store.", credit: "Mississippi Encyclopedia; Vicksburg Post" },
+  school: { text: "Mississippi's school law of 1870 made public schools free for Black and white children. Terms were short, about four months, the schools were almost always separate, and Black schools got less money. Churches and missionary groups ran schools too.", credit: "Mississippi History Now; SPLC timeline of Mississippi education" },
+  election: { text: "Black men in Mississippi first voted in 1867, under the Reconstruction Acts. The 15th Amendment (1870) made the right permanent, but planters used the lease as a weapon, and in 1871 Klan violence kept many from the polls.", credit: "Mississippi History Now, \"First Black Legislators\"" },
+  riders: { text: "In March 1871, after a fire in Meridian, a courtroom shooting set off killings of as many as thirty Black people. Congress passed the Enforcement Acts in 1870 and 1871 to fight the Klan.", credit: "U.S. Senate, \"The Enforcement Acts\"" },
+  panic: { text: "The Panic of 1873 began on September 18, when Jay Cooke & Company failed. Cotton prices fell, and in 1874 the Freedman's Savings Bank closed, owing 61,000 depositors nearly $3 million.", credit: "Federal Reserve History; Britannica" },
+};
+
+return { SCENES, ARC, TAGS, VOICES, DYK };
+})();
+// ============================================================================
+// STORY — the on-screen text that isn't a spoken line. Every line Papa or
+// Mr. Holliday says, and every family speech bubble, lives in
+// story/lines.mjs (SCENES), so the script, the voices, and the game agree.
+// {P} = the current planter. {Y} = the current year.
 // ============================================================================
 const PLANTERS = ["Holliday", "Pruitt", "Dunbar", "Coker", "Askew"];
-
-const FAMILY = [
-  { id: "papa", name: "Papa", full: "Robert", role: "Plows and picks" },
-  { id: "mama", name: "Mama", full: "Hannah", role: "Keeps count" },
-  { id: "lucy", name: "Lucy", full: "Lucy, 10", role: "Tells this story" },
-  { id: "sam", name: "Sam", full: "Sam, 6", role: "Carries water" },
-  { id: "ruth", name: "Grandma Ruth", full: "Ruth", role: "Minds the garden" },
-];
-
-const PROLOGUE = [
-  { art: "fieldSun", caption: "Mississippi, 1869. Four years after freedom came.", sub: "My name is Lucy {F}. I was ten years old." },
-  { art: "family", caption: "There were five of us.", sub: "Papa, Mama, Grandma Ruth, my little brother Sam, and me." },
-  { art: "plow", caption: "Papa wanted one thing: land of our own.", sub: "People had talked about forty acres. It never came." },
-  { art: "bigHouse", caption: "Mr. Holliday had land but no one to work it.", sub: "We had our hands, and nothing else." },
-  { art: "contractDesk", caption: "So in January, Papa walked up to the big house.", sub: "He went to make his mark on a contract." },
-];
 
 // Adapted from the 1882 Grimes contract (SHEG modified version).
 const CONTRACT = {
@@ -850,6 +1153,8 @@ const CONTRACT = {
     "I am to gin and pack all of the cotton.",
     "The sale of every sharecropper's part of the cotton to be made by me when and where I choose to sell, and after taking all they owe me.",
   ],
+  // which clause Mr. Holliday is reading aloud in each voiced line
+  reading: { "CON-03": 0, "CON-04": 2, "CON-05": 4 },
   credit: "Adapted. Sharecropping contract, 1882, Grimes Family Papers (#3357), Southern Historical Collection, UNC Chapel Hill. Modified by the Stanford History Education Group.",
   terms: [
     ["Land", "15 acres, a cabin, a mule, tools, and seed"],
@@ -858,40 +1163,6 @@ const CONTRACT = {
     ["Store", "Supplies on account at the plantation store"],
     ["Interest", "10% on anything carried to next year"],
   ],
-  narration: "Papa couldn't read. Mr. Holliday read it out loud, fast, and pushed the pen across the table.",
-};
-
-const YEAR_LINES = {
-  1869: {
-    plant: "Papa walked the fifteen acres with his hat in his hand. \"Cotton pays,\" he said. \"Corn feeds us.\"",
-    store: "Mr. Holliday's store was the only store for nine miles. Whatever we took, he wrote in his book.",
-    harvest: "We picked from September until frost. Then the wagon went to Mr. Holliday's gin and his scale.",
-    settle: "At Christmas, Mr. Holliday called each family up to the porch, one at a time.",
-  },
-  1870: {
-    plant: "Papa said this year we would come out ahead. He said that every spring.",
-    store: "Mama asked Mr. Holliday what the flour cost. He said, \"Same as always,\" and wrote it down.",
-    harvest: "Sam was big enough to drag a sack this year. He cried when his fingers bled, then kept picking.",
-    settle: "Papa wore his good shirt to the porch. Mama walked up with him.",
-  },
-  1871: {
-    plant: "Grandma Ruth said the land didn't care whose name was on it. It just wanted working.",
-    store: "Mama kept her own count on a piece of string, one knot for every dollar.",
-    harvest: "Mama looked at the loaded wagon, then at the number on the scale. She didn't say anything.",
-    settle: "Mr. Holliday didn't look up from his book. He just read the number.",
-  },
-  1872: {
-    plant: "Grandma Ruth's hands hurt too much to pick now. She minded the chickens and sang to them.",
-    store: "The store had new shoes in the window. Mama walked past them.",
-    harvest: "It was a long picking. We sang to keep our rows even.",
-    settle: "Five Christmases on the porch. Papa said he could find it in the dark.",
-  },
-  1873: {
-    plant: "Mama counted every coin twice that spring. We all felt something coming.",
-    store: "The prices on the shelf hadn't changed. Mr. Holliday said cotton would come back.",
-    harvest: "We picked the best crop we ever grew. Nobody wanted to buy it.",
-    settle: "The last settling up I remember clearly. I stood on the step and listened.",
-  },
 };
 
 const STORE_ITEMS = {
@@ -900,188 +1171,49 @@ const STORE_ITEMS = {
   extra: ["Meal and salt pork", "Molasses", "Seed and plow points", "Cloth, 12 yards", "Shoes, 2 pair", "Medicine", "Coffee"],
 };
 
-// Event cards. `choice` cards show two buttons.
+// Event cards. `line` is Papa's voiced line for the card; variants pick
+// another line in a special case. The effect and Did You Know stay as text.
 const CARDS = {
-  rains: {
-    title: "Good rains",
-    art: "rain",
-    body: "Rain came in spring, then dry weather at picking time. The cotton stood tall.",
-    effect: "Yield +20%",
-    dyk: "Most farm families had no savings and no insurance. One season's weather could decide whether they ended the year ahead or behind.",
-  },
-  drought: {
-    title: "Drought",
-    art: "drought",
-    body: "No rain from June to August. The bolls came in small and hard.",
-    effect: "Yield −30%",
-    dyk: "A sharecropper carried the risk of a bad year. The planter still collected his half of whatever grew, and the store bill stayed the same.",
-  },
-  flood: {
-    title: "Flood on the bottomland",
-    art: "flood",
-    body: "The river came up over the low fields. It took the corn patch and some of the cotton.",
-    effect: "Yield −20%. The corn patch is lost, so the store bill goes back up.",
-    dyk: "Bottomland near rivers had the richest soil, and it was the first to flood. Croppers rarely got the high ground.",
-  },
-  muledies: {
-    title: "The mule dies",
-    art: "mule",
-    body: "Old Jack lay down in his stall and didn't get up. Mr. {P} said the mule was in Papa's hands.",
-    effect: "The planter charges $60 to your account.",
-    effectOwn: "Your own mule dies. You lose the bigger share until you buy another.",
+  rains: { title: "Good rains", art: "rain", line: "CARD-RAINS", effect: "Yield +20%",
+    dyk: "Most farm families had no savings and no insurance. One season's weather could decide whether they ended the year ahead or behind." },
+  drought: { title: "Drought", art: "drought", line: "CARD-DROUGHT", effect: "Yield −30%",
+    dyk: "A sharecropper carried the risk of a bad year. The planter still collected his half of whatever grew, and the store bill stayed the same." },
+  flood: { title: "Flood on the bottomland", art: "flood", line: "CARD-FLOOD", effect: "Yield −20%. The corn patch is lost, so the store bill goes back up.",
+    dyk: "Bottomland near rivers had the richest soil, and it was the first to flood. Croppers rarely got the high ground." },
+  muledies: { title: "The mule dies", art: "mule", line: "CARD-MULEDIES", lineOwn: "CARD-MULEDIES-OWN",
+    effect: "The planter charges $60 to your account.", effectOwn: "Your own mule dies. You lose the bigger share until you buy another.",
     dyk: "The 1882 contract says every sharecropper is \"responsible for all farming gear placed in his hands.\" Families paid for the planter's tools and stock.",
-    credit: "Grimes Family Papers, 1882, adapted by SHEG",
-  },
-  sickness: {
-    title: "Sickness in the family",
-    art: "sick",
-    body: "Sam took a fever in July. Mama sat up with him for nine nights, and we were one pair of hands short.",
-    effect: "Yield −15%. Doctor: $10 on account.",
-    effectExtra: "You bought medicine this spring. Yield −10%, and no doctor's bill.",
-    dyk: "With no savings, every crisis went on account at the store. Historian Jim Downs found that the Freedmen's Bureau never had enough doctors or money to fight the epidemics of these years.",
-    credit: "Jim Downs, Sick from Freedom (2012)",
-  },
-  school: {
-    title: "A school opens nearby",
-    art: "school",
-    body: "The church started a school for children. It meant one less picker in the field.",
-    question: "Send Lucy to school?",
-    yes: "Send Lucy",
-    no: "Keep her in the field",
-    effectYes: "Yield −10%. Lucy learns to read.",
-    effectNo: "Lucy stays in the field.",
-    dyk: "The Freedmen's Bureau and Black churches opened schools across the South. Families paid for them with tuition, with labor, and with lost hands in the field.",
-    credit: "Records of the Freedmen's Bureau, National Archives",
-  },
-  election: {
-    title: "Election Day, {Y}",
-    art: "ballot",
-    body: "Papa could vote now. Mr. {P} said a man who votes against him can find another place to live.",
-    question: "Does Papa go to vote?",
-    yes: "Go and vote",
-    no: "Stay home",
-    effectYes: "Papa votes. Mr. {P} may put you off the place (1 in 4).",
-    effectNo: "Papa stays home.",
-    dyk: "The 15th Amendment (1870) said no state could deny the vote because of race. Planters used the lease as a weapon against Black voters.",
-    credit: "U.S. Constitution, 15th Amendment",
-  },
-  mulebuy: {
-    title: "A chance to buy a mule",
-    art: "mulebuy",
-    body: "A neighbor moving west to Texas offered his mule for $60, cash money.",
-    question: "Buy the mule?",
-    yes: "Buy it for $60",
-    no: "Not this year",
-    effectYes: "You own a mule. From now on you keep two-thirds of the crop, not half.",
-    effectNo: "You let the mule go.",
+    credit: "Grimes Family Papers, 1882, adapted by SHEG" },
+  sickness: { title: "Chills and fever", art: "sick", line: "CARD-SICK", lineExtra: "CARD-SICK-EXTRA",
+    effect: "Yield −15%. Doctor: $10 on account.", effectExtra: "You bought medicine this spring. Yield −10%, and no doctor's bill." },
+  school: { title: "A school opens", art: "school", line: "CARD-SCHOOL", line1869: "CARD-SCHOOL-1869",
+    question: "Send Lucy to school?", yes: "Send Lucy", no: "Keep her in the field", lineYes: "CARD-SCHOOL-YES", lineNo: "CARD-SCHOOL-NO",
+    effectYes: "Yield −10%. Lucy learns to read.", effectNo: "Lucy stays in the field." },
+  election: { title: "Election Day, {Y}", art: "ballot", line: "CARD-ELECTION",
+    question: "Go to town and vote?", yes: "Go and vote", no: "Stay home", lineYes: "CARD-ELECTION-YES", lineNo: "CARD-ELECTION-NO",
+    effectYes: "You vote. The planter may put you off the place (1 in 4).", effectNo: "You stay home." },
+  mulebuy: { title: "A chance to buy a mule", art: "mulebuy", line: "CARD-MULEBUY",
+    question: "Buy the mule?", yes: "Buy it for $60", no: "Not this year", lineYes: "CARD-MULEBUY-YES", lineNo: "CARD-MULEBUY-NO", lineCant: "CARD-MULEBUY-CANT",
+    effectYes: "You own a mule. From now on you keep two-thirds of the crop, not half.", effectNo: "You let the mule go.",
     cantAfford: "You need $60 in savings. You don't have it.",
     dyk: "Families who owned a mule could bargain for a bigger share of the crop. Owning stock was the first rung on the ladder toward renting land.",
-    credit: "Ransom and Sutch, One Kind of Freedom (1977)",
-  },
-  eggs: {
-    title: "Eggs and greens in town",
-    art: "eggs",
-    body: "Grandma Ruth's garden came in thick. Mama walked to town on Saturday with a basket.",
-    effect: "+$15 cash, if you planted 3 or more acres of corn and garden.",
-    effectNone: "The garden was too small to spare anything for town.",
-    dyk: "Every egg or ear of corn a family raised was one less thing bought on credit at the planter's store.",
-  },
-  riders: {
-    title: "Headline: night riders in the county",
-    art: "headline",
-    headline: "NIGHT RIDERS IN THE COUNTY",
-    body: "The newspaper said men in masks rode at night two farms over. Papa barred the door and said nothing.",
-    effect: "No money lost. Leaving this year costs double.",
-    dyk: "The Ku Klux Klan and other groups attacked Black voters, teachers, and families who tried to get ahead. Congress passed the Enforcement Acts in 1870 and 1871 to stop them.",
-    credit: "Enforcement Acts of 1870–1871",
-  },
-  panic: {
-    title: "The Panic of 1873",
-    art: "panic",
-    headline: "PANIC IN NEW YORK",
-    body: "A big bank in New York failed in September, and many more followed. Nobody wanted to buy cotton.",
-    effect: "Cotton drops to $60 a bale.",
-    dyk: "The Panic of 1873 began when Jay Cooke & Company failed. Cotton prices fell, and the Freedman's Savings Bank collapsed the next year, taking many Black families' savings with it.",
-    credit: "Federal Reserve History, \"The Panic of 1873\"",
-  },
-  none: { title: "A quiet year", art: "fieldSun", body: "Nothing much happened.", effect: "", dyk: "" },
+    credit: "Ransom and Sutch, One Kind of Freedom (1977)" },
+  eggs: { title: "Eggs and greens in town", art: "eggs", line: "CARD-EGGS", lineYes: "CARD-EGGS-YES", lineNone: "CARD-EGGS-NONE",
+    effect: "+$15 cash.", effectNone: "The garden was too small to spare anything for town.",
+    dyk: "Every egg or ear of corn a family raised was one less thing bought on credit at the planter's store." },
+  riders: { title: "Night riders in the county", art: "headline", line: "CARD-RIDERS", effect: "No money lost. Leaving this year costs double." },
+  panic: { title: "The Panic of 1873", art: "panic", line: "CARD-PANIC", effect: "Cotton drops to $60 a bale." },
+  none: { title: "A quiet year", art: "fieldSun", effect: "", dyk: "" },
 };
-
-const INTERLUDES = {
-  1870: [
-    { art: "newspaper15", caption: "In 1870, the 15th Amendment said Papa could vote.", sub: "Mama read the newspaper to Grandma Ruth twice." },
-    { art: "tracker", caption: "On our tracker, we crossed one word off.", sub: "The other word stayed." },
-    { art: "senate", caption: "That winter, Hiram Revels of Mississippi took a seat in the U.S. Senate.", sub: "He was the first Black senator. Papa said, \"Now watch.\"" },
-  ],
-  1873: [
-    { art: "newspaperPanic", caption: "In the fall of 1873, banks failed far away in New York.", sub: "We had never seen New York. It found us anyway." },
-    { art: "priceChart", caption: "Cotton fell to $60 a bale.", sub: "We had grown it all year at the old price." },
-  ],
-};
-
-const SETTLE_TEXT = {
-  owe: "\"You owe me ${N}. We'll carry it to next year, at ten percent.\"",
-  ahead: "\"Your share comes to ${N}, clear.\"",
-  even: "\"You come out even. Nothing owed.\"",
-  evictedVote: "\"I heard you went to town on Election Day. I'll keep your share for the trouble. Find yourselves another place.\"",
-  evictedDemand: "\"You calling me a liar? Get off my porch. Your share stays with me. Be gone by New Year's.\"",
-  demandIntro: "Papa took a breath and asked to see the books.",
-  leaveOwing: "If we leave owing him, the law can come after Papa. Mama said it quietly.",
-  rentReady: "Papa had saved enough, and the mule was ours. A man two miles off had land to rent.",
-};
-
-const REVEALS = {
-  markup: {
-    title: "One line from his book",
-    text: "The store charges a \"time price\" for goods on account: 40% more than the cash price.",
-    detail: (y) => `This year: ${fmt(y.ledger.store + y.ledger.doctor)} on account. Cash price: ${fmt(y.honest.store + y.honest.doctor)}.`,
-  },
-  weight: {
-    title: "One line from his book",
-    text: "Papa asked about the weight. Mr. {P} turned the book around for a second. The gin weight was less than what went in the wagon.",
-    detail: (y) => `Your wagon: ${y.trueLbs.toLocaleString()} lb. His scale: ${y.scaleLbs.toLocaleString()} lb.`,
-  },
-  interest: {
-    title: "One line from his book",
-    text: "The interest on the carried debt isn't ten percent. It's twenty-five.",
-    detail: (y) => y.startBalance < 0
-      ? `This year: ${fmt(y.ledger.interest)} in interest. At 10% it would be ${fmt(-y.startBalance * CONFIG.interestTold)}.`
-      : "You weren't carrying debt this year, but it will apply the next time you are.",
-  },
-};
+// Corrected notes from the fact-check (story/lines.mjs) replace the old ones.
+Object.entries(DYK).forEach(([k, v]) => { if (CARDS[k]) { CARDS[k].dyk = v.text; CARDS[k].credit = v.credit; } });
 
 const ENDINGS = {
-  cropping: {
-    title: "Still cropping",
-    panels: [
-      { art: "porchLantern", caption: "\"Next year,\" Mr. {P} said. \"Cotton will come back.\"", sub: "Papa said, \"Yes, sir.\" We planted again in the spring." },
-      { art: "longRows", caption: "We planted again the year after that, and the year after that.", sub: "The rows were the same. Only the number in the book got bigger." },
-    ],
-  },
-  rent: {
-    title: "Renting a farm",
-    panels: [
-      { art: "muleRoad", caption: "We loaded the wagon in January and drove our own mule down the road.", sub: "The land still wasn't ours. But the crop was ours to sell." },
-      { art: "ownField", caption: "Papa sold our cotton himself that fall.", sub: "He read the price off the board in town and counted the money twice." },
-    ],
-  },
-  left: {
-    title: "Lost to the lien",
-    panels: [
-      { art: "emptyRoad", caption: "We leave at night, owing.", sub: "We make it as far as the county line." },
-      { art: "emptyDoor", caption: "His lien takes the crop, the mule, even Hannah's stove.", sub: "The justice of the peace sides with him." },
-      { art: "longRows", caption: "No planter in the county will sign a man who walked off owing.", sub: "I hire out by the day, to whoever will have me." },
-      { art: "emptyRoad", caption: "After 1876, Mississippi's new laws made it easy to arrest a Black man for almost nothing and hire him out to work off the fine.", sub: "For a family that left owing, the risk only grew." },
-    ],
-  },
+  cropping: { title: "Still cropping", lines: ["END-STAY-01", "END-STAY-02"] },
+  rent: { title: "Renting a farm", lines: ["END-RENT-01", "END-RENT-02"] },
+  left: { title: "Lost to the lien", lines: ["END-LEFT-01", "END-LEFT-02", "END-LEFT-03", "END-LEFT-CARD"] },
 };
-
-const EPILOGUE = {
-  school: { art: "schoolLetters", caption: "I learned to read at the church school.", sub: "Years later I taught there. I wrote this down so you would know." },
-  noschool: { art: "grandmother", caption: "I never went to school.", sub: "I told this story to my granddaughter, and she wrote it down for me." },
-};
-
-const AUDIT_INTRO = "Now you are the auditors. Here is Mr. Holliday's book next to what your family really bought, at cash prices, with honest weights.";
+const EPILOGUE = { school: { id: "END-LUCY-SCHOOL", art: "schoolLetters" }, noschool: { id: "END-LUCY-NOSCHOOL", art: "grandmother" } };
 
 const EXIT_TICKET = {
   question: "Can you be free if you can't leave?",
@@ -1243,7 +1375,7 @@ function newspaper(x, y, w, h, mast, head, sub) {
   return out;
 }
 
-const SCENES = {
+const PANEL_ART = {
   fieldSun() {
     return R(0, 0, 1600, 900, AC.sky) + C(1160, 300, 190, AC.brick) +
       P([[0, 470], [300, 400], [620, 450], [940, 380], [1300, 440], [1600, 400], [1600, 520], [0, 520]], AC.indigo) +
@@ -1394,7 +1526,7 @@ const SCENES = {
 
 // Card art, 400 x 240.
 const CARD_ART = {
-  fieldSun: () => SCENES.fieldSun(),
+  fieldSun: () => PANEL_ART.fieldSun(),
   rain() {
     let out = R(0, 0, 1600, 900, AC.indigoLt) + fieldRows(520, 900, 10, AC.green, AC.greenLt);
     out += `<ellipse cx="520" cy="200" rx="300" ry="110" fill="${AC.paper2}"/><ellipse cx="900" cy="170" rx="330" ry="130" fill="${AC.cream}"/><ellipse cx="1220" cy="220" rx="260" ry="100" fill="${AC.paper2}"/>`;
@@ -1447,7 +1579,7 @@ const CARD_ART = {
     return out;
   },
   headline() { return R(0, 0, 1600, 900, AC.night) + newspaper(300, 60, 1000, 780, "THE COUNTY WEEKLY", ["NIGHT RIDERS", "IN THE COUNTY"], "Families warned to keep inside after dark"); },
-  panic() { return SCENES.newspaperPanic(); },
+  panic() { return PANEL_ART.newspaperPanic(); },
 };
 
 // Your own art in art/scenes/ or art/cards/ replaces a drawn panel of the same name.
@@ -1458,13 +1590,13 @@ function customImg(kind, name, label) {
 function sceneSVG(name, label) {
   const mine = customImg("scenes", name, label);
   if (mine) return mine;
-  const fn = SCENES[name] || CARD_ART[name] || SCENES.fieldSun;
+  const fn = PANEL_ART[name] || CARD_ART[name] || PANEL_ART.fieldSun;
   return svgWrap(1600, 900, fn(), label);
 }
 function cardSVG(name, label) {
   const mine = customImg("cards", name, label) || customImg("scenes", name, label);
   if (mine) return mine;
-  const fn = CARD_ART[name] || SCENES[name] || SCENES.fieldSun;
+  const fn = CARD_ART[name] || PANEL_ART[name] || PANEL_ART.fieldSun;
   return svgWrap(1600, 900, fn(), label);
 }
 
@@ -2360,7 +2492,132 @@ const World = (() => {
 })();
 
 // ============================================================================
+// VOICE — plays the recorded lines from story/lines.mjs and shows subtitles.
+// Audio comes from VO_AUDIO (packed into the standalone file) or VO_BASE (a
+// folder next to the page, as on GitHub Pages). With neither, or with the
+// voice turned off, lines still show as timed subtitles.
+// ============================================================================
+const LINES = Object.fromEntries(SCENES.flatMap((s) => s.lines.map((l) => ({ ...l, scene: s.id }))).map((l) => [l.id, l]));
+const SCENE_OF = Object.fromEntries(SCENES.map((s) => [s.id, s]));
+
+// Lines for one moment of one scene, in script order. `cue` matches the
+// start of each line's `when`.
+function cueLines(sceneId, cue) {
+  const s = SCENE_OF[sceneId];
+  return s ? s.lines.filter((l) => (l.when || "").startsWith(cue)) : [];
+}
+
+// Who speaks a silent bubble, as a person in the world.
+const BUBBLE_PERSON = { Hannah: "mama", Lucy: "lucy", Sam: "sam", "Mother Ruth": "ruth" };
+
+const Voice = {
+  on: (() => { try { return localStorage.getItem("settling-up:voice") !== "off"; } catch { return true; } })(),
+  audio: typeof Audio !== "undefined" ? new Audio() : null,
+  token: 0,
+  hideTimer: null,
+
+  src(l) {
+    if (!l.voice) return null;
+    const name = `${l.id.toLowerCase()}_${l.voice}.mp3`;
+    if (typeof VO_AUDIO !== "undefined" && VO_AUDIO[name]) return VO_AUDIO[name];
+    if (typeof VO_BASE !== "undefined" && VO_BASE) return VO_BASE + name;
+    return null;
+  },
+
+  setOn(on) {
+    this.on = on;
+    try { localStorage.setItem("settling-up:voice", on ? "on" : "off"); } catch { /* storage off */ }
+    if (!on) this.audio?.pause();
+  },
+
+  stop() {
+    this.token++;
+    if (this.audio) { this.audio.pause(); this.audio.removeAttribute("src"); }
+    this.caption(null);
+  },
+
+  // Play one line. Resolves when it ends, or right away if another line
+  // interrupts it. `caption: false` when the words are already on the page;
+  // `voiced: false` to show the words without sound.
+  play(id, o = {}) {
+    const l = LINES[id];
+    if (!l) return Promise.resolve();
+    const my = ++this.token;
+    this.audio?.pause();
+    Game.log(this.labelled(l), l.delivery === "thought" ? "thought" : "line");
+    if (o.caption !== false) this.caption(l);
+    const words = l.text.split(/\s+/).length;
+    const readTime = Math.max(1600, (words / 2.4) * 1000);
+    const src = o.voiced !== false && this.on ? this.src(l) : null;
+    return new Promise((resolve) => {
+      const done = () => {
+        if (my !== this.token) return resolve();
+        clearTimeout(this.hideTimer);
+        this.hideTimer = setTimeout(() => { if (my === this.token) this.caption(null); }, 700);
+        resolve();
+      };
+      if (!src || !this.audio) { setTimeout(done, readTime); return; }
+      const a = this.audio;
+      let finished = false;
+      const end = () => { if (!finished) { finished = true; done(); } };
+      // A line always finishes, even if the browser never reports the end
+      // (no audio device, a stalled file).
+      setTimeout(end, readTime * 2 + 3000);
+      a.onloadedmetadata = () => { if (isFinite(a.duration)) setTimeout(end, a.duration * 1000 + 1500); };
+      a.src = src;
+      a.onended = end;
+      a.onerror = () => setTimeout(end, readTime);
+      a.play().catch(() => setTimeout(end, readTime));
+    });
+  },
+
+  // Play several lines in order; stops if something else interrupts.
+  async seq(ids, o = {}) {
+    for (const id of ids) {
+      const my = this.token + 1;
+      await this.play(id, o);
+      if (this.token !== my) return;
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  },
+
+  labelled(l) {
+    if (l.voice === "holliday") return `Mr. ${Game.planter()}: "${l.text}"`;
+    if (l.delivery === "aloud") return `"${l.text}"`;
+    return l.text;
+  },
+
+  caption(l) {
+    const el = document.getElementById("captions");
+    if (!el) return;
+    if (!l) { el.hidden = true; return; }
+    const who = l.voice === "holliday" ? `Mr. ${Game.planter()}` : l.delivery === "thought" ? "Papa, thinking" : "Papa";
+    el.querySelector(".cap-who").textContent = who;
+    const what = el.querySelector(".cap-what");
+    what.textContent = l.delivery === "thought" ? l.text : `"${l.text}"`;
+    what.classList.toggle("thought", l.delivery === "thought");
+    el.hidden = false;
+  },
+};
+
+// Play the moment: bubbles pop up over the family, voiced lines play in
+// order. Doesn't block the player; returns a promise for when it's done.
+async function cue(sceneId, when, o = {}) {
+  for (const l of cueLines(sceneId, when)) {
+    if (l.delivery === "bubble") {
+      World.say(BUBBLE_PERSON[l.who] || "mama", l.text, 5);
+      Game.log(`${l.who}: "${l.text}"`, "line");
+      await new Promise((r) => setTimeout(r, 900));
+    } else if (l.voice) {
+      await Voice.play(l.id, { voiced: l.voice !== "holliday" || Game.planterIsHolliday(), ...o });
+    }
+  }
+}
+
+// ============================================================================
 // GAME — the flow: join, contract, five crop years, ending, audit.
+// What Papa and Mr. Holliday say comes from story/lines.mjs through cue()
+// and Voice (voice.js). This file decides when.
 // ============================================================================
 const $ = (sel, root = document) => root.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -2373,24 +2630,32 @@ function fmt(n) {
 const fmtLbs = (n) => Math.round(n).toLocaleString("en-US") + " lb";
 const fmtBales = (n) => (Math.round(n * 100) / 100).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
-const SAVE_KEY = "settling-up:v1";
+const SAVE_KEY = "settling-up:v2";
 const store = {
   get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage off */ } },
   del(k) { try { localStorage.removeItem(k); } catch { /* storage off */ } },
 };
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const say = (id) => LINES[id]?.text || "";
+
+// Names shown when the pointer rests on someone in the world.
+const NAMES = { mama: "Hannah", lucy: "Lucy", sam: "Sam", ruth: "Mother Ruth", holliday: "Mr. {P}", mule: "Old Jack", clerk: "The store clerk", neighbors: "The neighbors", fieldhand: "A neighbor" };
+// What each person says when Papa taps them.
+const TALK = { mama: "TALK-HANNAH", lucy: "TALK-LUCY", sam: "TALK-SAM", ruth: "TALK-RUTH", holliday: "TALK-HOLLIDAY" };
 
 const Game = {
   g: null,
   y: null,
   els: {},
   corn: new Set(),
+  arrivals: {},
 
-  // ---- text helpers -------------------------------------------------------
+  // ---- helpers ---------------------------------------------------------------
   planter() { return PLANTERS[Math.min(this.g?.planterIndex || 0, PLANTERS.length - 1)]; },
+  planterIsHolliday() { return !this.g || !this.g.planterIndex; },
   t(s) {
     return String(s || "")
-      .replaceAll("{F}", this.g?.family || "")
       .replaceAll("{P}", this.planter())
       .replaceAll("{Y}", this.y?.year || "")
       .replaceAll("Mr. Holliday", "Mr. " + this.planter());
@@ -2409,8 +2674,9 @@ const Game = {
     store.set(SAVE_KEY, this.g);
     this.renderTopbar();
   },
+  sceneOf(y) { return "Y" + y.year; },
 
-  // ---- boot ----------------------------------------------------------------
+  // ---- boot ------------------------------------------------------------------
   async boot() {
     this.els = {
       topbar: $("#topbar"), world: $("#world"), flat: $("#world-flat"), dock: $("#dock"),
@@ -2419,13 +2685,17 @@ const Game = {
     };
     World.on({
       plot: (i) => this.togglePlot(i),
-      progress: (f) => this.onProgress(f),
+      progress: (f) => this.progressFn?.(f),
       arrive: (id) => this.onArrive(id),
       interact: (name) => this.onInteract(name),
       nameOf: (id) => NAMES[id] ? this.t(NAMES[id]) : "",
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
+    const vb = $("#voice-btn");
+    const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
+    vb.addEventListener("click", () => { Voice.setOn(!Voice.on); showVoice(); });
+    showVoice();
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !this.els.journal.hidden) this.els.journal.hidden = true;
     });
@@ -2458,20 +2728,19 @@ const Game = {
     this.els.flat.innerHTML = sceneSVG(art, "");
   },
 
-  // ---- top bar ------------------------------------------------------------
+  // ---- top bar ------------------------------------------------------------------
   renderTopbar() {
     const g = this.g;
-    const yrs = CONFIG.years.map((yr, i) => {
+    $("#years").innerHTML = CONFIG.years.map((yr, i) => {
       const done = g && g.years[i];
       const cur = g && !g.ending && i === g.yearIndex;
       const bal = done ? `<span class="chip-bal ${done.ledger.balance < 0 ? "neg" : ""}">${fmt(done.ledger.balance)}</span>` : "";
       return `<li class="${cur ? "cur" : ""} ${done ? "done" : ""}" aria-current="${cur ? "step" : "false"}"><span class="chip-yr">${yr}</span>${bal}</li>`;
     }).join("");
-    $("#years").innerHTML = yrs;
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
   },
 
-  // ---- dock, sheet, objective -----------------------------------------------
+  // ---- dock, sheet, objectives ----------------------------------------------------
   dock(html) {
     this.els.dock.innerHTML = html;
     this.els.dock.hidden = !html;
@@ -2485,43 +2754,49 @@ const Game = {
     World.setMode("locked");
     World.clearObjective();
     World.hush();
+    Voice.caption(null);
     const first = this.els.sheetBody.querySelector("[autofocus], input, button.primary");
     setTimeout(() => first?.focus({ preventScroll: true }), 30);
   },
-  closeSheet() { this.els.sheet.hidden = true; },
+  closeSheet() {
+    this.els.sheet.hidden = true;
+    // A focused button left under the sheet would take the next Enter press.
+    if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur();
+  },
 
   // Send Papa somewhere. Resolves when he walks there himself.
   goTo(id, spot, text, r) {
     return new Promise((resolve) => {
       this.arrivals[id] = resolve;
       $("#compass .c-text").textContent = text;
-      this.log(text, "goal");
       World.setMode("walk");
       World.objective(id, spot, r);
     });
   },
-  arrivals: {},
   onArrive(id) {
     const fn = this.arrivals[id];
     delete this.arrivals[id];
     fn?.();
   },
 
-  // ---- cutscenes -----------------------------------------------------------
+  // ---- cutscenes: panels are {art, id} for a script line, or {art, text} -----------
   cutscene(panels) {
     return new Promise((resolve) => {
       let i = 0;
       const el = this.els.cut;
       World.setMode("locked");
+      World.hush();
       const show = () => {
         const p = panels[i];
-        const cap = this.t(p.caption), sub = this.t(p.sub || "");
-        this.log(cap + (sub ? " " + sub : ""), "cutscene");
+        const l = p.id ? LINES[p.id] : null;
+        const text = l ? l.text : p.text;
+        const art = p.art || l?.art || "fieldSun";
+        if (l && l.voice) Voice.play(l.id, { caption: false });
+        else { Voice.stop(); this.log(text, "cutscene"); }
         el.innerHTML = `
-          <div class="cut-frame"><div class="cut-art">${sceneSVG(p.art, cap)}</div></div>
+          <div class="cut-frame"><div class="cut-art">${sceneSVG(art, text)}</div></div>
           <div class="cut-text">
-            <p class="cut-cap">${esc(cap)}</p>
-            ${sub ? `<p class="cut-sub">${esc(sub)}</p>` : ""}
+            <p class="cut-cap ${l && l.voice ? "spoken" : "silent"}">${esc(text)}</p>
             <div class="cut-nav">
               <span class="cut-count">${i + 1} / ${panels.length}</span>
               <button class="ghost" data-skip>Skip</button>
@@ -2533,6 +2808,7 @@ const Game = {
       };
       const next = () => { i++; if (i >= panels.length) finish(); else show(); };
       const finish = () => {
+        Voice.stop();
         el.hidden = true;
         el.removeEventListener("click", onClick);
         document.removeEventListener("keydown", onKey);
@@ -2549,8 +2825,9 @@ const Game = {
       show();
     });
   },
+  scenePanels(sceneId) { return SCENE_OF[sceneId].lines.map((l) => ({ id: l.id, art: l.art })); },
 
-  // ---- join -----------------------------------------------------------------
+  // ---- join -----------------------------------------------------------------------
   showJoin() {
     const saved = store.get(SAVE_KEY);
     const resume = saved && saved.v === 1 && saved.step !== "done" ? saved : null;
@@ -2571,8 +2848,9 @@ const Game = {
           <p><strong>Walk:</strong> W A S D or the arrow keys${World.ok ? ". Hold Shift to hurry." : "."}</p>
           <p><strong>Look:</strong> drag on the screen.</p>
           <p><strong>Talk:</strong> tap a person.</p>
+          <p><strong>Listen:</strong> you hear Papa's thoughts and Mr. Holliday. Subtitles are always on.</p>
         </div>
-        <p class="fine">About 25 minutes. Follow the red flag to see where Papa goes next.</p>
+        <p class="fine">About 25 minutes. Follow the red flag to see where Papa goes next. The voices are AI-generated.</p>
       </div>`);
     if (resume) $("#resume-btn").addEventListener("click", () => this.resume(resume));
     $("#join-form").addEventListener("submit", (e) => {
@@ -2584,6 +2862,7 @@ const Game = {
   },
 
   start(family) {
+    if (this.running) return;
     this.g = newGame(family, "");
     this.g.step = "prologue";
     this.g.journal = [];
@@ -2593,8 +2872,8 @@ const Game = {
     this.closeSheet();
     this.run();
   },
-
   resume(saved) {
+    if (this.running) return;
     this.g = saved;
     this.y = saved.cur || null;
     this.corn = new Set(saved.cornPlots || []);
@@ -2602,18 +2881,15 @@ const Game = {
     this.run();
   },
 
-  // ---- the main sequence ----------------------------------------------------
+  // ---- the main sequence ------------------------------------------------------------
+  // Only one story runs at a time.
   async run() {
+    if (this.running) return;
+    this.running = true;
     const g = this.g;
     this.renderTopbar();
-    if (g.step === "prologue") {
-      await this.cutscene(PROLOGUE);
-      g.step = "contract"; this.save();
-    }
-    if (g.step === "contract") {
-      await this.contract();
-      g.step = "store"; this.save();
-    }
+    if (g.step === "prologue") { await this.cutscene(this.scenePanels("PRO")); g.step = "contract"; this.save(); }
+    if (g.step === "contract") { await this.contract(); g.step = "store"; this.save(); }
     while (!g.ending) {
       if (!this.y || this.y.year !== currentYear(g)) {
         this.y = blankYear(g);
@@ -2622,21 +2898,14 @@ const Game = {
       }
       await this.playYear();
     }
-    if (g.step !== "audit" && g.step !== "done") {
-      await this.endingScene();
-      g.step = "audit"; this.save();
-    }
-    if (g.step === "audit") {
-      await this.audit();
-      g.step = "done"; this.save();
-    }
+    if (g.step !== "audit" && g.step !== "done") { await this.endingScene(); g.step = "audit"; this.save(); }
+    if (g.step === "audit") { await this.audit(); g.step = "done"; this.save(); }
     this.done();
   },
 
   async playYear() {
     const g = this.g;
-    const steps = ["store", "plant", "event", "harvest", "settle"];
-    if (!steps.includes(g.step)) g.step = "store";
+    if (!["store", "plant", "event", "harvest", "settle"].includes(g.step)) g.step = "store";
     if (g.step === "store") { this.newSpring(); await this.storeStep(); g.step = "plant"; this.save(); }
     if (g.step === "plant") { await this.plant(); g.step = "event"; this.save(); }
     if (g.step === "event") { await this.eventStep(); g.step = "harvest"; this.save(); }
@@ -2647,7 +2916,7 @@ const Game = {
       if (!g.ending) {
         g.step = "store";
         this.save();
-        if (g.yearIndex !== before && INTERLUDES[currentYear(g)]) await this.cutscene(INTERLUDES[currentYear(g)]);
+        if (g.yearIndex !== before && currentYear(g) === 1870) await this.cutscene(this.scenePanels("I1870"));
       }
     }
   },
@@ -2662,30 +2931,31 @@ const Game = {
     World.setPlanter(this.planter());
   },
 
-  // ---- contract -------------------------------------------------------------
+  // ---- the contract ------------------------------------------------------------------
   async contract() {
     World.place("home");
     World.setSky("spring");
     World.setPeople("home");
     this.showFlat("bigHouse");
-    this.dock(`<p class="eyebrow">January 1869</p><p class="voice">${esc(this.t("Mr. Holliday sent word: come up to the big house and sign for the year."))}</p>`);
-    World.say("mama", "Go on up, Robert. We'll be right here.");
+    this.dock(`<p class="eyebrow">January 1869</p><p class="voice">Walk up the hill to the big house and sign for the year.</p>`);
+    cue("CON", "At the cabin");
+    setTimeout(() => cue("CON", "Walking up the hill"), 1400);
     await this.goTo("contract", "porch", "Walk up the hill to the big house", 3.4);
     this.dock("");
     this.showFlat("contractDesk");
-    this.log(CONTRACT.narration);
     await new Promise((resolve) => {
       this.sheet(`
         <p class="eyebrow">January 1869 · The big house</p>
         <h2>The contract</h2>
-        <p class="voice">${esc(this.t(CONTRACT.narration))}</p>
+        <blockquote class="said">${esc(say("CON-02"))}</blockquote>
         <div class="contract">
           <p class="doc-label">Labor contract with freedmen</p>
-          ${CONTRACT.lines.map((l) => `<p>${esc(l)}</p>`).join("")}
+          ${CONTRACT.lines.map((l, i) => `<p data-clause="${i}">${esc(l)}</p>`).join("")}
           <p class="doc-credit">${esc(CONTRACT.credit)}</p>
         </div>
-        <h3>The terms Mr. Holliday read out loud</h3>
+        <h3>The terms Mr. Holliday reads out loud</h3>
         <dl class="terms">${CONTRACT.terms.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
+        <p class="voice thought">${esc(say("CON-07"))}</p>
         <p class="game-note">Game values. The contract excerpt is real and adapted. The dollar amounts are simplified.</p>
         <div class="mark-row">
           <button class="mark" id="mark-btn" aria-label="Make your mark">
@@ -2694,26 +2964,41 @@ const Game = {
           </button>
           <p class="hint-small">Tap the line to make your mark.</p>
         </div>`);
-      $("#mark-btn").addEventListener("click", (e) => {
+      // Mr. Holliday reads; the clause he is reading lights up.
+      (async () => {
+        for (const id of ["CON-02", "CON-03", "CON-04", "CON-05", "CON-06", "CON-07"]) {
+          const clause = CONTRACT.reading[id];
+          this.els.sheetBody.querySelectorAll("[data-clause]").forEach((p) => p.classList.toggle("reading", +p.dataset.clause === clause));
+          const my = Voice.token + 1;
+          await Voice.play(id, { caption: false });
+          if (Voice.token !== my) return;
+          await wait(250);
+        }
+        this.els.sheetBody.querySelectorAll("[data-clause]").forEach((p) => p.classList.remove("reading"));
+      })();
+      $("#mark-btn").addEventListener("click", async (e) => {
         const b = e.currentTarget;
         if (b.classList.contains("made")) return;
         b.classList.add("made");
         this.g.signed = true;
-        setTimeout(() => { this.closeSheet(); resolve(); }, 900);
-      }, { once: true });
+        await Voice.play("CON-08", { caption: false });
+        this.closeSheet();
+        resolve();
+        Voice.play("CON-09");
+      });
     });
   },
 
-  // ---- spring: the store, then the field -----------------------------------
+  // ---- spring: the store, then the field ----------------------------------------------
   async storeStep() {
     const y = this.y;
     this.showFlat("bigHouse");
-    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">${esc(this.t(YEAR_LINES[y.year].plant))}</p>`);
+    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">Seed, tools, and food for the year, all on account.</p>`);
+    cue(this.sceneOf(y), "Walk to the store");
     await this.goTo("store", "store", `Walk to Mr. ${this.planter()}'s store for seed and supplies`, 2.4);
-    const line = this.t(YEAR_LINES[y.year].store);
-    this.log(line);
+    const page = cueLines(this.sceneOf(y), "Store page")[0];
     const cornNote = `Every acre of corn you plant takes about ${fmt(CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup))} off this bill at settling up.`;
-    return new Promise((resolve) => {
+    await new Promise((resolve) => {
       const opts = ["lean", "basic", "extra"].map((k) => {
         const b = CONFIG.baskets[k];
         return `<button class="basket" data-basket="${k}">
@@ -2727,40 +3012,42 @@ const Game = {
       this.sheet(`
         <p class="eyebrow">Spring ${y.year} · ${esc(this.planter())} plantation store</p>
         <h2>Furnish for the year</h2>
-        <p class="voice">${esc(line)}</p>
+        ${page ? `<p class="voice thought">${esc(page.text)}</p>` : ""}
         <div class="baskets">${opts}</div>
         <p class="fine">${esc(cornNote)} Everything goes on account until settling up.</p>
         <p class="fine warn">A lean basket saves money, but a family without shoes and cloth gets sick more easily in a bad year.</p>`, { wide: true });
+      if (page) Voice.play(page.id, { caption: false });
       this.els.sheetBody.querySelectorAll("[data-basket]").forEach((b) => b.addEventListener("click", () => {
         y.basket = b.dataset.basket;
-        const say = { lean: "No shoes this year, then. We'll make do.", basic: "That will see us through, if nothing goes wrong.", extra: "Medicine on the shelf. I'll sleep better." }[y.basket];
-        this.log(`Mama: "${say}"`);
         this.closeSheet();
+        Voice.play({ lean: "STORE-LEAN", basic: "STORE-BASIC", extra: "STORE-EXTRA" }[y.basket]);
         resolve();
       }));
     });
   },
 
   async plant() {
-    const y = this.y;
+    const y = this.y, sc = this.sceneOf(y);
     World.setPeople("home");
     this.showFlat("plow");
-    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The seed was on the wagon. Now the field.</p>`);
+    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The seed is on the wagon. Now the field.</p>`);
+    cue(sc, "Walk to the field");
     await this.goTo("field", "field", "Walk to the field", 3.2);
-    // Decide the split first: a choice, made standing at the field's edge.
+    // The split is a choice, made standing at the field's edge.
     await new Promise((resolve) => {
       this.planDone = () => { this.planDone = null; resolve(); };
       World.setMode("plan");
-      World.say("mama", "Cotton pays. Corn feeds us. The contract allows five acres of corn.");
+      cue(sc, "Planning the field");
       this.renderPlan();
     });
     y.corn = this.corn.size;
     y.cornPlots = [...this.corn];
-    // Then walk the rows. The family follows with the seed.
+    // Then Papa walks the rows. The family follows with the seed.
     World.setStage("sown");
     World.setPeople("field");
-    await this.walkRows("sow", `Spring ${y.year} · Planting`, "Walk the rows to plant. Mama and the children follow behind with the seed.", "Walk every row of the field");
-    World.say("mama", "That's the field in. Now we wait on the weather.");
+    cue(sc, "Planting");
+    await this.walkRows("sow", `Spring ${y.year} · Planting`, "Walk the rows to plant. Hannah and the children follow behind with the seed.", "Walk every row of the field", "FIELD-SOWN");
+    cue(sc, "Planting done");
   },
   renderPlan() {
     const y = this.y;
@@ -2788,7 +3075,7 @@ const Game = {
     if (!this.planDone) return;
     if (this.corn.has(i)) this.corn.delete(i);
     else if (this.corn.size < CONFIG.maxCornAcres) this.corn.add(i);
-    else { World.say("mama", "The contract only allows five acres of corn."); this.flashLimit(); return; }
+    else { Voice.play("FIELD-LIMIT"); this.flashLimit(); return; }
     World.setCorn(this.corn);
     this.renderPlan();
     this.els.dock.querySelector(`[data-acre="${i}"]`)?.focus({ preventScroll: true });
@@ -2799,21 +3086,22 @@ const Game = {
     el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
   },
 
-  // Papa walks the rows himself. When most of the field is done, the
+  // Papa walks the rows himself. Once he has walked most of the field, the
   // family finishes the rest.
-  walkRows(kind, eyebrow, how, goal) {
+  walkRows(kind, eyebrow, how, goal, earlyLine) {
     return new Promise((resolve) => {
-      const finish = () => {
+      const finish = (early) => {
         this.progressFn = null;
         this.els.compass.hidden = true;
         this.els.compass.classList.remove("no-arrow");
         World.finishRows();
         World.setMode("locked");
+        if (early) Voice.play(earlyLine);
         resolve();
       };
       if (!World.ok) {
         this.dock(`<p class="eyebrow">${esc(eyebrow)}</p><p class="how">${esc(how)}</p><button class="primary" id="rows-done">Walk the rows</button>`);
-        $("#rows-done").addEventListener("click", finish, { once: true });
+        $("#rows-done").addEventListener("click", () => finish(false), { once: true });
         return;
       }
       $("#compass .c-text").textContent = goal;
@@ -2825,97 +3113,117 @@ const Game = {
         <div class="progress" aria-hidden="true"><span id="rows-bar"></span></div>
         <p class="pickcount" id="rows-pct" aria-live="polite">Rows walked: 0%</p>
         <button class="secondary" id="rows-done" disabled>Leave the rest to the family</button>`);
-      $("#rows-done").addEventListener("click", finish);
+      $("#rows-done").addEventListener("click", () => finish(true));
       this.progressFn = (f) => {
         const pct = Math.round(f * 100);
         $("#rows-bar").style.width = pct + "%";
         $("#rows-pct").textContent = `Rows walked: ${pct}%`;
         if (f >= 0.6) $("#rows-done").disabled = false;
-        if (f >= 0.92) finish();
+        if (f >= 0.92) finish(false);
       };
       World.setMode(kind);
     });
   },
-  onProgress(f) { this.progressFn?.(f); },
 
-  // ---- summer: news at the cabin ------------------------------------------------
+  // ---- summer: news at the cabin ---------------------------------------------------------
   async eventStep() {
-    const y = this.y, g = this.g;
+    const y = this.y;
     World.setStage("sown");
-    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The planting was done. Papa walked home for supper.</p>`);
+    this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The planting is done. Home for supper.</p>`);
+    cue(this.sceneOf(y), "Walk home to the cabin");
     await this.goTo("cabin", "cabin", "Walk home to the cabin", 3.2);
     World.setSky("summer");
     World.setStage("grow");
     World.setPeople("home");
-    const card = CARDS[y.event] || CARDS.none;
-    this.showFlat(card.art);
-    const title = this.t(card.title);
-    await new Promise((resolve) => {
-      const choice = !!card.question;
-      let effect = card.effect;
-      if (y.event === "muledies" && g.ownMule) effect = card.effectOwn;
-      if (y.event === "sickness" && y.basket === "extra") effect = card.effectExtra;
-      if (y.event === "eggs" && y.corn < CONFIG.eggsMinCorn) effect = card.effectNone;
-      const muleBlocked = y.event === "mulebuy" && !canBuyMule(g);
-      this.log(`${title}. ${this.t(card.body)}`, "card");
-      this.sheet(`
-        <div class="card">
-          <div class="card-art">${cardSVG(card.art, title)}</div>
-          <div class="card-text">
-            <p class="eyebrow">Summer ${y.year}</p>
-            <h2>${esc(title)}</h2>
-            <p>${esc(this.t(card.body))}</p>
-            ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(effect))}</p>`}
-            ${muleBlocked ? `<p class="effect">${esc(card.cantAfford)}</p>` : ""}
-            <div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>
-            <div class="card-actions" id="card-actions">
-              ${choice && !muleBlocked
-                ? `<button class="primary" data-choice="yes">${esc(this.t(card.yes))}</button><button class="secondary" data-choice="no">${esc(this.t(card.no))}</button>`
-                : `<button class="primary" data-choice="ok">Continue</button>`}
-            </div>
-          </div>
-        </div>`, { wide: true });
-      const finish = () => { this.closeSheet(); resolve(); };
-      this.els.sheetBody.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => {
-        const c = b.dataset.choice;
-        if (c === "ok") { y.choice = muleBlocked ? "no" : null; finish(); return; }
-        y.choice = c;
-        if (y.event === "mulebuy" && c === "yes") { y.muleBought = CONFIG.muleCost; g.ownMule = true; }
-        if (y.event === "school" && c === "yes") g.education += 1;
-        const res = this.t(c === "yes" ? card.effectYes : card.effectNo);
-        this.log(res, "card");
-        $("#card-actions").innerHTML = `<p class="effect">${esc(res)}</p><button class="primary" data-done>Continue</button>`;
-        $("#card-actions [data-done]").addEventListener("click", finish);
-        $("#card-actions [data-done]").focus();
-      }));
-    });
-    applyEvent(g, y);
+    if (y.event === "panic") { this.save(); return; } // 1873: the Panic comes in the fall
+    await this.eventCard();
     World.setWeather({ rains: "rain", drought: "drought", flood: "flood" }[y.event] || "none");
     if (y.event === "muledies") World.setFlags({ mule: "none" });
     if (y.event === "school") World.setFlags({ school: true });
     this.save();
   },
 
-  // ---- fall: the harvest, the wagon, the scale ------------------------------------
-  async harvestStep() {
+  // Show the year's card. Papa voices it; the effect and the note are text.
+  async eventCard() {
     const y = this.y, g = this.g;
-    harvest(g, y);
-    const line = this.t(YEAR_LINES[y.year].harvest);
-    this.dock(`<p class="eyebrow">Summer ${y.year}</p><p class="voice">The cotton grew through the heat. By September the bolls were open.</p>`);
+    const card = CARDS[y.event] || CARDS.none;
+    this.showFlat(card.art);
+    const title = this.t(card.title);
+    let line = card.line;
+    if (y.event === "muledies" && g.ownMule) line = card.lineOwn;
+    if (y.event === "sickness" && y.basket === "extra") line = card.lineExtra;
+    if (y.event === "school" && y.year === 1869) line = card.line1869;
+    let effect = card.effect;
+    if (y.event === "muledies" && g.ownMule) effect = card.effectOwn;
+    if (y.event === "sickness" && y.basket === "extra") effect = card.effectExtra;
+    let after = null;
+    if (y.event === "eggs") { after = y.corn >= CONFIG.eggsMinCorn ? card.lineYes : card.lineNone; if (y.corn < CONFIG.eggsMinCorn) effect = card.effectNone; }
+    const muleBlocked = y.event === "mulebuy" && !canBuyMule(g);
+    if (muleBlocked) after = card.lineCant;
+    const choice = !!card.question && !muleBlocked;
+    this.log(title, "card");
+    await new Promise((resolve) => {
+      this.sheet(`
+        <div class="card">
+          <div class="card-art">${cardSVG(card.art, title)}</div>
+          <div class="card-text">
+            <p class="eyebrow">${y.event === "panic" ? "Fall" : "Summer"} ${y.year}</p>
+            <h2>${esc(title)}</h2>
+            ${line ? `<p class="voice thought">${esc(say(line))}</p>` : ""}
+            ${after ? `<p class="voice thought">${esc(say(after))}</p>` : ""}
+            ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(muleBlocked ? card.cantAfford : effect))}</p>`}
+            ${card.dyk ? `<div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>` : ""}
+            <div class="card-actions" id="card-actions">
+              ${choice
+                ? `<button class="primary" data-choice="yes">${esc(this.t(card.yes))}</button><button class="secondary" data-choice="no">${esc(this.t(card.no))}</button>`
+                : `<button class="primary" data-choice="ok">Continue</button>`}
+            </div>
+          </div>
+        </div>`, { wide: true });
+      Voice.seq([line, after].filter(Boolean), { caption: false });
+      const finish = () => { Voice.stop(); this.closeSheet(); resolve(); };
+      this.els.sheetBody.querySelectorAll("[data-choice]").forEach((b) => b.addEventListener("click", () => {
+        const c = b.dataset.choice;
+        if (c === "ok") { y.choice = muleBlocked ? "no" : null; finish(); return; }
+        y.choice = c;
+        if (y.event === "mulebuy" && c === "yes") { y.muleBought = CONFIG.muleCost; g.ownMule = true; }
+        if (y.event === "school" && c === "yes") g.education += 1;
+        const outLine = c === "yes" ? card.lineYes : card.lineNo;
+        const res = this.t(c === "yes" ? card.effectYes : card.effectNo);
+        $("#card-actions").innerHTML = `${outLine ? `<p class="voice thought">${esc(say(outLine))}</p>` : ""}<p class="effect">${esc(res)}</p><button class="primary" data-done>Continue</button>`;
+        if (outLine) Voice.play(outLine, { caption: false });
+        $("#card-actions [data-done]").addEventListener("click", finish);
+        $("#card-actions [data-done]").focus();
+      }));
+    });
+    applyEvent(g, y);
+  },
+
+  // ---- fall: the harvest, the wagon, the scale ------------------------------------------------
+  async harvestStep() {
+    const y = this.y, g = this.g, sc = this.sceneOf(y);
+    this.dock(`<p class="eyebrow">Summer ${y.year}</p><p class="voice">The cotton grows through the heat. By September the bolls are open.</p>`);
+    cue(sc, "Walk to the field in the fall");
     await this.goTo("field-fall", "field", "Walk to the field to bring in the crop", 3.2);
+    if (y.event === "panic") {
+      // 1873: the best crop they ever grew, then the news from New York.
+      await Voice.play("Y1873-07");
+      await this.cutscene(this.scenePanels("I1873"));
+      await this.eventCard();
+    }
+    harvest(g, y);
     World.setWeather(y.event === "drought" ? "drought" : y.event === "flood" ? "flood" : "none");
     World.setSky(y.event === "drought" ? "drought" : "fall");
     World.setStage("ripe");
     World.setPeople("field");
     this.showFlat("longRows");
-    this.log(line);
-    World.say("mama", "Sun's up. Let's get these rows in before the frost.");
-    await this.walkRows("harvest", `Fall ${y.year} · Harvest`, line, "Walk the rows with the family");
+    cue(sc, "Harvest");
+    await this.walkRows("harvest", `Fall ${y.year} · Harvest`, "Walk the rows with the family. They pick; you lead.", "Walk the rows with the family", "FIELD-PICKED");
     World.readyWagon(y.totalBales);
-    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">It took until frost. The bales were tied and loaded on the wagon.</p>`);
+    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">It takes until frost. The bales are tied and loaded on the wagon.</p>`);
+    cue(sc, "Walk to the wagon");
     await this.goTo("wagon", "wagon", "Walk to the loaded wagon at the end of the field", 2.6);
     World.hitchWagon();
-    World.say("mama", "Watch the scale, Robert.");
     await this.goTo("gin", "ginFront", `Lead the wagon to Mr. ${this.planter()}'s gin scale`, 2.2);
     World.setMode("locked");
     const maxLbs = (CONFIG.acres / CONFIG.acresPerBale) * 1.2 * CONFIG.poundsPerBale;
@@ -2929,59 +3237,65 @@ const Game = {
         <span class="scale-v">${fmtLbs(y.scaleLbs)}</span>
         <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${y.shareRate > 0.5 ? "two-thirds" : "half"}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
       </div>
-      <p class="voice">${y.year === 1871 ? "Mama looked at the wagon, then at the needle. \"That felt heavier than that,\" she said, very quietly." : "The clerk wrote the weight in Mr. " + esc(this.planter()) + "'s book."}</p>
       <button class="primary" id="to-settle">Continue</button>`);
+    cue(sc, "At the scale");
     await new Promise((r) => $("#to-settle").addEventListener("click", r, { once: true }));
   },
 
   onInteract(name) {
-    const y = this.y;
-    const talk = FAMILY_TALK[name];
-    if (talk && y) {
-      const line = talk[y.year] || talk.any;
-      if (line) {
-        World.say(name, this.t(line));
-        const who = { mama: "Mama", lucy: "Lucy", sam: "Sam", ruth: "Grandma Ruth", holliday: "Mr. " + this.planter() }[name];
-        this.log(who ? `${who}: "${this.t(line)}"` : this.t(line));
-      }
-    }
+    const id = TALK[name];
+    if (!id) return;
+    const l = LINES[id];
+    if (l.voice) Voice.play(id, { voiced: this.planterIsHolliday() });
+    else { World.say(name, l.text); this.log(`${l.who}: "${l.text}"`, "line"); }
   },
 
-  // ---- settling up --------------------------------------------------------------
+  // ---- settling up ---------------------------------------------------------------------
   async settleStep() {
-    const y = this.y, g = this.g;
+    const y = this.y, g = this.g, sc = this.sceneOf(y);
     World.setSky("dusk");
     World.setStage("picked");
     World.setPeople("porch");
     this.showFlat("porchLantern");
-    this.dock(`<p class="eyebrow">Christmas ${y.year} · Settling up</p><p class="voice">${esc(this.t(YEAR_LINES[y.year].settle))}</p>`);
-    this.log(this.t(YEAR_LINES[y.year].settle));
+    this.dock(`<p class="eyebrow">Christmas ${y.year} · Settling up</p><p class="voice">Every Christmas, the planter reads each family one number.</p>`);
+    cue(sc, "Walk to the big house");
     await this.goTo("porch", "porch", "Walk up to the big house to settle up", 3.4);
-    this.log(`Mr. ${this.planter()}: "Come on up. I've got your number right here."`);
+    await cue(sc, "Arriving at the porch");
     buildLedger(g, y);
     if (!y.evicted && voteEviction(g, y)) { y.evicted = true; y.evictedBy = "vote"; buildLedger(g, y); }
     this.dock("");
     await new Promise((resolve) => {
       this.settleResolve = resolve;
-      this.renderSettle(null);
+      this.renderSettle(null, true);
     });
   },
-  renderSettle(revealed) {
+
+  // What Mr. Holliday says, and what Papa thinks, for this year's number.
+  settleLines() {
+    const y = this.y, g = this.g;
+    const bal = y.ledger.balance;
+    const prev = g.years[g.yearIndex - 1];
+    let said, react;
+    if (y.evicted) { said = y.evictedBy === "vote" ? "SET-EVICT-VOTE" : "BOOKS-EVICT"; react = "SET-REACT-EVICT"; }
+    else if (bal > 0.005) { said = "SET-AHEAD"; react = "SET-REACT-AHEAD"; }
+    else if (bal > -0.005) { said = "SET-EVEN"; react = "SET-REACT-EVEN"; }
+    else { said = prev && prev.ledger.balance < 0 ? "SET-OWE-AGAIN" : "SET-OWE"; react = bal > -50 ? "SET-REACT-SHORT" : "SET-REACT-DEEP"; }
+    return { said, react };
+  },
+
+  renderSettle(revealed, speak) {
     const y = this.y, g = this.g;
     const bal = y.ledger.balance;
     const price = CONFIG.pricePerBale[y.year];
-    let said;
-    if (y.evicted) said = y.evictedBy === "vote" ? SETTLE_TEXT.evictedVote : SETTLE_TEXT.evictedDemand;
-    else if (bal < -0.005) said = SETTLE_TEXT.owe.replace("${N}", fmt(-bal));
-    else if (bal > 0.005) said = SETTLE_TEXT.ahead.replace("${N}", fmt(bal));
-    else said = SETTLE_TEXT.even;
-    this.log(`Mr. ${this.planter()}: ${said}`, "settle");
+    const { said, react } = this.settleLines();
     const rent = !y.evicted && canRent(g, bal);
     const isLast = g.yearIndex >= CONFIG.years.length - 1;
-    const revealHtml = revealed ? (() => {
-      const r = REVEALS[revealed];
-      return `<div class="reveal"><p class="eyebrow">${esc(r.title)}</p><p>${esc(this.t(r.text))}</p><p class="figure-line">${esc(r.detail(y))}</p></div>`;
-    })() : "";
+    const REVEAL = {
+      markup: { h: "BOOKS-MARKUP", t: "BOOKS-MARKUP-T", detail: `This year: ${fmt(y.ledger.store + y.ledger.doctor)} on account. Cash price: ${fmt(y.honest.store + y.honest.doctor)}.` },
+      weight: { h: "BOOKS-WEIGHT", t: "BOOKS-WEIGHT-T", detail: `Your wagon: ${fmtLbs(y.trueLbs)}. His scale: ${fmtLbs(y.scaleLbs)}.` },
+      interest: { h: "BOOKS-INTEREST", t: "BOOKS-INTEREST-T", detail: y.startBalance < 0 ? `This year: ${fmt(y.ledger.interest)} in interest. At 10% it would be ${fmt(-y.startBalance * CONFIG.interestTold)}.` : "You weren't carrying debt this year, but it will apply the next time you are." },
+    };
+    const r = revealed ? REVEAL[revealed] : null;
     const nextPlanter = PLANTERS[Math.min(g.planterIndex + 1, PLANTERS.length - 1)];
     let actions;
     if (y.evicted) {
@@ -2998,55 +3312,75 @@ const Game = {
       <div class="settle">
         <p class="eyebrow">Christmas ${y.year} · ${esc(this.planter())}'s porch</p>
         <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
-        <blockquote class="said">${esc(said)}</blockquote>
+        <blockquote class="said">${esc(say(r ? r.h : said))}</blockquote>
         <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
-        ${revealHtml}
-        ${rent ? `<p class="voice">${esc(SETTLE_TEXT.rentReady)}</p>` : ""}
+        ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
+        <p class="voice thought">${esc(say(r ? r.t : react))}</p>
+        ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
         <div class="settle-actions">${actions}</div>
-        ${!y.evicted && bal < 0 ? `<p class="fine">${esc(SETTLE_TEXT.leaveOwing)}</p>` : ""}
         ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
       </div>`, { low: true });
+    const voiced = this.planterIsHolliday();
+    if (speak) {
+      (async () => {
+        const my = Voice.token + 1;
+        await Voice.play(r ? r.h : said, { caption: false, voiced });
+        if (Voice.token !== my) return;
+        await wait(300);
+        Voice.play(r ? r.t : react, { caption: false });
+      })();
+    }
     this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
   },
-  settleAct(act) {
+
+  async settleAct(act) {
     const y = this.y, g = this.g;
+    const voiced = this.planterIsHolliday();
     if (act === "demand") {
-      this.log(SETTLE_TEXT.demandIntro, "settle");
-      const r = demandBooks(g, y);
+      this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => { b.disabled = true; });
+      await Voice.play("BOOKS-01", { caption: false });
+      await Voice.play("BOOKS-02", { caption: false });
+      const res = demandBooks(g, y);
       this.save();
-      if (r.evicted) World.say("holliday", "Get off my porch.");
-      this.renderSettle(r.evicted ? null : r.item);
+      this.renderSettle(res.evicted ? null : res.item, true);
       return;
     }
     if (act === "leave" && y.ledger.balance < 0 && !this.confirmLeave) {
       this.confirmLeave = true;
       const box = this.els.sheetBody.querySelector(".settle-actions");
-      box.innerHTML = `<p class="voice">Mama held Papa's arm. "We owe him ${fmt(-y.ledger.balance)}. If we go owing, the sheriff will come after you."</p>
+      box.innerHTML = `<p class="voice thought">${esc(say("LEAVE-OWING"))}</p>
         <button class="primary" data-act="stay">Stay</button><button class="secondary danger" data-act="leave">Leave anyway</button>`;
+      Voice.play("LEAVE-OWING", { caption: false });
       box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
       return;
     }
     this.confirmLeave = false;
     const decision = act === "move" ? "stay" : act;
+    const owed = y.ledger.balance < 0;
     closeYear(g, y, decision);
-    this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}. ${{ stay: y.evicted ? "We moved to a new place." : "We stayed.", leave: "We left.", rent: "We rented a farm." }[decision]}`, "settle");
+    this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}.`, "settle");
     this.closeSheet();
     this.save();
+    if (decision === "stay" && !y.evicted) await Voice.play("SET-YES");
+    else if (decision === "rent") await Voice.play("RENT-01", { voiced });
+    else if (decision === "leave" && !owed) await Voice.play("LEAVE-FREE", { voiced });
+    if (!g.ending) cue(this.sceneOf(y), "Leaving the porch");
     const done = this.settleResolve;
     this.settleResolve = null;
     done?.();
   },
 
-  // ---- ending and epilogue ---------------------------------------------------
+  // ---- ending ------------------------------------------------------------------------------
   async endingScene() {
     const g = this.g;
-    const e = ENDINGS[g.ending];
     World.setSky("dusk");
-    const panels = [...e.panels, g.education ? EPILOGUE.school : EPILOGUE.noschool];
+    const ep = g.education ? EPILOGUE.school : EPILOGUE.noschool;
+    const panels = ENDINGS[g.ending].lines.map((id) => ({ id, art: LINES[id].art || "emptyRoad" }));
+    panels.push({ id: ep.id, art: ep.art });
     await this.cutscene(panels);
   },
 
-  // ---- the audit -------------------------------------------------------------
+  // ---- the audit -----------------------------------------------------------------------------
   audit() {
     return new Promise((resolve) => {
       const g = this.g;
@@ -3084,9 +3418,11 @@ const Game = {
         <div class="audit">
           <p class="eyebrow">The audit · ${esc(ENDINGS[g.ending].title)}</p>
           <h2>Open the books</h2>
-          <p class="voice">${esc(this.t(AUDIT_INTRO))}</p>
+          <p class="voice thought">${esc(say("AUD-01"))}</p>
+          <p>You are the auditors now. Here is the planter's book next to what the family really bought, at cash prices, with honest weights.</p>
           ${table}
           <p class="fine">Red figures in the honest column are where his book and the truth part ways. Game values, rebuilt from your own play. This is a reconstruction, not a primary source.</p>
+          <blockquote class="source">${esc(say("AUD-QUOTE"))}</blockquote>
           <div class="findings">
             <div class="finding"><span class="f-k">You were told</span><span class="f-v">10% interest</span></div>
             <div class="finding"><span class="f-k">He charged</span><span class="f-v neg">25% interest</span><span class="f-s">${fmt(a.extraInterest)} extra</span></div>
@@ -3110,6 +3446,7 @@ const Game = {
           </form>
           <div id="audit-next" hidden><button class="primary big" id="audit-done">Finish</button></div>
         </div>`, { wide: true });
+      Voice.play("AUD-01", { caption: false });
       let tries = 0;
       $("#audit-form").addEventListener("submit", (e) => {
         e.preventDefault();
@@ -3135,14 +3472,14 @@ const Game = {
         if (right === 3 || tries >= 2) $("#audit-next").hidden = false;
         this.save();
       });
-      $("#audit-done").addEventListener("click", () => { this.closeSheet(); resolve(); });
+      $("#audit-done").addEventListener("click", () => { Voice.stop(); this.closeSheet(); resolve(); });
     });
   },
 
   done() {
     const g = this.g;
     const a = auditTotals(g);
-    World.setMode("free");
+    World.setMode("walk");
     World.setSky("dusk");
     this.dock("");
     this.sheet(`
@@ -3162,7 +3499,7 @@ const Game = {
         </div>
       </div>`);
     $("#final-journal").addEventListener("click", () => this.openJournal());
-    $("#final-new").addEventListener("click", () => { store.del(SAVE_KEY); location.hash = ""; this.g = null; this.y = null; this.renderTopbar(); this.showJoin(); });
+    $("#final-new").addEventListener("click", () => { store.del(SAVE_KEY); this.g = null; this.y = null; this.renderTopbar(); this.showJoin(); });
   },
 
   openJournal() {
@@ -3171,25 +3508,12 @@ const Game = {
     j.forEach((e) => { (byYear[e.year] = byYear[e.year] || []).push(e); });
     $("#journal-list").innerHTML = j.length
       ? Object.entries(byYear).map(([yr, es]) => `<section><h3>${yr}</h3>${es.map((e) => `<p class="j-${e.kind}">${esc(e.text)}</p>`).join("")}</section>`).join("")
-      : `<p class="fine">Everything you read in the game shows up here, so you can look back at anything you missed.</p>`;
+      : `<p class="fine">Everything said in the game shows up here, so you can look back at anything you missed.</p>`;
     this.els.journal.hidden = false;
     $("#journal-close").focus();
   },
 };
 
-// Names shown when the pointer rests on someone in the world.
-const NAMES = { mama: "Mama", lucy: "Lucy", sam: "Sam", ruth: "Grandma Ruth", holliday: "Mr. {P}", mule: "The mule", clerk: "The store clerk", neighbors: "The neighbors", fieldhand: "A neighbor" };
-
-// Short lines when Papa taps a family member in the world.
-const FAMILY_TALK = {
-  mama: { 1869: "I'm keeping my own count, Robert. In my head.", 1871: "Somebody in this house should know what we really owe.", 1873: "Whatever he says up there, we stay together.", any: "Go on. The rows won't plant themselves." },
-  lucy: { 1869: "Papa, is the land ours now?", 1870: "Mama says I could learn to read, if there was a school.", 1872: "I counted the bales. I got a different number than he did.", any: "I'll carry the water bucket." },
-  sam: { 1869: "When I'm big I'm gonna pick a whole bale by myself.", any: "Can I ride the mule?" },
-  ruth: { 1869: "I was born on this place. Never thought I'd see it from this side.", 1870: "Your grandfather would have walked ten miles to vote.", 1873: "Hard times come round. So do we.", any: "Plant the corn close to the house. Hungry is worse than broke." },
-  holliday: { any: "Get on back to work. We'll settle up at Christmas." },
-  mule: { any: "The mule flicks an ear and goes back to grazing." },
-};
-
-window.SettlingUp = { Game, World, auditTotals };
+window.SettlingUp = { Game, World, Voice, auditTotals };
 Game.boot();
 </script>

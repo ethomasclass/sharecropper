@@ -120,6 +120,22 @@ button, input, select { font: inherit; color: inherit; }
 @media (pointer: coarse) and (max-width: 760px) {
   #dock { max-height: 40%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
 }
+#captions {
+  position: absolute; z-index: 47; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px));
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--ink) 88%, transparent); color: var(--paper); pointer-events: none;
+}
+@media (min-width: 1100px) { #captions { left: calc(50% + 140px); width: min(600px, calc(100% - 500px)); } }
+@media (max-width: 760px) { #captions { bottom: auto; top: calc(var(--top, 56px) + 64px); } }
+.cap-who { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ochre); }
+.cap-what { font-size: 1.05rem; line-height: 1.4; }
+.cap-what.thought, .voice.thought { font-style: italic; }
+.contract p[data-clause] { transition: background .3s; padding: 2px 4px; margin-inline: -4px; }
+.contract p.reading { background: color-mix(in srgb, var(--ochre) 30%, transparent); }
+blockquote.source { margin: 0; padding: 10px 14px; border-left: 4px solid var(--ochre); background: #F7F2E6; font-family: Georgia, "Times New Roman", serif; font-size: .95rem; }
+.cut-cap.silent { font-family: var(--body); font-weight: 600; font-stretch: 100%; }
+.j-thought { font-style: italic; }
 .controls-help { display: grid; gap: 2px; border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); padding-block: 8px; font-size: .92rem; }
 .controls-help p { margin: 0; }
 .art-img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -385,6 +401,22 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 @media (pointer: coarse) and (max-width: 760px) {
   #dock { max-height: 40%; bottom: calc(150px + env(safe-area-inset-bottom, 0px)); }
 }
+#captions {
+  position: absolute; z-index: 47; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(640px, calc(100% - 32px));
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--ink) 88%, transparent); color: var(--paper); pointer-events: none;
+}
+@media (min-width: 1100px) { #captions { left: calc(50% + 140px); width: min(600px, calc(100% - 500px)); } }
+@media (max-width: 760px) { #captions { bottom: auto; top: calc(var(--top, 56px) + 64px); } }
+.cap-who { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ochre); }
+.cap-what { font-size: 1.05rem; line-height: 1.4; }
+.cap-what.thought, .voice.thought { font-style: italic; }
+.contract p[data-clause] { transition: background .3s; padding: 2px 4px; margin-inline: -4px; }
+.contract p.reading { background: color-mix(in srgb, var(--ochre) 30%, transparent); }
+blockquote.source { margin: 0; padding: 10px 14px; border-left: 4px solid var(--ochre); background: #F7F2E6; font-family: Georgia, "Times New Roman", serif; font-size: .95rem; }
+.cut-cap.silent { font-family: var(--body); font-weight: 600; font-stretch: 100%; }
+.j-thought { font-style: italic; }
 .controls-help { display: grid; gap: 2px; border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); padding-block: 8px; font-size: .92rem; }
 .controls-help p { margin: 0; }
 .art-img { width: 100%; height: 100%; object-fit: cover; display: block; }

@@ -46,7 +46,7 @@ const CONFIG = {
 };
 
 // The event deck. Weights set how often each card is drawn.
-// 1873 is always the Panic. Election only in 1870 or 1872.
+// 1873 is always the Panic. Election only in 1871 or 1872 (Mississippi had no 1870 election).
 const DECK = [
   { id: "rains",    weight: 2.5 },
   { id: "drought",  weight: 1.2, bad: true },
@@ -54,7 +54,7 @@ const DECK = [
   { id: "muledies", weight: 0.8, bad: true },
   { id: "sickness", weight: 1.2, bad: true },
   { id: "school",   weight: 1.5 },
-  { id: "election", weight: 2.0, years: [1870, 1872] },
+  { id: "election", weight: 2.0, years: [1871, 1872] },
   { id: "mulebuy",  weight: 3.5, years: [1870, 1871, 1872] },
   { id: "eggs",     weight: 2.0 },
   { id: "riders",   weight: 1.0, bad: true },

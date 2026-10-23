@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { "content-type": "text/html" });
   res.end(fs.readFileSync(root + "Settling-Up.html"));
 }).listen(0);
-const browser = await pw.chromium.launch({ args: flat ? ["--disable-webgl", "--disable-3d-apis"] : ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+const browser = await pw.chromium.launch({ args: [...(flat ? ["--disable-webgl", "--disable-3d-apis"] : ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]), "--autoplay-policy=no-user-gesture-required"] });
 const page = await browser.newPage({ viewport: { width: 1366, height: 768 } });
 const errors = [];
 const requests = [];
@@ -26,6 +26,7 @@ page.on("console", (m) => { if (m.type() === "error") errors.push("console: " + 
 page.on("request", (r) => { if (!r.url().startsWith("http://localhost") && !r.url().startsWith("data:")) requests.push(r.url()); });
 
 let n = 0;
+let cutscenes = 0;
 const shot = async (name) => { await page.waitForTimeout(350); await page.screenshot({ path: `${out}/${String(++n).padStart(2, "0")}-${name}.png` }); };
 const dbg = () => page.evaluate(() => SettlingUp.World.debug);
 const sleep = (ms) => page.waitForTimeout(ms);
@@ -42,9 +43,18 @@ async function walkTo(x, z) {
 }
 async function followFlag(id) {
   if (!worldOk) return;
-  for (let i = 0; i < 100; i++) { const d = await dbg(); if (d.objective === id) break; await sleep(100); }
+  for (let i = 0; i < 300; i++) {
+    const d = await dbg();
+    if (d.objective === id) break;
+    // An interlude (the 1870 amendment, the 1873 panic) can open between steps.
+    if (await page.$("#cutscene:not([hidden])")) { cutscenes++; await page.keyboard.press("Enter"); }
+    await sleep(100);
+  }
   const d = await dbg();
-  if (d.objective !== id) throw new Error(`expected objective ${id}, got ${d.objective}`);
+  if (d.objective !== id) {
+    const state = await page.evaluate(() => ({ step: SettlingUp.Game.g?.step, sheet: !document.querySelector("#sheet").hidden, cut: !document.querySelector("#cutscene").hidden, mark: document.querySelector("#mark-btn")?.className, dock: document.querySelector("#dock").innerText.slice(0, 80), cutText: document.querySelector("#cutscene").innerText.slice(0, 160) }));
+    throw new Error(`expected objective ${id}, got ${d.objective}: ${JSON.stringify(state)}`);
+  }
   await walkTo(d.ox, d.oz + (id === "porch" || id === "contract" ? 1.5 : 0));
   for (let i = 0; i < 40; i++) { if ((await dbg()).objective !== id) return; await sleep(100); }
 }
@@ -63,6 +73,7 @@ await page.goto(`http://localhost:${server.address().port}/`);
 await page.waitForSelector("#fam-name", { timeout: 30000 });
 const worldOk = await page.evaluate(() => SettlingUp.World.ok);
 console.log("3D world:", worldOk ? "running" : "flat fallback");
+await page.evaluate(() => { window.__voice = 0; SettlingUp.Voice.audio.addEventListener("playing", () => window.__voice++); });
 await shot("join");
 await page.fill("#fam-name", "Whitfield");
 await page.click("#join-form button[type=submit]");
@@ -97,12 +108,21 @@ for (let year = 0; year < 5; year++) {
   if (year === 0 && worldOk) { await walkTo(-10.5, 6.6); await walkTo(0, 6.6); await shot("planting-rows"); }
   await walkRows();
   await followFlag("cabin");
-  await page.waitForSelector("[data-choice]", { timeout: 20000 });
-  await shot(`event-${1869 + year}`);
-  await page.click("[data-choice]");
-  const doneBtn = await page.$("#card-actions [data-done]");
-  if (doneBtn) await doneBtn.click();
+  const card = async (name) => {
+    await page.waitForSelector("[data-choice]", { timeout: 30000 });
+    await shot(name);
+    await page.click("[data-choice]");
+    const doneBtn = await page.$("#card-actions [data-done]");
+    if (doneBtn) await doneBtn.click();
+  };
+  if (year < 4) await card(`event-${1869 + year}`);
   await followFlag("field-fall");
+  if (year === 4) {
+    await page.waitForSelector("#cutscene:not([hidden])", { timeout: 30000 });
+    await shot("panic-cutscene");
+    for (let i = 0; i < 2; i++) { await page.keyboard.press("Enter"); await sleep(200); }
+    await card("panic-card");
+  }
   await page.waitForSelector("#rows-pct, #rows-done", { timeout: 20000 });
   if (year === 0 && worldOk) { await walkTo(-10.5, 6.6); await walkTo(-2, 6.6); await shot("harvest-rows"); }
   await walkRows();
@@ -115,7 +135,11 @@ for (let year = 0; year < 5; year++) {
   await followFlag("porch");
   await page.waitForSelector(".settle [data-act]", { timeout: 30000 });
   await shot(`settle-${1869 + year}`);
-  if (year === 1 && await page.$('[data-act="demand"]')) { await page.click('[data-act="demand"]'); await shot("demand"); }
+  if (year === 1 && await page.$('[data-act="demand"]')) {
+    await page.click('[data-act="demand"]');
+    await page.waitForSelector('.settle [data-act]:not([disabled])', { timeout: 30000 });
+    await shot("demand");
+  }
   const act = (await page.$('[data-act="rent"]')) ? "rent" : (await page.$('[data-act="move"]')) ? "move" : "stay";
   await page.click(`[data-act="${act}"]`);
   await sleep(400);
@@ -144,6 +168,8 @@ await shot("final");
 await page.setViewportSize({ width: 400, height: 820 });
 await shot("phone-final");
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+console.log("Voice lines heard:", await page.evaluate(() => window.__voice));
+console.log("Interlude panels clicked through:", cutscenes);
 console.log("Ending:", await page.evaluate(() => SettlingUp.Game.g.ending));
 console.log("Horizontal overflow at 400px:", overflow);
 console.log("Outside requests:", requests.length ? requests.join(", ") : "none");

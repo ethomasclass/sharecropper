@@ -88,8 +88,8 @@ if (process.argv.includes("--check")) {
   let electionOk = true;
   for (let i = 0; i < 5000; i++) {
     const ev = E.drawEvents("s" + i);
-    ev.forEach((id, k) => { if (id === "election" && ![1870, 1872].includes(E.CONFIG.years[k])) electionOk = false; });
+    ev.forEach((id, k) => { if (id === "election" && ![1871, 1872].includes(E.CONFIG.years[k])) electionOk = false; });
   }
-  console.log(`Election only in 1870 or 1872 -> ${electionOk ? "PASS" : "FAIL"}`);
+  console.log(`Election only in 1871 or 1872 -> ${electionOk ? "PASS" : "FAIL"}`);
   if (!ok || !det || !electionOk) process.exit(1);
 }
