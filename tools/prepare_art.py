@@ -24,14 +24,17 @@ CREAM = (246, 239, 223, 255)
 
 def key_out(img, top_only=False):
     """Remove a solid magenta background, with a soft edge and no pink fringe.
-    Hill and tree strips only have magenta above them, so they check the top corners."""
+    Hill and tree strips and building fronts may have ground along the bottom,
+    so they check the top corners."""
     if np is None:
         return img, False
     a = np.asarray(img).astype(np.float32)
     rgb = a[..., :3]
     corners = np.array([rgb[2, 2], rgb[2, -3]] if top_only else [rgb[2, 2], rgb[2, -3], rgb[-3, 2], rgb[-3, -3]])
-    key = np.array([255, 0, 255], np.float32)
-    if np.abs(corners - key).max(axis=1).mean() > 70:
+    # a corner counts as magenta when red and blue are high and green is low;
+    # generators paint it anywhere from hot pink to a dull violet
+    pink = (np.minimum(corners[:, 0], corners[:, 2]) - corners[:, 1] > 90) & (np.abs(corners[:, 0] - corners[:, 2]) < 70)
+    if pink.sum() < len(corners) - (0 if top_only else 1):
         return img, False
     # how far each pixel is from magenta: magenta is high red and blue, low green.
     # Generators paint it brighter or duller, so match this image's own background.
@@ -77,7 +80,7 @@ for kind in ("sprites", "props", "facades", "textures", "backdrops", "scenes", "
             continue
         img = Image.open(f).convert("RGBA")
         if kind in ("facades", "backdrops") and img.getchannel("A").getextrema()[0] == 255:
-            img, keyed = key_out(img, top_only=kind == "backdrops")
+            img, keyed = key_out(img, top_only=True)
             if keyed:
                 notes.append(f"art/{kind}/{f.name}: removed the magenta background")
         if kind == "facades":

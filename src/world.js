@@ -452,20 +452,20 @@ const World = (() => {
     }
 
     // the cabin
-    // Its front (door and porch) faces the yard, +x. The gable ends are the
-    // sides, as in the painted cabinFront and cabinSide.
+    // Its gable front (door and porch) faces the yard, +x; the long sides are
+    // the eave walls, as in the painted cabinFront and cabinSide.
     const cab = { x: -17.5, z: 13 };
-    const [cw, cr] = fit("cabinSide", 5.8, 3, 1.9);
+    const [cw, cr] = fit("cabinSide", 5.4, 3, 1.9);
     box(5, cw, 4.2, 0x7a4a2e, cab.x, 0, cab.z, { mat: surface(0x7a4a2e, "wallPlanks", 0xffffff, grain) });
-    roof(5.8, cr, 4.8, 0x4f2f1d, cab.x, cw, cab.z, surface(0x4f2f1d, "roofShingle"));
+    roof(5.8, cr, 5.4, 0x4f2f1d, cab.x, cw, cab.z, surface(0x4f2f1d, "roofShingle")).rotation.y = Math.PI / 2;
     box(2.2, 0.2, 4.2, 0x5a3a24, cab.x + 3.4, 0, cab.z);
-    if (!flat("cabinFront", 4.8, cab.x + 2.93, 0, cab.z, Math.PI / 2)) {
+    if (!flat("cabinFront", 5.8, cab.x + 2.73, 0, cab.z, Math.PI / 2)) {
       box(1.1, 2, 0.1, 0x1e1b18, cab.x + 2.51, 0, cab.z, { ry: Math.PI / 2 });
       box(0.1, 0.9, 1, 0x1e1b18, cab.x + 2.52, 1.4, cab.z - 1.4);
     }
     if (!hasFlat("cabinSide")) box(0.9, 4.4, 0.6, 0x6d5f52, cab.x - 0.8, 0, cab.z + 2.4, { map: grain });   // stone chimney
-    flat("cabinSide", 5.8, cab.x, 0, cab.z + 2.43, 0);
-    flat("cabinSide", 5.8, cab.x, 0, cab.z - 2.43, Math.PI);
+    flat("cabinSide", 5.4, cab.x, 0, cab.z + 2.93, 0);
+    flat("cabinSide", 5.4, cab.x, 0, cab.z - 2.93, Math.PI);
     colliders.push([cab.x - 2.6, cab.z - 2.2, cab.x + 2.6, cab.z + 2.2]);
 
     // store and gin house
@@ -868,11 +868,14 @@ const World = (() => {
     const [skyHex, grass] = SKIES[name] || SKIES.spring;
     scene.background.setHex(skyHex);
     scene.fog.color.setHex(skyHex);
-    if (sky) {
+    // A dusk painting never stands in for the daytime sky; a day sky can be dimmed for dusk.
+    const skyTex = name === "dusk" ? tex.bd_skyDusk || tex.bd_skyDay : tex.bd_skyDay;
+    if (sky) sky.visible = !!skyTex;
+    if (sky && skyTex) {
       const own = name === "dusk" ? tex.bd_skyDusk : tex.bd_skyDay;
-      const t = own || tex.bd_skyDay || tex.bd_skyDusk;
+      const t = skyTex;
       const maps = sky.userData.maps;
-      sky.material.map = (name === "dusk" ? maps.dusk : maps.day) || maps.day || maps.dusk;
+      sky.material.map = t === tex.bd_skyDusk ? maps.dusk : maps.day;
       sky.material.needsUpdate = true;
       sky.material.color.setHex(own ? 0xffffff : SKY_TINT[name] || 0xffffff);
       // the fog fades into the painted horizon; above the band, the top of the sky
