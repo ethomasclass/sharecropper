@@ -56,8 +56,10 @@ const Voice = {
     const words = l.text.split(/\s+/).length;
     const readTime = Math.max(1600, (words / 2.4) * 1000);
     const src = o.voiced !== false && this.on ? this.src(l) : null;
+    if (src) Ambience.duck(true);
     return new Promise((resolve) => {
       const done = () => {
+        if (my === this.token) Ambience.duck(false);
         if (my !== this.token) return resolve();
         clearTimeout(this.hideTimer);
         this.hideTimer = setTimeout(() => { if (my === this.token) this.caption(null); }, 700);
@@ -104,6 +106,86 @@ const Voice = {
     what.textContent = l.delivery === "thought" ? l.text : `"${l.text}"`;
     what.classList.toggle("thought", l.delivery === "thought");
     el.hidden = false;
+  },
+};
+
+// ============================================================================
+// AMBIENCE — outdoor sound loops (audio/amb/, made by tools/ambience.mjs):
+// day, fall, dusk, and rain. Looped gaplessly with Web Audio, faded from one
+// to the next as the season and weather change, and turned down under the
+// voice. Browsers only allow sound after a tap or key, so start() waits.
+// ============================================================================
+const Ambience = {
+  on: (() => { try { return localStorage.getItem("settling-up:sound") !== "off"; } catch { return true; } })(),
+  LEVEL: 0.6,
+  ctx: null, master: null, ducker: null, cur: null, want: null, buffers: {},
+
+  src(name) {
+    const file = name + ".mp3";
+    if (typeof AMB_AUDIO !== "undefined" && AMB_AUDIO[file]) return AMB_AUDIO[file];
+    if (typeof AMB_BASE !== "undefined" && AMB_BASE) return AMB_BASE + file;
+    return null;
+  },
+  start() {
+    if (this.ctx) { this.ctx.resume?.(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !this.src("day")) return;
+    try {
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.ducker = this.ctx.createGain();
+      this.master.gain.value = this.on ? 1 : 0;
+      this.master.connect(this.ducker).connect(this.ctx.destination);
+    } catch { this.ctx = null; return; }
+    if (this.want) this.play(this.want);
+  },
+  async load(name) {
+    if (!this.buffers[name]) {
+      this.buffers[name] = fetch(this.src(name)).then((r) => r.arrayBuffer())
+        .then((b) => new Promise((ok, no) => this.ctx.decodeAudioData(b, ok, no))).catch(() => null);
+    }
+    return this.buffers[name];
+  },
+  set(name) {
+    this.want = name;
+    if (this.ctx) this.play(name);
+  },
+  async play(name) {
+    if (this.cur && this.cur.name === name) return;
+    const buf = await this.load(name);
+    if (!buf || this.want !== name || (this.cur && this.cur.name === name)) return;
+    const t = this.ctx.currentTime, fade = 2.5;
+    const node = this.ctx.createBufferSource();
+    node.buffer = buf; node.loop = true;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(this.LEVEL, t + fade);
+    node.connect(gain).connect(this.master);
+    node.start(t, Math.random() * buf.duration);   // start anywhere, so it never sounds the same twice
+    const old = this.cur;
+    if (old) {
+      old.gain.gain.setValueAtTime(old.gain.gain.value, t);
+      old.gain.gain.linearRampToValueAtTime(0, t + fade);
+      old.node.stop(t + fade + 0.1);
+    }
+    this.cur = { name, node, gain };
+  },
+  // quieter while someone speaks
+  duck(down) {
+    if (!this.ctx) return;
+    this.ducker.gain.setTargetAtTime(down ? 0.4 : 1, this.ctx.currentTime, down ? 0.15 : 0.6);
+  },
+  setOn(on) {
+    this.on = on;
+    try { localStorage.setItem("settling-up:sound", on ? "on" : "off"); } catch { /* storage off */ }
+    if (this.ctx) this.master.gain.setTargetAtTime(on ? 1 : 0, this.ctx.currentTime, 0.3);
+  },
+  // the loop for a sky and weather (World tells us)
+  forSky(sky, weather) {
+    if (weather === "rain") return "rain";
+    if (sky === "dusk") return "dusk";
+    if (sky === "fall" || sky === "drought") return "fall";
+    return "day";
   },
 };
 

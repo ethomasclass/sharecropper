@@ -287,6 +287,67 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .reveal { border: 1.5px solid var(--red); padding: 12px 14px; background: #F7F2E6; display: flex; flex-direction: column; gap: 6px; }
 .figure-line { font-family: var(--figures); font-weight: 700; }
 .settle-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.leave-why { flex-basis: 100%; }
+.settle-grid { display: grid; gap: 22px; align-items: start; }
+.porch-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+@media (min-width: 900px) { .settle-grid { grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); } }
+
+/* his book: the year added up, line by line */
+.book { background: #F8F3E7; border: 1.5px solid var(--ink); padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: 5px 5px 0 rgba(30,27,24,.14); min-width: 0; }
+.book-h { font-family: var(--hand) !important; font-size: 1.7rem !important; font-weight: 700 !important; text-transform: none !important; font-stretch: normal !important; }
+.book-k { font-weight: 800; text-transform: uppercase; font-size: .72rem; letter-spacing: .08em; color: var(--ink-soft); margin-top: 6px !important; }
+.book-t { width: 100%; border-collapse: collapse; font-family: var(--figures); font-variant-numeric: tabular-nums; }
+.book-t th { text-align: left; font-family: var(--body); font-weight: 600; font-size: .95rem; padding: 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.book-t td { text-align: right; padding: 5px 0 5px 14px; border-bottom: 1px solid var(--rule); white-space: nowrap; font-weight: 700; font-size: 1.02rem; vertical-align: top; }
+.book-t.out td { color: var(--red); }
+.book-t .sub { display: block; font-family: var(--figures); font-weight: 400; font-size: .82rem; color: var(--ink-soft); }
+.book-t .note { display: block; font-family: var(--hand); font-size: 1.15rem; line-height: 1.15; color: var(--red); margin-top: 2px; }
+.book-t tr.sum th, .book-t tr.sum td { border-top: 1.5px solid var(--ink); border-bottom: none; font-weight: 800; font-size: 1.05rem; }
+.book-t tr.sum th { text-transform: uppercase; font-size: .78rem; letter-spacing: .06em; padding-top: 7px; }
+.tally { display: grid; gap: 5px; margin-top: 10px; }
+.t-row { display: grid; grid-template-columns: 5.4em 1fr; align-items: center; gap: 8px; }
+.t-k { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.t-track { position: relative; height: 22px; border-bottom: 1px solid var(--ink-soft); }
+.t-fill { position: absolute; inset: 0 auto 0 0; background: var(--ochre); transform-origin: left center; }
+.t-row.out .t-fill { background: var(--red); }
+.t-gap { position: absolute; top: 0; bottom: 0; transform-origin: left center; border: 2px dashed var(--red);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--red) 55%, transparent) 0 3px, transparent 3px 8px); }
+.t-gap.ahead { border-color: #4E6B2E; background: repeating-linear-gradient(135deg, color-mix(in srgb, #4E6B2E 55%, transparent) 0 3px, transparent 3px 8px); }
+.book-eq { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 10px; padding-top: 10px; border-top: 3px double var(--ink);
+  font-family: var(--figures); font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.book-eq .op { color: var(--ink-soft); }
+.book-eq .res { font-size: 1.7rem; }
+.book-eq .neg, .vs-v.neg, .acct-v.neg, .acct-t .neg { color: var(--red); }
+.book-eq .verdict { font-family: var(--hand); font-size: 1.5rem; font-weight: 700; }
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; border: 1.5px solid var(--ink); background: #F8F3E7; padding: 10px 14px; }
+.versus > div { display: flex; flex-direction: column; }
+.vs-k { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+.vs-v { font-family: var(--figures); font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.vs-gap { grid-column: 1 / -1; font-family: var(--hand); font-size: 1.35rem; color: var(--red); line-height: 1.15; }
+/* the book adds itself up, one line at a time, as he reads it out */
+.settle.anim .book-t tr, .settle.anim .book-eq { animation: book-in .38s ease both; animation-delay: calc(var(--i) * .34s + .3s); }
+.settle.anim .tally .t-fill, .settle.anim .tally .t-gap { animation: book-grow .9s cubic-bezier(.3,.7,.2,1) both; animation-delay: calc(var(--i) * .34s + .3s); }
+.settle.anim .tally .t-gap { animation-delay: calc(var(--i) * .34s + 1.1s); }
+.settle.anim .versus { animation: book-in .5s ease both; animation-delay: 1.2s; }
+@keyframes book-in { from { opacity: 0; transform: translateY(5px); } }
+@keyframes book-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .settle.anim * { animation: none !important; } }
+
+/* Hannah's tally in the top bar */
+#acct { position: relative; font-size: .86rem; }
+#acct summary { cursor: pointer; list-style: none; border: 1.5px solid var(--ink); padding: 3px 10px; background: var(--paper); display: flex; gap: 8px; align-items: baseline; }
+#acct summary::-webkit-details-marker { display: none; }
+#acct summary::after { content: "▾"; font-size: .8em; }
+#acct[open] summary::after { content: "▴"; }
+.acct-k { font-weight: 800; text-transform: uppercase; font-size: .7rem; letter-spacing: .06em; }
+.acct-v { font-family: var(--figures); font-weight: 700; font-variant-numeric: tabular-nums; }
+.acct-body { position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: min(360px, calc(100vw - 32px)); background: #F8F3E7; border: 1.5px solid var(--ink); padding: 10px 12px; box-shadow: 0 14px 30px -12px rgba(30,27,24,.5); }
+.acct-note { margin: 0 0 6px; font-family: var(--hand); font-size: 1.15rem; line-height: 1.1; }
+.acct-t { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.acct-t th { text-align: left; font-weight: 600; padding: 3px 0; border-bottom: 1px solid var(--rule); }
+.acct-t td { text-align: right; font-family: var(--figures); font-weight: 700; padding: 3px 0 3px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.acct-t tr.sum th, .acct-t tr.sum td { border-top: 1.5px solid var(--ink); border-bottom: none; font-weight: 800; }
+.scale-count { margin-top: 8px !important; font-size: .95rem; }
 
 /* audit */
 .ledger-wrap { overflow-x: auto; border: 1.5px solid var(--ink); background: #F7F2E6; max-width: 100%; }

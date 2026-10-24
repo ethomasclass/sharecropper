@@ -73,6 +73,7 @@ const Game = {
       arrive: (id) => this.onArrive(id),
       interact: (name) => this.onInteract(name),
       nameOf: (id) => NAMES[id] ? this.t(NAMES[id]) : "",
+      sky: (sky, weather) => Ambience.set(Ambience.forSky(sky, weather)),
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
@@ -80,6 +81,13 @@ const Game = {
     const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
     vb.addEventListener("click", () => { Voice.setOn(!Voice.on); showVoice(); });
     showVoice();
+    const sb = $("#sound-btn");
+    const showSound = () => { sb.textContent = Ambience.on ? "Sound on" : "Sound off"; sb.setAttribute("aria-pressed", String(Ambience.on)); };
+    sb.addEventListener("click", () => { Ambience.start(); Ambience.setOn(!Ambience.on); showSound(); });
+    showSound();
+    // browsers allow sound only after the player taps or presses a key
+    const wake = () => Ambience.start();
+    ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, wake, { passive: true }));
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !this.els.journal.hidden) this.els.journal.hidden = true;
     });
@@ -122,6 +130,45 @@ const Game = {
       return `<li class="${cur ? "cur" : ""} ${done ? "done" : ""}" aria-current="${cur ? "step" : "false"}"><span class="chip-yr">${yr}</span>${bal}</li>`;
     }).join("");
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
+    this.renderTally();
+  },
+
+  // ---- Hannah's tally -------------------------------------------------------------
+  // The family's own count through the year: what they were charged at the
+  // store, what the doctor cost, the cotton at its true weight (Hannah's
+  // knotted string), and the 10% interest he promised. At Christmas it sits
+  // beside his book, and the gap between them is what the system takes.
+  tallyLines() {
+    const g = this.g, y = this.y;
+    if (!g || g.ending || !y || y.year !== currentYear(g)) return null;
+    const STEPS = ["store", "plant", "event", "harvest", "settle"];
+    const past = (s) => STEPS.indexOf(g.step) > STEPS.indexOf(s);
+    const price = CONFIG.pricePerBale[y.year], prev = y.year - 1;
+    const lines = [];
+    if (y.startBalance) lines.push([y.startBalance > 0 ? `Saved from ${prev}` : `Owed from ${prev}`, y.startBalance]);
+    if (y.muleBought) lines.push(["Our own mule", -y.muleBought]);
+    if (y.eggs) lines.push(["Eggs and greens sold", y.eggs]);
+    if (past("store")) lines.push([`Store, ${CONFIG.baskets[y.basket].label.toLowerCase()} furnish`, -CONFIG.baskets[y.basket].credit]);
+    if (past("plant") && y.corn && !y.cornLost) lines.push([`Corn we grew, ${y.corn} acre${y.corn === 1 ? "" : "s"}`, y.corn * CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup)]);
+    if (past("event") && y.doctor) lines.push(["Doctor", -y.doctor]);
+    if (past("event") && y.muleCharge) lines.push(["His dead mule", -y.muleCharge]);
+    if (past("harvest") && y.familyBales != null) {
+      lines.push([`Cotton, ${fmtBales(y.familyBales)} bales by our count, at about $${price}`, y.familyBales * price]);
+      lines.push([`Ginning, ${fmtBales(y.familyBales)} bales at $${CONFIG.ginningPerBale}`, -y.familyBales * CONFIG.ginningPerBale]);
+    }
+    if (y.startBalance < 0) lines.push([`Interest at 10%, as he said`, y.startBalance * CONFIG.interestTold]);
+    return { lines, total: lines.reduce((t, [, v]) => t + v, 0), sold: past("harvest") };
+  },
+  renderTally() {
+    const el = $("#acct"), t = this.tallyLines();
+    if (!el) return;
+    el.hidden = !t;
+    if (!t) return;
+    el.querySelector("summary").innerHTML = `<span class="acct-k">Hannah's tally</span> <span class="acct-v ${t.total < 0 ? "neg" : ""}">${fmt(t.total)}</span>`;
+    el.querySelector(".acct-body").innerHTML = `
+      <p class="acct-note">${t.sold ? "Our count, with the cotton in." : "What we owe so far. The cotton comes in at harvest."}</p>
+      <table class="acct-t">${t.lines.map(([k, v]) => `<tr><th>${esc(k)}</th><td class="${v < 0 ? "neg" : ""}">${fmt(v)}</td></tr>`).join("")}
+        <tr class="sum"><th>${t.sold ? "Where we should stand" : "So far"}</th><td class="${t.total < 0 ? "neg" : ""}">${fmt(t.total)}</td></tr></table>`;
   },
 
   // ---- dock, sheet, objectives ----------------------------------------------------
@@ -621,6 +668,7 @@ const Game = {
         <span class="scale-v">${fmtLbs(y.scaleLbs)}</span>
         <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${y.shareRate > 0.5 ? "two-thirds" : "half"}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
       </div>
+      <p class="scale-count">Hannah's string counted <strong>${fmtLbs(y.trueLbs)}</strong>. At about $${CONFIG.pricePerBale[y.year]} a bale, our ${y.shareRate > 0.5 ? "two-thirds" : "half"} should bring about <strong>${fmt(y.familyBales * CONFIG.pricePerBale[y.year])}</strong>.</p>
       <button class="primary" id="to-settle">Continue</button>`);
     cue(sc, "At the scale");
     await new Promise((r) => $("#to-settle").addEventListener("click", r, { once: true }));
@@ -667,6 +715,69 @@ const Game = {
     return { said, react };
   },
 
+  // ---- his book -------------------------------------------------------------------------
+  // The year the way the planter reads it out, line by line: what the crop
+  // brought, what he charged, and the one number at the bottom. Lines he
+  // hid get a note in red once the family has demanded to see them.
+  bookRows() {
+    const y = this.y, g = this.g, L = y.ledger, prev = y.year - 1;
+    const basket = CONFIG.baskets[y.basket];
+    const cornCut = (y.cornLost ? 0 : y.corn * CONFIG.cornSavingsCash) * (1 + CONFIG.creditMarkup);
+    const knows = (k) => g.revealed.includes(k);
+    const ins = [], outs = [];
+    if (y.evicted) ins.push({ k: "Your share of the crop", sub: "put off the place: nothing", v: 0 });
+    else ins.push({ k: `Your ${y.shareRate > 0.5 ? "two-thirds" : "half"} of the cotton`, sub: `${fmtBales(y.creditedBales)} bales × $${L.price}`, v: L.share,
+      note: knows("weight") ? `By your wagon it was ${fmtBales(y.familyBales)} bales: ${fmt(y.familyBales * L.price)}` : "" });
+    if (y.startBalance > 0) ins.push({ k: `Saved from ${prev}`, v: y.startBalance });
+    if (y.eggs) ins.push({ k: "Eggs and greens sold in town", v: y.eggs });
+    if (y.startBalance < 0) outs.push({ k: `Owed from ${prev}`, sub: "carried on his book", v: -y.startBalance });
+    if (y.muleBought) outs.push({ k: "Your own mule", sub: "paid from savings", v: y.muleBought });
+    outs.push({ k: "Store account", sub: `${basket.label} furnish, on credit`, v: basket.credit,
+      note: knows("markup") ? `Cash price anywhere else: ${fmt(cashOf(basket.credit))}` : "" });
+    if (cornCut > 0) outs.push({ k: "Less the corn you grew", sub: `${y.corn} acre${y.corn === 1 ? "" : "s"} you didn't buy`, v: -cornCut });
+    if (y.doctor) outs.push({ k: "Doctor", sub: "on account", v: y.doctor });
+    if (y.muleCharge) outs.push({ k: "The mule that died", sub: "his mule, your account", v: y.muleCharge });
+    outs.push({ k: "Ginning", sub: `${fmtBales(y.familyBales)} bales × $${CONFIG.ginningPerBale}`, v: L.ginning });
+    if (L.interest) outs.push({ k: "Interest", sub: `on the ${fmt(-y.startBalance)} you carried`, v: L.interest,
+      note: knows("interest") ? `At the 10% he promised: ${fmt(-y.startBalance * CONFIG.interestTold)}` : "" });
+    if (L.leave) outs.push({ k: "Moving", v: L.leave });
+    const sum = (rows) => rows.reduce((t, r) => t + r.v, 0);
+    return { ins, outs, totalIn: sum(ins), totalOut: sum(outs) };
+  },
+  bookHTML() {
+    const y = this.y, bal = y.ledger.balance;
+    const { ins, outs, totalIn, totalOut } = this.bookRows();
+    let i = 0;
+    const row = (r) => `<tr style="--i:${i++}"><th>${esc(r.k)}${r.sub ? `<span class="sub">${esc(r.sub)}</span>` : ""}${r.note ? `<span class="note">${esc(r.note)}</span>` : ""}</th><td>${fmt(r.v)}</td></tr>`;
+    const inRows = ins.map(row).join(""), inSum = `<tr class="sum" style="--i:${i++}"><th>Brought in</th><td>${fmt(totalIn)}</td></tr>`;
+    const outRows = outs.map(row).join(""), outSum = `<tr class="sum" style="--i:${i++}"><th>Charged</th><td>${fmt(totalOut)}</td></tr>`;
+    // both on one scale, so the shortfall shows as a length
+    const top = Math.max(totalIn, totalOut, 1);
+    const pin = (totalIn / top) * 100, pout = (totalOut / top) * 100;
+    const short = totalOut > totalIn;
+    const gap = Math.abs(pout - pin);
+    const tally = `
+      <div class="tally" style="--i:${i++}" aria-hidden="true">
+        <div class="t-row in"><span class="t-k">Crop</span><span class="t-track"><span class="t-fill" style="width:${pin}%"></span>${short ? `<span class="t-gap" style="left:${pin}%;width:${gap}%"></span>` : ""}</span></div>
+        <div class="t-row out"><span class="t-k">Charges</span><span class="t-track"><span class="t-fill" style="width:${pout}%"></span>${!short && gap > 0.5 ? `<span class="t-gap ahead" style="left:${pout}%;width:${gap}%"></span>` : ""}</span></div>
+      </div>`;
+    const eq = `
+      <div class="book-eq" style="--i:${i++}">
+        <span>${fmt(totalIn)}</span><span class="op">−</span><span>${fmt(totalOut)}</span><span class="op">=</span>
+        <span class="res ${bal < 0 ? "neg" : ""}">${fmt(bal)}</span>
+        <span class="verdict ${bal < 0 ? "neg" : ""}">${bal < -0.005 ? `short ${fmt(-bal)}` : bal > 0.005 ? `ahead ${fmt(bal)}` : "even"}</span>
+      </div>`;
+    return `
+      <section class="book" aria-label="Mr. ${esc(this.planter())}'s book for ${y.year}">
+        <h3 class="book-h">Mr. ${esc(this.planter())}'s book, ${y.year}</h3>
+        <p class="book-k">What the crop brought</p>
+        <table class="book-t in">${inRows}${inSum}</table>
+        <p class="book-k">What he charged</p>
+        <table class="book-t out">${outRows}${outSum}</table>
+        ${tally}${eq}
+      </section>`;
+  },
+
   renderSettle(revealed, speak) {
     const y = this.y, g = this.g;
     const bal = y.ledger.balance;
@@ -681,6 +792,14 @@ const Game = {
     };
     const r = revealed ? REVEAL[revealed] : null;
     const nextPlanter = PLANTERS[Math.min(g.planterIndex + 1, PLANTERS.length - 1)];
+    // Hannah's tally beside his book: the gap is what the system takes
+    const t = this.tallyLines();
+    const vs = t && !y.evicted ? `
+      <div class="versus">
+        <div><span class="vs-k">Hannah's tally</span><span class="vs-v ${t.total < 0 ? "neg" : ""}">${fmt(t.total)}</span></div>
+        <div><span class="vs-k">His book</span><span class="vs-v ${bal < 0 ? "neg" : ""}">${fmt(bal)}</span></div>
+        ${t.total - bal > 0.005 ? `<p class="vs-gap">${fmt(t.total - bal)} that Hannah can't find in his book.</p>` : ""}
+      </div>` : "";
     let actions;
     if (y.evicted) {
       actions = `<button class="primary" data-act="move">${isLast ? "Load the wagon" : `Move to the ${esc(nextPlanter)} place`}</button>
@@ -689,21 +808,30 @@ const Game = {
       actions = `
         ${rent ? `<button class="primary" data-act="rent">Rent a farm</button>` : ""}
         <button class="${rent ? "secondary" : "primary"}" data-act="stay">${isLast ? "Stay on" : `Stay and sign for ${y.year + 1}`}</button>
-        <button class="secondary" data-act="leave">Leave the ${esc(this.planter())} place</button>
-        ${y.demanded ? "" : `<button class="secondary danger" data-act="demand">Demand to see the books</button>`}`;
+        <button class="secondary" data-act="leave" ${this.leaveTried === y.year ? "disabled" : ""}>Leave the ${esc(this.planter())} place</button>
+        ${y.demanded ? "" : `<button class="secondary danger" data-act="demand">Demand to see the books</button>`}
+        ${this.leaveTried === y.year ? `<p class="voice thought leave-why">${esc(say(bal < 0 ? "LEAVE-OWING" : "LEAVE-NOWHERE"))}</p>` : ""}`;
     }
+    const animate = this.bookShown !== y.year;
+    this.bookShown = y.year;
     this.sheet(`
-      <div class="settle">
+      <div class="settle ${animate ? "anim" : ""}">
         <p class="eyebrow">Christmas ${y.year} · ${esc(this.planter())}'s porch</p>
-        <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
-        <blockquote class="said">${esc(say(r ? r.h : said))}</blockquote>
-        <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
-        ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
-        <p class="voice thought">${esc(say(r ? r.t : react))}</p>
-        ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
-        <div class="settle-actions">${actions}</div>
-        ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
-      </div>`, { low: true });
+        <div class="settle-grid">
+          ${this.bookHTML()}
+          <section class="porch-side">
+            <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
+            <blockquote class="said">${esc(say(r ? r.h : said))}</blockquote>
+            <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
+            ${vs}
+            ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
+            <p class="voice thought">${esc(say(r ? r.t : react))}</p>
+            ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
+            <div class="settle-actions">${actions}</div>
+            ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
+          </section>
+        </div>
+      </div>`, { wide: true });
     const voiced = this.planterIsHolliday();
     if (speak) {
       (async () => {
@@ -729,25 +857,21 @@ const Game = {
       this.renderSettle(res.evicted ? null : res.item, true);
       return;
     }
-    if (act === "leave" && y.ledger.balance < 0 && !this.confirmLeave) {
-      this.confirmLeave = true;
-      const box = this.els.sheetBody.querySelector(".settle-actions");
-      box.innerHTML = `<p class="voice thought">${esc(say("LEAVE-OWING"))}</p>
-        <button class="primary" data-act="stay">Stay</button><button class="secondary danger" data-act="leave">Leave anyway</button>`;
-      Voice.play("LEAVE-OWING", { caption: false });
-      box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
+    // Papa can think about leaving, but the system won't let him: owing, the
+    // lien holds him; even, every other place runs on the same book.
+    if (act === "leave") {
+      this.leaveTried = y.year;
+      this.renderSettle(null, false);
+      Voice.play(y.ledger.balance < 0 ? "LEAVE-OWING" : "LEAVE-NOWHERE", { caption: false });
       return;
     }
-    this.confirmLeave = false;
     const decision = act === "move" ? "stay" : act;
-    const owed = y.ledger.balance < 0;
     closeYear(g, y, decision);
     this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}.`, "settle");
     this.closeSheet();
     this.save();
     if (decision === "stay" && !y.evicted) await Voice.play("SET-YES");
     else if (decision === "rent") await Voice.play("RENT-01", { voiced });
-    else if (decision === "leave" && !owed) await Voice.play("LEAVE-FREE", { voiced });
     if (!g.ending) cue(this.sceneOf(y), "Leaving the porch");
     const done = this.settleResolve;
     this.settleResolve = null;

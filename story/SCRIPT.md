@@ -49,12 +49,12 @@ The supporting question is the spine: *Can you be free if you can't leave?* Each
 
 | | Papa | Mr. Holliday | Total |
 | --- | --- | --- | --- |
-| Lines | 123 | 22 | 145 |
-| Characters (credits for one take) | 11,894 | 2,459 | 14,353 |
-| Audio if every line is recorded | 12:44 | 2:21 | 15:05 |
+| Lines | 124 | 22 | 146 |
+| Characters (credits for one take) | 12,032 | 2,459 | 14,491 |
+| Audio if every line is recorded | 12:53 | 2:21 | 15:15 |
 
 - **One playthrough hears about 11:01 of voice.** Most of it plays while Papa walks, so it adds little to play time.
-- **Three takes of every line** come to about 43,059 credits.
+- **Three takes of every line** come to about 43,473 credits.
 - **Play time stays inside 30 minutes** with the cuts in `node tools/timing.mjs --proposed`: about 29 minutes as modeled, before the voice that plays during walking.
 - **Spoken lines are short.** Lines heard while walking stay between 3 and 8 seconds. Longer moments sit in cutscenes and pages the student moves through.
 
@@ -302,6 +302,7 @@ These come from the history fact-check. Each needs a small code change when the 
 | --- | --- | --- | --- |
 | `LEAVE-OWING` | PAPA (thinking) | *If we leave owing, his lien takes the crop, the mule, everything we can't carry. No planter in the county will sign me.* | Choosing to leave while in debt |
 | `LEAVE-FREE` | MR. HOLLIDAY | "Suit yourself. Plenty of men want this place." | Leaving with no debt |
+| `LEAVE-NOWHERE` | PAPA (thinking) | *Leave for where? Every planter in this county keeps the same kind of book, and weighs on the same kind of scale.* | Choosing to leave with no debt |
 | `RENT-01` | MR. HOLLIDAY | "Renting. Well. You've got the mule and the money. I won't stand in your way." | Choosing to rent |
 
 ## Event cards

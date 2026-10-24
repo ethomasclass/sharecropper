@@ -139,6 +139,7 @@ export const VO = {
   // leaving, renting
   "LEAVE-OWING": "[tense, low] If we leave owing, his lien takes the crop, the mule, everything we can't carry. [grim] No planter in the county will sign me.",
   "LEAVE-FREE": "[cool, indifferent] Suit yourself. Plenty of men want this place.",
+  "LEAVE-NOWHERE": "[tired, bitter] Leave for where? [quietly] Every planter in this county keeps the same kind of book, and weighs on the same kind of scale.",
   "RENT-01": "[surprised, a little stiff] Renting. Well. You've got the mule and the money. [grudgingly polite] I won't stand in your way.",
 
   // event cards

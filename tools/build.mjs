@@ -55,9 +55,9 @@ function storyInline() {
   return `const { SCENES, ARC, TAGS, VOICES, DYK } = (() => {\n${strip("story/lines.mjs")}\nreturn { SCENES, ARC, TAGS, VOICES, DYK };\n})();`;
 }
 
-// The recorded lines in audio/vo/, as data URIs for the standalone file.
-function audioInline() {
-  const dir = root + "audio/vo/";
+// The recorded lines in audio/vo/ (or the loops in audio/amb/), as data URIs for the standalone file.
+function audioInline(sub = "vo") {
+  const dir = root + `audio/${sub}/`;
   if (!fs.existsSync(dir)) return {};
   return Object.fromEntries(fs.readdirSync(dir).filter((f) => f.endsWith(".mp3"))
     .map((f) => [f, "data:audio/mpeg;base64," + fs.readFileSync(dir + f).toString("base64")]));
@@ -74,7 +74,7 @@ const head = read("src/head.html").replace("/*FONTS*/", fontFaces());
 const pageWith = (voice, artMap) => [
   head,
   read("src/body.html"),
-  `<script type="module">\n${threeInline()}\nconst CUSTOM_ART = ${JSON.stringify(artMap)};\nconst FACADE_FIT = ${JSON.stringify(facadeFit)};\n${voice}\n${before.map(read).join("\n")}\n${storyInline()}\n${scripts.map(read).join("\n")}\nwindow.SettlingUp = { Game, World, Voice, auditTotals };\nGame.boot();\n</script>\n`,
+  `<script type="module">\n${threeInline()}\nconst CUSTOM_ART = ${JSON.stringify(artMap)};\nconst FACADE_FIT = ${JSON.stringify(facadeFit)};\n${voice}\n${before.map(read).join("\n")}\n${storyInline()}\n${scripts.map(read).join("\n")}\nwindow.SettlingUp = { Game, World, Voice, Ambience, auditTotals };\nGame.boot();\n</script>\n`,
 ].join("\n");
 // The prepared art as files for GitHub Pages: assets/art/<kind>/<name>.webp
 function artFiles(art) {
@@ -90,9 +90,10 @@ function artFiles(art) {
 }
 
 const audio = audioInline();
+const amb = audioInline("amb");
 const page = pageWith("", {}); // the Claude artifact: under its size limit, so no voice or painted art
-const standalone = pageWith(`const VO_AUDIO = ${JSON.stringify(audio)};`, art);
-const pages = pageWith(`const VO_BASE = "audio/vo/";`, artFiles(art));
+const standalone = pageWith(`const VO_AUDIO = ${JSON.stringify(audio)};\nconst AMB_AUDIO = ${JSON.stringify(amb)};`, art);
+const pages = pageWith(`const VO_BASE = "audio/vo/";\nconst AMB_BASE = "audio/amb/";`, artFiles(art));
 const doc = (body) => `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n<style>[hidden]{display:none!important}body{margin:0}</style>\n</head>\n<body>\n${body}</body>\n</html>\n`;
 
 fs.mkdirSync(root + "dist", { recursive: true });

@@ -29,11 +29,17 @@ Papa walks everywhere himself:
 2. **The field.** At the field's edge he decides which acres go to cotton and which to corn (5 acres of corn at most), then walks the rows to plant. Mama and the children follow with the seed.
 3. **Home.** He walks back to the cabin, where the year's event card happens. 1873 is always the Panic.
 4. **The harvest.** In the fall he walks the rows with the family, then leads the loaded wagon to the planter's scale. The 10% short weight is applied silently.
-5. **Settling up.** He walks up to the big house. The planter reads one number, and students choose to stay, leave, demand the books, or rent a farm if they qualify.
+5. **Settling up.** He walks up to the big house. The planter's book adds itself up line by line: what the crop brought, every charge, and a bar that shows the shortfall as a length. Beside it sits **Hannah's tally**, the family's own count (store charges, the cotton's true weight on Hannah's knotted string, and the 10% interest he promised); the gap between the two is what the system took that year. Students choose to stay, demand the books, or rent a farm if they qualify. Demanding the books writes the hidden truth into the book in red.
+
+**Hannah's tally** stays in the top bar all year, so students watch the family's account build: last year's debt, the store, the doctor, the cotton coming in.
+
+**Leaving.** The button to leave the planter's place is always offered, and never works: in debt, Papa knows the planter's lien holds him; even, he knows every planter in the county keeps the same book. Students can try the door and find it shut.
 
 **Handling the field work.** Walking is the only thing students do in the field. There's no tapping, picking, or scoring, and once Papa has walked most of the rows, the family finishes the rest. The decisions sit where the lesson is: the split between cotton and corn, the store, and the porch.
 
-**Endings.** Three endings: still cropping, renting a farm, or lost to the lien (leaving while in debt: the planter's claim takes the crop and goods, and no other planter will sign Papa). Every family ends at the audit.
+**Endings.** Still cropping, or renting a farm. A family put off the place (for voting, or for demanding the books) moves to another planter, its debt following it. Every family ends at the audit.
+
+**Sound.** The voice of Papa and Mr. Holliday, and outdoor sound under it (a spring day, a fall field, a winter dusk, rain) that fades with the season and turns down when someone speaks. The top bar has a switch for each.
 
 ## Adding your own art
 
@@ -49,6 +55,8 @@ npm run sim       # plays 20,000 families per play style to show the tuning
 ```
 
 `node tools/playtest.mjs` plays the whole game in headless Chromium and saves screenshots (it needs Playwright).
+
+The voice and sound are made with ElevenLabs and saved in `audio/`, so the game never calls it: `node tools/voice.mjs --all` records any missing lines from `story/vo.mjs`, and `node tools/ambience.mjs` makes any missing outdoor loops and levels them (it needs ffmpeg). Both read your key from `ELEVENLABS_API_KEY`; never commit it.
 
 ## Tuning
 

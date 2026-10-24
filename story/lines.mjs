@@ -206,6 +206,7 @@ export const SCENES = [
   { id: "LEAVE", title: "Leaving, renting", when: "Settling-up choices", lines: [
     P("LEAVE-OWING", "thought", "If we leave owing, his lien takes the crop, the mule, everything we can't carry. No planter in the county will sign me.", { when: "Choosing to leave while in debt" }),
     H("LEAVE-FREE", "Suit yourself. Plenty of men want this place.", { when: "Leaving with no debt" }),
+    P("LEAVE-NOWHERE", "thought", "Leave for where? Every planter in this county keeps the same kind of book, and weighs on the same kind of scale.", { when: "Choosing to leave with no debt" }),
     H("RENT-01", "Renting. Well. You've got the mule and the money. I won't stand in your way.", { when: "Choosing to rent" }),
   ] },
 

@@ -38,6 +38,7 @@ const World = (() => {
   let drag = null;
   let stage = "plan";
   let skyName = "spring";
+  let weatherName = "none";
   let porchY = 0.2;                  // the cabin porch, where Lucy and Mother Ruth stand
   const tinted = [];                 // painted materials that dim at dusk
   const propMeshes = [];             // props that only show in some seasons
@@ -49,9 +50,9 @@ const World = (() => {
     field:  { x: 0, z: 8.6 },
     cabin:  { x: -14, z: 13 },
     store:  { x: 15.9, z: 8.4 },
-    wagon:  { x: 12.5, z: 2 },
-    gin:    { x: 13.6, z: 8 },
-    ginFront: { x: 11.6, z: 5.2 },
+    wagon:  { x: 12.6, z: -2.6 },     // the loaded wagon waits at the field's east end
+    gin:    { x: 12.5, z: 7 },        // the middle of the scale's platform
+    ginFront: { x: 12.2, z: 2.8 },    // where Papa stands to watch the needle, clear of the field
     porch:  { x: 0.6, z: -22.8 },
     school: { x: -24.2, z: -9 },
   };
@@ -121,7 +122,7 @@ const World = (() => {
     { name: "oak", x: -4, z: 22, h: 9 },
     { name: "fieldhand", x: -30, z: 6, h: 1.65 },
     { name: "clothesline", x: -13.4, z: 18.6, h: 1.9, face: SPOTS.home },
-    { name: "baskets", x: 11.4, z: -3.4, h: 1.0, stages: ["ripe", "picked"] },
+    { name: "baskets", x: 11.3, z: 0.6, h: 1.0, stages: ["ripe", "picked"] },
     { name: "bales", x: 21.8, z: 6.2, h: 1.4 },
     { name: "crates", x: 21.2, z: 9.0, h: 1.3 },
     { name: "ledgerTable", x: -0.7, z: -25.9, h: 1.0, y: HILL.h + 0.4, face: SPOTS.porch },
@@ -597,7 +598,7 @@ const World = (() => {
     strip(-16, 12, 16, 12, 2.2);
     strip(0, 12, 0, -14, 2.2);
     strip(0, -14, 0, -23, 2.2);
-    strip(12.5, 12, 12.5, 2, 2);
+    strip(12.5, 12, 12.5, -4, 2);
 
     // the field: 15 one-acre plots, 5 across and 3 deep
     mats.soil = surface(0x7a4e31, "soil", 0xffffff, grain);
@@ -687,19 +688,57 @@ const World = (() => {
     scene.add(sign);
     mats.storeSign = sign;
 
-    // the gin scale
+    // the gin scale: a heavy timber platform set flush in the ground, a cast-iron
+    // dial on a pillar where the man reads the needle, and a tin shed over it all
     const sc = SPOTS.gin;
-    box(2.4, 0.25, 2.4, 0x5a3a24, sc.x, 0, sc.z);
-    box(0.25, 2.6, 0.25, 0x3e2718, sc.x + 1.3, 0, sc.z - 1.3);
-    const dial = new T3.Mesh(new T3.PlaneGeometry(1.1, 1.1), new T3.MeshBasicMaterial({ map: tex.dial, transparent: true, side: T3.DoubleSide }));
-    dial.position.set(sc.x + 1.3, 2.7, sc.z - 1.15);
-    dial.rotation.y = -0.6;
-    scene.add(dial);
-    scaleNeedle = new T3.Mesh(new T3.PlaneGeometry(1.1, 1.1), new T3.MeshBasicMaterial({ map: tex.needle, transparent: true, side: T3.DoubleSide }));
-    scaleNeedle.position.set(0, 0, 0.01);
-    dial.add(scaleNeedle);
+    const iron = lambert(0x2c2c30), brass = lambert(0xa8823a);
+    const timber = surface(0x5a3a24, "wallPlanks", 0x8c7460, grain), deck = surface(0x7a5a3c, "wallPlanks", 0xb8a088, grain);
+    const PW = 3.0, PD = 3.6;                                   // platform width (x) and depth (z)
+    box(PW + 0.5, 0.14, PD + 0.5, 0, sc.x, -0.02, sc.z, { mat: timber });                 // the pit frame
+    for (let i = 0; i < 9; i++) {                                                        // deck planks, with gaps
+      const w = PD / 9 - 0.03;
+      box(PW, 0.08, w, 0, sc.x, 0.1, sc.z - PD / 2 + (i + 0.5) * (PD / 9), { mat: deck });
+    }
+    for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.34, 0.03, 0.34, 0, sc.x + cx * (PW / 2 + 0.04), 0.12, sc.z + cz * (PD / 2 + 0.04), { mat: iron });
+    // the dial pillar, at the platform's west side, facing where Papa stands
+    const dp = { x: sc.x - PW / 2 - 0.55, z: sc.z - 0.9 };
+    const pillar = new T3.Group();
+    pillar.position.set(dp.x, 0, dp.z);
+    pillar.rotation.y = Math.atan2(SPOTS.ginFront.x - dp.x, SPOTS.ginFront.z - dp.z);
+    const pm = (geo, mat, y) => { const m = new T3.Mesh(geo, mat); m.position.y = y; pillar.add(m); return m; };
+    pm(new T3.BoxGeometry(0.62, 0.22, 0.62), iron, 0.11);                                // plinth
+    pm(new T3.CylinderGeometry(0.2, 0.26, 0.24, 16), iron, 0.34);                        // base
+    pm(new T3.CylinderGeometry(0.1, 0.13, 1.25, 16), iron, 1.07);                        // column
+    pm(new T3.CylinderGeometry(0.2, 0.12, 0.16, 16), iron, 1.75);                        // capital
+    const housing = pm(new T3.CylinderGeometry(0.52, 0.52, 0.2, 40), iron, 2.32);         // the dial's iron case
+    housing.rotation.x = Math.PI / 2;
+    const rim = pm(new T3.TorusGeometry(0.5, 0.045, 8, 48), brass, 2.32); rim.position.z = 0.1;
+    const face = new T3.Mesh(new T3.CircleGeometry(0.47, 48), new T3.MeshBasicMaterial({ map: tex.dial }));
+    face.position.set(0, 2.32, 0.105); pillar.add(face); tinted.push(face.material);
+    scaleNeedle = new T3.Mesh(new T3.PlaneGeometry(0.94, 0.94), new T3.MeshBasicMaterial({ map: tex.needle, transparent: true }));
+    scaleNeedle.position.set(0, 2.32, 0.115); pillar.add(scaleNeedle);
     scaleNeedle.rotation.z = Math.PI * 0.6;
-    colliders.push([sc.x - 1.2, sc.z - 1.2, sc.x + 1.5, sc.z + 1.2]);
+    pm(new T3.SphereGeometry(0.07, 12, 8), brass, 2.32).position.z = 0.13;              // the needle's boss
+    const lever = pm(new T3.BoxGeometry(0.08, 0.08, PW / 2), iron, 0.08);                // linkage to the platform
+    lever.position.z = -PW / 4; lever.rotation.y = 0;
+    scene.add(pillar);
+    // a tin shed over the scale, open on all sides
+    const SH = 3.7, slope = 0.5;
+    for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const h = SH - (cz > 0 ? slope : 0);
+      box(0.16, h, 0.16, 0, sc.x + cx * (PW / 2 + 0.35), 0, sc.z + cz * (PD / 2 + 0.35), { mat: timber });
+    }
+    for (const cz of [-1, 1]) box(PW + 0.9, 0.16, 0.16, 0, sc.x, SH - (cz > 0 ? slope : 0) - 0.16, sc.z + cz * (PD / 2 + 0.35), { mat: timber });
+    const shedRoof = new T3.Mesh(new T3.BoxGeometry(PW + 1.5, 0.05, PD + 1.6), surface(0x8a8a86, "roofTin"));
+    if (shedRoof.material.userData.painted) boxUV(shedRoof.geometry, PW + 1.5, 0.05, PD + 1.6);
+    shedRoof.position.set(sc.x, SH - slope / 2 + 0.03, sc.z);
+    shedRoof.rotation.x = Math.atan2(slope, PD + 0.7);
+    scene.add(shedRoof);
+    colliders.push([dp.x - 0.35, dp.z - 0.35, dp.x + 0.35, dp.z + 0.35]);
+    for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const px = sc.x + cx * (PW / 2 + 0.35), pz = sc.z + cz * (PD / 2 + 0.35);
+      colliders.push([px - 0.12, pz - 0.12, px + 0.12, pz + 0.12]);
+    }
 
     // the big house on the hill: its front and open porch face down the hill (+z)
     const bhFront = { x: 0, y: HILL.h, z: -26.1 };
@@ -784,18 +823,63 @@ const World = (() => {
     muleCut.userData.home = muleCut.position.clone();
     clickables.push(muleCut);
 
-    // the wagon
+    // the wagon: a plank farm wagon on spoked wheels, its tongue forward (-z)
     wagon = new T3.Group();
-    const bed = new T3.Mesh(new T3.BoxGeometry(1.6, 0.5, 2.6), lambert(0x7a4a2e));
-    bed.position.y = 0.9; wagon.add(bed);
-    for (const [wx, wz] of [[-0.85, -0.9], [0.85, -0.9], [-0.85, 0.9], [0.85, 0.9]]) {
-      const wh = new T3.Mesh(new T3.CylinderGeometry(0.5, 0.5, 0.12, 12), lambert(0x3e2718));
-      wh.rotation.z = Math.PI / 2; wh.position.set(wx, 0.5, wz); wagon.add(wh);
+    const wood = surface(0x7d5a3c, "wallPlanks", 0xcdb69a, grain), dark = lambert(0x3e2a1c), ironW = lambert(0x262628);
+    const part = (w, h, d, mat, x, y, z, parentG = wagon) => {
+      const geo = new T3.BoxGeometry(w, h, d);
+      if (mat.userData.painted) boxUV(geo, w, h, d);
+      const m = new T3.Mesh(geo, mat); m.position.set(x, y, z); parentG.add(m); return m;
+    };
+    const wheel = (r, x, z) => {
+      const g = new T3.Group(), spin = new T3.Group();   // spin turns as the wagon rolls
+      g.add(spin);
+      spin.add(new T3.Mesh(new T3.TorusGeometry(r, 0.03, 6, 36), ironW));                       // iron tire
+      spin.add(new T3.Mesh(new T3.TorusGeometry(r - 0.06, 0.05, 6, 36), dark));                 // wooden felloe
+      const hub = new T3.Mesh(new T3.CylinderGeometry(0.09, 0.11, 0.24, 12), dark); hub.rotation.x = Math.PI / 2; spin.add(hub);
+      for (let i = 0; i < 12; i++) {                                                            // spokes
+        const sp = new T3.Mesh(new T3.BoxGeometry(0.035, r - 0.1, 0.03), dark);
+        const a = (i / 12) * Math.PI * 2;
+        sp.position.set(Math.sin(a) * (r - 0.1) / 2, Math.cos(a) * (r - 0.1) / 2, 0); sp.rotation.z = -a; spin.add(sp);
+      }
+      g.rotation.y = Math.PI / 2;
+      g.position.set(x, r, z);
+      wagon.add(g);
+      spin.userData.r = r;
+      return spin;
+    };
+    const RR = 0.58, FR = 0.45, TRACK = 0.9, REAR = 0.95, FRONT = -1.0;
+    wagon.userData.wheels = [wheel(RR, -TRACK, REAR), wheel(RR, TRACK, REAR), wheel(FR, -TRACK, FRONT), wheel(FR, TRACK, FRONT)];
+    part(TRACK * 2 + 0.2, 0.08, 0.08, dark, 0, RR, REAR); part(TRACK * 2 + 0.2, 0.08, 0.08, dark, 0, FR, FRONT);     // axles
+    part(1.2, 0.16, 0.14, wood, 0, 0.86, REAR); part(1.2, 0.16, 0.14, wood, 0, 0.86, FRONT);                   // bolsters
+    part(0.1, 0.08, 2.1, dark, 0, 0.62, (REAR + FRONT) / 2);                                                    // reach
+    // the box: floor, two-board sides with stakes, end gates, and a seat
+    const BW = 1.12, BL = 3.0, FL = 0.98;
+    part(BW, 0.06, BL, wood, 0, FL, 0);
+    for (const sx of [-1, 1]) {
+      for (const [y, hgt] of [[FL + 0.17, 0.26], [FL + 0.46, 0.24]]) part(0.05, hgt, BL, wood, sx * BW / 2, y, 0);
+      for (const z of [-1.2, -0.4, 0.4, 1.2]) part(0.07, 0.7, 0.07, dark, sx * (BW / 2 + 0.05), FL + 0.3, z);
     }
+    for (const z of [-BL / 2, BL / 2]) part(BW, 0.56, 0.05, wood, 0, FL + 0.3, z);
+    part(BW - 0.1, 0.05, 0.36, wood, 0, FL + 0.66, -1.05);                                                     // seat
+    for (const sx of [-1, 1]) part(0.05, 0.3, 0.3, dark, sx * (BW / 2 - 0.1), FL + 0.5, -1.05);
+    // the tongue and doubletree, where the mule is hitched
+    const tongue = part(0.09, 0.09, 1.9, dark, 0, 0.55, FRONT - 0.95);
+    tongue.rotation.x = -0.12;
+    part(1.0, 0.07, 0.07, dark, 0, 0.45, FRONT - 1.75);
     wagon.userData.bales = [];
     wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z);
     wagon.visible = false;
     scene.add(wagon);
+    // the bales wear the painted bale's own burlap and ties, if there is one
+    if (tex.prop_bales) {
+      const img = tex.prop_bales.image, c = document.createElement("canvas");
+      c.width = Math.round(img.width * 0.3); c.height = Math.round(img.height * 0.66);
+      c.getContext("2d").drawImage(img, img.width * 0.1, img.height * 0.14, c.width, c.height, 0, 0, c.width, c.height);
+      const t = new T3.CanvasTexture(c); t.colorSpace = T3.SRGBColorSpace;
+      mats.bale = lambert(0xffffff, t);
+    } else mats.bale = lambert(0xc9a77a);
+    mats.baleTie = lambert(0x3a3030);
 
     // the flag that marks where to go next
     flag = cutout("flag", HEIGHTS.flag, 0, 0, { blob: false });
@@ -943,11 +1027,13 @@ const World = (() => {
 
     // the wagon follows behind Papa once it is hitched
     if (wagonFollow) {
-      const bx = pos.x + Math.sin(look.yaw) * 3.4, bz = pos.z + Math.cos(look.yaw) * 3.4;
+      const bx = pos.x + Math.sin(look.yaw) * 5.4, bz = pos.z + Math.cos(look.yaw) * 5.4;
       const k = Math.min(1, dt * 3);
       wagon.position.x += (bx - wagon.position.x) * k;
       wagon.position.z += (bz - wagon.position.z) * k;
+      const moved = Math.hypot(bx - wagon.position.x, bz - wagon.position.z) * k;
       wagon.rotation.y += angleDiff(look.yaw, wagon.rotation.y) * k;
+      rollWheels(moved);
       // the mule walks just ahead of Papa, on his right, where he can see it
       muleCut.position.set(pos.x - Math.sin(look.yaw) * 3.4 + Math.cos(look.yaw) * 2.2, 0, pos.z - Math.cos(look.yaw) * 3.4 - Math.sin(look.yaw) * 2.2);
     }
@@ -1009,6 +1095,10 @@ const World = (() => {
   function tween(dur, fn, done) {
     if (reduceMotion) { fn(1, 1); done?.(); return; }
     tweens.push({ t: 0, dur, fn, done });
+  }
+  // turn the wagon wheels as it moves
+  function rollWheels(dist) {
+    (wagon.userData.wheels || []).forEach((spin) => { spin.rotation.z -= dist / spin.userData.r; });
   }
   function pop(g) {
     tween(0.3, (k, raw) => { const b = 1 + Math.sin(raw * Math.PI) * 0.22; g.scale.set(b, b, b); }, () => g.scale.set(1, 1, 1));
@@ -1094,6 +1184,7 @@ const World = (() => {
     tinted.forEach((m) => m.color.setHex(tint));
     Object.keys(mats).forEach((k) => { if (k.startsWith("plant_")) mats[k].color.setHex(tint); });
     showProps();
+    handlers.sky?.(skyName, weatherName);
   }
   // Seasonal props: cotton baskets at harvest, the lantern at settling time.
   function showProps() {
@@ -1229,13 +1320,15 @@ const World = (() => {
       refreshPlants();
     },
     progress() { return ok ? progress() : 1; },
-    setSky(name) { if (ok) setSky(name); },
+    setSky(name) { if (ok) setSky(name); else { skyName = name; handlers.sky?.(skyName, weatherName); } },
     setWeather(w) {
-      if (!ok) return;
+      weatherName = w;
+      if (!ok) { handlers.sky?.(skyName, weatherName); return; }
       rain.visible = w === "rain";
       flood.visible = w === "flood";
       plots.forEach((p) => p.plants.forEach((pl) => { if (p.corn && w === "flood") pl.group.visible = false; }));
       if (w === "drought") setSky("drought");
+      else handlers.sky?.(skyName, weatherName);
     },
     setFlags({ mule: muleState, school: schoolOn } = {}) {
       if (!ok) return;
@@ -1266,19 +1359,24 @@ const World = (() => {
       if (!ok) return;
       wagon.userData.bales.forEach((b) => wagon.remove(b));
       wagon.userData.bales = [];
+      // bales laid flat, two across and two along, then a second layer
       const n = Math.max(1, Math.round(bales));
       for (let i = 0; i < n; i++) {
-        const b = new T3.Mesh(new T3.BoxGeometry(0.6, 0.6, 0.75), lambert(0xf6efdf));
-        b.position.set((i % 2) * 0.66 - 0.33, 1.45 + Math.floor(i / 4) * 0.62, -0.8 + (Math.floor(i / 2) % 2) * 0.8);
-        b.add(new T3.Mesh(new T3.BoxGeometry(0.62, 0.62, 0.06), lambert(0x4f2f1d)));
+        const b = new T3.Mesh(new T3.BoxGeometry(0.5, 0.48, 1.0), mats.bale);
+        const layer = Math.floor(i / 4), slot = i % 4;
+        b.position.set((slot % 2) * 0.52 - 0.26, 1.25 + layer * 0.49, -0.1 + Math.floor(slot / 2) * 1.04);
+        for (const z of [-0.3, 0, 0.3]) {
+          const tie = new T3.Mesh(new T3.BoxGeometry(0.52, 0.5, 0.03), mats.baleTie);
+          tie.position.z = z; b.add(tie);
+        }
         wagon.add(b);
         wagon.userData.bales.push(b);
       }
-      wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z - 1.6);
+      wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z - 1.2);
       wagon.rotation.y = 0;
       wagon.visible = true;
       muleCut.visible = true;
-      muleCut.position.set(SPOTS.wagon.x + 1.6, 0, SPOTS.wagon.z - 3);
+      muleCut.position.set(SPOTS.wagon.x + 0.7, 0, SPOTS.wagon.z - 1.2 - 3.4);   // at the end of the tongue
       scaleNeedle.rotation.z = Math.PI * 0.6;
     },
     hitchWagon() { if (ok) wagonFollow = true; },
@@ -1286,12 +1384,24 @@ const World = (() => {
     weigh(scaleLbs, maxLbs) {
       if (!ok) return Promise.resolve();
       wagonFollow = false;
-      wagon.position.set(SPOTS.gin.x, 0.25, SPOTS.gin.z);
-      wagon.rotation.y = 0;
-      muleCut.position.set(SPOTS.gin.x - 0.2, 0, SPOTS.gin.z - 2.6);
+      // the wagon rolls onto the platform, the mule beyond it; Papa turns to the dial
+      wagon.position.set(SPOTS.gin.x, 0.18, SPOTS.gin.z + 0.2);   // on top of the deck planks
+      wagon.rotation.y = Math.PI;
+      muleCut.position.set(SPOTS.gin.x + 0.5, 0, SPOTS.gin.z + 3.8);
+      // look between the dial and the loaded wagon, nearer the dial, so both are in view
+      const dial = scaleNeedle.parent;
+      const tx = dial.position.x * 0.62 + SPOTS.gin.x * 0.38, tz = dial.position.z * 0.62 + SPOTS.gin.z * 0.38;
+      const want = Math.atan2(-(tx - pos.x), -(tz - pos.z));
+      const y0 = look.yaw, p0 = look.pitch, dy = angleDiff(want, y0);
+      tween(0.9, (k) => { look.yaw = y0 + dy * k; look.pitch = p0 + (0.05 - p0) * k; });
       return new Promise((resolve) => {
         const frac = Math.min(1, scaleLbs / maxLbs);
-        tween(2, (k) => { scaleNeedle.rotation.z = Math.PI * 0.6 - k * frac * Math.PI * 1.4; }, resolve);
+        const rest = Math.PI * 0.6, to = rest - frac * Math.PI * 1.4;
+        // the needle swings past, wobbles, and settles, the way a spring dial does
+        setTimeout(() => tween(2.4, (k, raw) => {
+          const wob = Math.sin(raw * Math.PI * 3) * Math.exp(-raw * 3) * 0.18;
+          scaleNeedle.rotation.z = rest + (to - rest) * k - wob;
+        }, resolve), 600);
       });
     },
     resetWagon() {

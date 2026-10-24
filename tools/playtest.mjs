@@ -127,14 +127,25 @@ for (let year = 0; year < 5; year++) {
   if (year === 0 && worldOk) { await walkTo(-10.5, 6.6); await walkTo(-2, 6.6); await shot("harvest-rows"); }
   await walkRows();
   await followFlag("wagon");
-  if (year === 0 && worldOk) { await walkTo(10.4, 2.4); await shot("leading-wagon"); }
+  if (year === 0 && worldOk) { await walkTo(12.4, 0.6); await shot("leading-wagon"); }
   await followFlag("gin");
   await page.waitForSelector("#to-settle", { timeout: 30000 });
   if (year === 0) await shot("scale");
   await page.click("#to-settle");
   await followFlag("porch");
   await page.waitForSelector(".settle [data-act]", { timeout: 30000 });
+  await sleep(year === 0 ? 4500 : 0);   // let the book add itself up
   await shot(`settle-${1869 + year}`);
+  // Leaving is offered but never allowed: it stays this year and the next.
+  if (year === 0) {
+    const before = await page.evaluate(() => SettlingUp.Game.g.yearIndex);
+    await page.click('[data-act="leave"]');
+    await page.waitForSelector('[data-act="leave"][disabled]', { timeout: 5000 });
+    await shot("leave-blocked");
+    const after = await page.evaluate(() => ({ i: SettlingUp.Game.g.yearIndex, end: SettlingUp.Game.g.ending }));
+    if (after.i !== before || after.end) throw new Error("Leaving moved the story on: " + JSON.stringify(after));
+    console.log("Leaving is offered and refused: yes");
+  }
   if (year === 1 && await page.$('[data-act="demand"]')) {
     await page.click('[data-act="demand"]');
     await page.waitForSelector('.settle [data-act]:not([disabled])', { timeout: 30000 });
@@ -169,6 +180,7 @@ await page.setViewportSize({ width: 400, height: 820 });
 await shot("phone-final");
 const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
 console.log("Voice lines heard:", await page.evaluate(() => window.__voice));
+console.log("Ambience loop playing:", await page.evaluate(() => SettlingUp.Ambience.cur ? SettlingUp.Ambience.cur.name : "none"));
 console.log("Interlude panels clicked through:", cutscenes);
 console.log("Ending:", await page.evaluate(() => SettlingUp.Game.g.ending));
 console.log("Horizontal overflow at 400px:", overflow);

@@ -293,6 +293,67 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .reveal { border: 1.5px solid var(--red); padding: 12px 14px; background: #F7F2E6; display: flex; flex-direction: column; gap: 6px; }
 .figure-line { font-family: var(--figures); font-weight: 700; }
 .settle-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.leave-why { flex-basis: 100%; }
+.settle-grid { display: grid; gap: 22px; align-items: start; }
+.porch-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+@media (min-width: 900px) { .settle-grid { grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); } }
+
+/* his book: the year added up, line by line */
+.book { background: #F8F3E7; border: 1.5px solid var(--ink); padding: 14px 18px 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: 5px 5px 0 rgba(30,27,24,.14); min-width: 0; }
+.book-h { font-family: var(--hand) !important; font-size: 1.7rem !important; font-weight: 700 !important; text-transform: none !important; font-stretch: normal !important; }
+.book-k { font-weight: 800; text-transform: uppercase; font-size: .72rem; letter-spacing: .08em; color: var(--ink-soft); margin-top: 6px !important; }
+.book-t { width: 100%; border-collapse: collapse; font-family: var(--figures); font-variant-numeric: tabular-nums; }
+.book-t th { text-align: left; font-family: var(--body); font-weight: 600; font-size: .95rem; padding: 5px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+.book-t td { text-align: right; padding: 5px 0 5px 14px; border-bottom: 1px solid var(--rule); white-space: nowrap; font-weight: 700; font-size: 1.02rem; vertical-align: top; }
+.book-t.out td { color: var(--red); }
+.book-t .sub { display: block; font-family: var(--figures); font-weight: 400; font-size: .82rem; color: var(--ink-soft); }
+.book-t .note { display: block; font-family: var(--hand); font-size: 1.15rem; line-height: 1.15; color: var(--red); margin-top: 2px; }
+.book-t tr.sum th, .book-t tr.sum td { border-top: 1.5px solid var(--ink); border-bottom: none; font-weight: 800; font-size: 1.05rem; }
+.book-t tr.sum th { text-transform: uppercase; font-size: .78rem; letter-spacing: .06em; padding-top: 7px; }
+.tally { display: grid; gap: 5px; margin-top: 10px; }
+.t-row { display: grid; grid-template-columns: 5.4em 1fr; align-items: center; gap: 8px; }
+.t-k { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.t-track { position: relative; height: 22px; border-bottom: 1px solid var(--ink-soft); }
+.t-fill { position: absolute; inset: 0 auto 0 0; background: var(--ochre); transform-origin: left center; }
+.t-row.out .t-fill { background: var(--red); }
+.t-gap { position: absolute; top: 0; bottom: 0; transform-origin: left center; border: 2px dashed var(--red);
+  background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--red) 55%, transparent) 0 3px, transparent 3px 8px); }
+.t-gap.ahead { border-color: #4E6B2E; background: repeating-linear-gradient(135deg, color-mix(in srgb, #4E6B2E 55%, transparent) 0 3px, transparent 3px 8px); }
+.book-eq { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin-top: 10px; padding-top: 10px; border-top: 3px double var(--ink);
+  font-family: var(--figures); font-weight: 700; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.book-eq .op { color: var(--ink-soft); }
+.book-eq .res { font-size: 1.7rem; }
+.book-eq .neg, .vs-v.neg, .acct-v.neg, .acct-t .neg { color: var(--red); }
+.book-eq .verdict { font-family: var(--hand); font-size: 1.5rem; font-weight: 700; }
+.versus { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; border: 1.5px solid var(--ink); background: #F8F3E7; padding: 10px 14px; }
+.versus > div { display: flex; flex-direction: column; }
+.vs-k { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-soft); }
+.vs-v { font-family: var(--figures); font-weight: 700; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.vs-gap { grid-column: 1 / -1; font-family: var(--hand); font-size: 1.35rem; color: var(--red); line-height: 1.15; }
+/* the book adds itself up, one line at a time, as he reads it out */
+.settle.anim .book-t tr, .settle.anim .book-eq { animation: book-in .38s ease both; animation-delay: calc(var(--i) * .34s + .3s); }
+.settle.anim .tally .t-fill, .settle.anim .tally .t-gap { animation: book-grow .9s cubic-bezier(.3,.7,.2,1) both; animation-delay: calc(var(--i) * .34s + .3s); }
+.settle.anim .tally .t-gap { animation-delay: calc(var(--i) * .34s + 1.1s); }
+.settle.anim .versus { animation: book-in .5s ease both; animation-delay: 1.2s; }
+@keyframes book-in { from { opacity: 0; transform: translateY(5px); } }
+@keyframes book-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .settle.anim * { animation: none !important; } }
+
+/* Hannah's tally in the top bar */
+#acct { position: relative; font-size: .86rem; }
+#acct summary { cursor: pointer; list-style: none; border: 1.5px solid var(--ink); padding: 3px 10px; background: var(--paper); display: flex; gap: 8px; align-items: baseline; }
+#acct summary::-webkit-details-marker { display: none; }
+#acct summary::after { content: "▾"; font-size: .8em; }
+#acct[open] summary::after { content: "▴"; }
+.acct-k { font-weight: 800; text-transform: uppercase; font-size: .7rem; letter-spacing: .06em; }
+.acct-v { font-family: var(--figures); font-weight: 700; font-variant-numeric: tabular-nums; }
+.acct-body { position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: min(360px, calc(100vw - 32px)); background: #F8F3E7; border: 1.5px solid var(--ink); padding: 10px 12px; box-shadow: 0 14px 30px -12px rgba(30,27,24,.5); }
+.acct-note { margin: 0 0 6px; font-family: var(--hand); font-size: 1.15rem; line-height: 1.1; }
+.acct-t { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.acct-t th { text-align: left; font-weight: 600; padding: 3px 0; border-bottom: 1px solid var(--rule); }
+.acct-t td { text-align: right; font-family: var(--figures); font-weight: 700; padding: 3px 0 3px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.acct-t tr.sum th, .acct-t tr.sum td { border-top: 1.5px solid var(--ink); border-bottom: none; font-weight: 800; }
+.scale-count { margin-top: 8px !important; font-size: .95rem; }
 
 /* audit */
 .ledger-wrap { overflow-x: auto; border: 1.5px solid var(--ink); background: #F7F2E6; max-width: 100%; }
@@ -440,6 +501,8 @@ blockquote.source { margin: 0; padding: 10px 14px; border-left: 4px solid var(--
     <p class="brand">Settling Up</p>
     <ol id="years" aria-label="Crop years"></ol>
     <span id="fam"></span>
+    <details id="acct" hidden><summary></summary><div class="acct-body"></div></details>
+    <button class="topbtn" id="sound-btn" type="button" aria-pressed="true">Sound on</button>
     <button class="topbtn" id="voice-btn" type="button" aria-pressed="true">Voice on</button>
     <button class="topbtn" id="journal-btn" type="button">Journal</button>
   </header>
@@ -1065,6 +1128,7 @@ const SCENES = [
   { id: "LEAVE", title: "Leaving, renting", when: "Settling-up choices", lines: [
     P("LEAVE-OWING", "thought", "If we leave owing, his lien takes the crop, the mule, everything we can't carry. No planter in the county will sign me.", { when: "Choosing to leave while in debt" }),
     H("LEAVE-FREE", "Suit yourself. Plenty of men want this place.", { when: "Leaving with no debt" }),
+    P("LEAVE-NOWHERE", "thought", "Leave for where? Every planter in this county keeps the same kind of book, and weighs on the same kind of scale.", { when: "Choosing to leave with no debt" }),
     H("RENT-01", "Renting. Well. You've got the mule and the money. I won't stand in your way.", { when: "Choosing to rent" }),
   ] },
 
@@ -1641,6 +1705,7 @@ const World = (() => {
   let drag = null;
   let stage = "plan";
   let skyName = "spring";
+  let weatherName = "none";
   let porchY = 0.2;                  // the cabin porch, where Lucy and Mother Ruth stand
   const tinted = [];                 // painted materials that dim at dusk
   const propMeshes = [];             // props that only show in some seasons
@@ -1652,9 +1717,9 @@ const World = (() => {
     field:  { x: 0, z: 8.6 },
     cabin:  { x: -14, z: 13 },
     store:  { x: 15.9, z: 8.4 },
-    wagon:  { x: 12.5, z: 2 },
-    gin:    { x: 13.6, z: 8 },
-    ginFront: { x: 11.6, z: 5.2 },
+    wagon:  { x: 12.6, z: -2.6 },     // the loaded wagon waits at the field's east end
+    gin:    { x: 12.5, z: 7 },        // the middle of the scale's platform
+    ginFront: { x: 12.2, z: 2.8 },    // where Papa stands to watch the needle, clear of the field
     porch:  { x: 0.6, z: -22.8 },
     school: { x: -24.2, z: -9 },
   };
@@ -1724,7 +1789,7 @@ const World = (() => {
     { name: "oak", x: -4, z: 22, h: 9 },
     { name: "fieldhand", x: -30, z: 6, h: 1.65 },
     { name: "clothesline", x: -13.4, z: 18.6, h: 1.9, face: SPOTS.home },
-    { name: "baskets", x: 11.4, z: -3.4, h: 1.0, stages: ["ripe", "picked"] },
+    { name: "baskets", x: 11.3, z: 0.6, h: 1.0, stages: ["ripe", "picked"] },
     { name: "bales", x: 21.8, z: 6.2, h: 1.4 },
     { name: "crates", x: 21.2, z: 9.0, h: 1.3 },
     { name: "ledgerTable", x: -0.7, z: -25.9, h: 1.0, y: HILL.h + 0.4, face: SPOTS.porch },
@@ -2200,7 +2265,7 @@ const World = (() => {
     strip(-16, 12, 16, 12, 2.2);
     strip(0, 12, 0, -14, 2.2);
     strip(0, -14, 0, -23, 2.2);
-    strip(12.5, 12, 12.5, 2, 2);
+    strip(12.5, 12, 12.5, -4, 2);
 
     // the field: 15 one-acre plots, 5 across and 3 deep
     mats.soil = surface(0x7a4e31, "soil", 0xffffff, grain);
@@ -2290,19 +2355,57 @@ const World = (() => {
     scene.add(sign);
     mats.storeSign = sign;
 
-    // the gin scale
+    // the gin scale: a heavy timber platform set flush in the ground, a cast-iron
+    // dial on a pillar where the man reads the needle, and a tin shed over it all
     const sc = SPOTS.gin;
-    box(2.4, 0.25, 2.4, 0x5a3a24, sc.x, 0, sc.z);
-    box(0.25, 2.6, 0.25, 0x3e2718, sc.x + 1.3, 0, sc.z - 1.3);
-    const dial = new T3.Mesh(new T3.PlaneGeometry(1.1, 1.1), new T3.MeshBasicMaterial({ map: tex.dial, transparent: true, side: T3.DoubleSide }));
-    dial.position.set(sc.x + 1.3, 2.7, sc.z - 1.15);
-    dial.rotation.y = -0.6;
-    scene.add(dial);
-    scaleNeedle = new T3.Mesh(new T3.PlaneGeometry(1.1, 1.1), new T3.MeshBasicMaterial({ map: tex.needle, transparent: true, side: T3.DoubleSide }));
-    scaleNeedle.position.set(0, 0, 0.01);
-    dial.add(scaleNeedle);
+    const iron = lambert(0x2c2c30), brass = lambert(0xa8823a);
+    const timber = surface(0x5a3a24, "wallPlanks", 0x8c7460, grain), deck = surface(0x7a5a3c, "wallPlanks", 0xb8a088, grain);
+    const PW = 3.0, PD = 3.6;                                   // platform width (x) and depth (z)
+    box(PW + 0.5, 0.14, PD + 0.5, 0, sc.x, -0.02, sc.z, { mat: timber });                 // the pit frame
+    for (let i = 0; i < 9; i++) {                                                        // deck planks, with gaps
+      const w = PD / 9 - 0.03;
+      box(PW, 0.08, w, 0, sc.x, 0.1, sc.z - PD / 2 + (i + 0.5) * (PD / 9), { mat: deck });
+    }
+    for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) box(0.34, 0.03, 0.34, 0, sc.x + cx * (PW / 2 + 0.04), 0.12, sc.z + cz * (PD / 2 + 0.04), { mat: iron });
+    // the dial pillar, at the platform's west side, facing where Papa stands
+    const dp = { x: sc.x - PW / 2 - 0.55, z: sc.z - 0.9 };
+    const pillar = new T3.Group();
+    pillar.position.set(dp.x, 0, dp.z);
+    pillar.rotation.y = Math.atan2(SPOTS.ginFront.x - dp.x, SPOTS.ginFront.z - dp.z);
+    const pm = (geo, mat, y) => { const m = new T3.Mesh(geo, mat); m.position.y = y; pillar.add(m); return m; };
+    pm(new T3.BoxGeometry(0.62, 0.22, 0.62), iron, 0.11);                                // plinth
+    pm(new T3.CylinderGeometry(0.2, 0.26, 0.24, 16), iron, 0.34);                        // base
+    pm(new T3.CylinderGeometry(0.1, 0.13, 1.25, 16), iron, 1.07);                        // column
+    pm(new T3.CylinderGeometry(0.2, 0.12, 0.16, 16), iron, 1.75);                        // capital
+    const housing = pm(new T3.CylinderGeometry(0.52, 0.52, 0.2, 40), iron, 2.32);         // the dial's iron case
+    housing.rotation.x = Math.PI / 2;
+    const rim = pm(new T3.TorusGeometry(0.5, 0.045, 8, 48), brass, 2.32); rim.position.z = 0.1;
+    const face = new T3.Mesh(new T3.CircleGeometry(0.47, 48), new T3.MeshBasicMaterial({ map: tex.dial }));
+    face.position.set(0, 2.32, 0.105); pillar.add(face); tinted.push(face.material);
+    scaleNeedle = new T3.Mesh(new T3.PlaneGeometry(0.94, 0.94), new T3.MeshBasicMaterial({ map: tex.needle, transparent: true }));
+    scaleNeedle.position.set(0, 2.32, 0.115); pillar.add(scaleNeedle);
     scaleNeedle.rotation.z = Math.PI * 0.6;
-    colliders.push([sc.x - 1.2, sc.z - 1.2, sc.x + 1.5, sc.z + 1.2]);
+    pm(new T3.SphereGeometry(0.07, 12, 8), brass, 2.32).position.z = 0.13;              // the needle's boss
+    const lever = pm(new T3.BoxGeometry(0.08, 0.08, PW / 2), iron, 0.08);                // linkage to the platform
+    lever.position.z = -PW / 4; lever.rotation.y = 0;
+    scene.add(pillar);
+    // a tin shed over the scale, open on all sides
+    const SH = 3.7, slope = 0.5;
+    for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const h = SH - (cz > 0 ? slope : 0);
+      box(0.16, h, 0.16, 0, sc.x + cx * (PW / 2 + 0.35), 0, sc.z + cz * (PD / 2 + 0.35), { mat: timber });
+    }
+    for (const cz of [-1, 1]) box(PW + 0.9, 0.16, 0.16, 0, sc.x, SH - (cz > 0 ? slope : 0) - 0.16, sc.z + cz * (PD / 2 + 0.35), { mat: timber });
+    const shedRoof = new T3.Mesh(new T3.BoxGeometry(PW + 1.5, 0.05, PD + 1.6), surface(0x8a8a86, "roofTin"));
+    if (shedRoof.material.userData.painted) boxUV(shedRoof.geometry, PW + 1.5, 0.05, PD + 1.6);
+    shedRoof.position.set(sc.x, SH - slope / 2 + 0.03, sc.z);
+    shedRoof.rotation.x = Math.atan2(slope, PD + 0.7);
+    scene.add(shedRoof);
+    colliders.push([dp.x - 0.35, dp.z - 0.35, dp.x + 0.35, dp.z + 0.35]);
+    for (const [cx, cz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+      const px = sc.x + cx * (PW / 2 + 0.35), pz = sc.z + cz * (PD / 2 + 0.35);
+      colliders.push([px - 0.12, pz - 0.12, px + 0.12, pz + 0.12]);
+    }
 
     // the big house on the hill: its front and open porch face down the hill (+z)
     const bhFront = { x: 0, y: HILL.h, z: -26.1 };
@@ -2387,18 +2490,63 @@ const World = (() => {
     muleCut.userData.home = muleCut.position.clone();
     clickables.push(muleCut);
 
-    // the wagon
+    // the wagon: a plank farm wagon on spoked wheels, its tongue forward (-z)
     wagon = new T3.Group();
-    const bed = new T3.Mesh(new T3.BoxGeometry(1.6, 0.5, 2.6), lambert(0x7a4a2e));
-    bed.position.y = 0.9; wagon.add(bed);
-    for (const [wx, wz] of [[-0.85, -0.9], [0.85, -0.9], [-0.85, 0.9], [0.85, 0.9]]) {
-      const wh = new T3.Mesh(new T3.CylinderGeometry(0.5, 0.5, 0.12, 12), lambert(0x3e2718));
-      wh.rotation.z = Math.PI / 2; wh.position.set(wx, 0.5, wz); wagon.add(wh);
+    const wood = surface(0x7d5a3c, "wallPlanks", 0xcdb69a, grain), dark = lambert(0x3e2a1c), ironW = lambert(0x262628);
+    const part = (w, h, d, mat, x, y, z, parentG = wagon) => {
+      const geo = new T3.BoxGeometry(w, h, d);
+      if (mat.userData.painted) boxUV(geo, w, h, d);
+      const m = new T3.Mesh(geo, mat); m.position.set(x, y, z); parentG.add(m); return m;
+    };
+    const wheel = (r, x, z) => {
+      const g = new T3.Group(), spin = new T3.Group();   // spin turns as the wagon rolls
+      g.add(spin);
+      spin.add(new T3.Mesh(new T3.TorusGeometry(r, 0.03, 6, 36), ironW));                       // iron tire
+      spin.add(new T3.Mesh(new T3.TorusGeometry(r - 0.06, 0.05, 6, 36), dark));                 // wooden felloe
+      const hub = new T3.Mesh(new T3.CylinderGeometry(0.09, 0.11, 0.24, 12), dark); hub.rotation.x = Math.PI / 2; spin.add(hub);
+      for (let i = 0; i < 12; i++) {                                                            // spokes
+        const sp = new T3.Mesh(new T3.BoxGeometry(0.035, r - 0.1, 0.03), dark);
+        const a = (i / 12) * Math.PI * 2;
+        sp.position.set(Math.sin(a) * (r - 0.1) / 2, Math.cos(a) * (r - 0.1) / 2, 0); sp.rotation.z = -a; spin.add(sp);
+      }
+      g.rotation.y = Math.PI / 2;
+      g.position.set(x, r, z);
+      wagon.add(g);
+      spin.userData.r = r;
+      return spin;
+    };
+    const RR = 0.58, FR = 0.45, TRACK = 0.9, REAR = 0.95, FRONT = -1.0;
+    wagon.userData.wheels = [wheel(RR, -TRACK, REAR), wheel(RR, TRACK, REAR), wheel(FR, -TRACK, FRONT), wheel(FR, TRACK, FRONT)];
+    part(TRACK * 2 + 0.2, 0.08, 0.08, dark, 0, RR, REAR); part(TRACK * 2 + 0.2, 0.08, 0.08, dark, 0, FR, FRONT);     // axles
+    part(1.2, 0.16, 0.14, wood, 0, 0.86, REAR); part(1.2, 0.16, 0.14, wood, 0, 0.86, FRONT);                   // bolsters
+    part(0.1, 0.08, 2.1, dark, 0, 0.62, (REAR + FRONT) / 2);                                                    // reach
+    // the box: floor, two-board sides with stakes, end gates, and a seat
+    const BW = 1.12, BL = 3.0, FL = 0.98;
+    part(BW, 0.06, BL, wood, 0, FL, 0);
+    for (const sx of [-1, 1]) {
+      for (const [y, hgt] of [[FL + 0.17, 0.26], [FL + 0.46, 0.24]]) part(0.05, hgt, BL, wood, sx * BW / 2, y, 0);
+      for (const z of [-1.2, -0.4, 0.4, 1.2]) part(0.07, 0.7, 0.07, dark, sx * (BW / 2 + 0.05), FL + 0.3, z);
     }
+    for (const z of [-BL / 2, BL / 2]) part(BW, 0.56, 0.05, wood, 0, FL + 0.3, z);
+    part(BW - 0.1, 0.05, 0.36, wood, 0, FL + 0.66, -1.05);                                                     // seat
+    for (const sx of [-1, 1]) part(0.05, 0.3, 0.3, dark, sx * (BW / 2 - 0.1), FL + 0.5, -1.05);
+    // the tongue and doubletree, where the mule is hitched
+    const tongue = part(0.09, 0.09, 1.9, dark, 0, 0.55, FRONT - 0.95);
+    tongue.rotation.x = -0.12;
+    part(1.0, 0.07, 0.07, dark, 0, 0.45, FRONT - 1.75);
     wagon.userData.bales = [];
     wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z);
     wagon.visible = false;
     scene.add(wagon);
+    // the bales wear the painted bale's own burlap and ties, if there is one
+    if (tex.prop_bales) {
+      const img = tex.prop_bales.image, c = document.createElement("canvas");
+      c.width = Math.round(img.width * 0.3); c.height = Math.round(img.height * 0.66);
+      c.getContext("2d").drawImage(img, img.width * 0.1, img.height * 0.14, c.width, c.height, 0, 0, c.width, c.height);
+      const t = new T3.CanvasTexture(c); t.colorSpace = T3.SRGBColorSpace;
+      mats.bale = lambert(0xffffff, t);
+    } else mats.bale = lambert(0xc9a77a);
+    mats.baleTie = lambert(0x3a3030);
 
     // the flag that marks where to go next
     flag = cutout("flag", HEIGHTS.flag, 0, 0, { blob: false });
@@ -2546,11 +2694,13 @@ const World = (() => {
 
     // the wagon follows behind Papa once it is hitched
     if (wagonFollow) {
-      const bx = pos.x + Math.sin(look.yaw) * 3.4, bz = pos.z + Math.cos(look.yaw) * 3.4;
+      const bx = pos.x + Math.sin(look.yaw) * 5.4, bz = pos.z + Math.cos(look.yaw) * 5.4;
       const k = Math.min(1, dt * 3);
       wagon.position.x += (bx - wagon.position.x) * k;
       wagon.position.z += (bz - wagon.position.z) * k;
+      const moved = Math.hypot(bx - wagon.position.x, bz - wagon.position.z) * k;
       wagon.rotation.y += angleDiff(look.yaw, wagon.rotation.y) * k;
+      rollWheels(moved);
       // the mule walks just ahead of Papa, on his right, where he can see it
       muleCut.position.set(pos.x - Math.sin(look.yaw) * 3.4 + Math.cos(look.yaw) * 2.2, 0, pos.z - Math.cos(look.yaw) * 3.4 - Math.sin(look.yaw) * 2.2);
     }
@@ -2612,6 +2762,10 @@ const World = (() => {
   function tween(dur, fn, done) {
     if (reduceMotion) { fn(1, 1); done?.(); return; }
     tweens.push({ t: 0, dur, fn, done });
+  }
+  // turn the wagon wheels as it moves
+  function rollWheels(dist) {
+    (wagon.userData.wheels || []).forEach((spin) => { spin.rotation.z -= dist / spin.userData.r; });
   }
   function pop(g) {
     tween(0.3, (k, raw) => { const b = 1 + Math.sin(raw * Math.PI) * 0.22; g.scale.set(b, b, b); }, () => g.scale.set(1, 1, 1));
@@ -2697,6 +2851,7 @@ const World = (() => {
     tinted.forEach((m) => m.color.setHex(tint));
     Object.keys(mats).forEach((k) => { if (k.startsWith("plant_")) mats[k].color.setHex(tint); });
     showProps();
+    handlers.sky?.(skyName, weatherName);
   }
   // Seasonal props: cotton baskets at harvest, the lantern at settling time.
   function showProps() {
@@ -2832,13 +2987,15 @@ const World = (() => {
       refreshPlants();
     },
     progress() { return ok ? progress() : 1; },
-    setSky(name) { if (ok) setSky(name); },
+    setSky(name) { if (ok) setSky(name); else { skyName = name; handlers.sky?.(skyName, weatherName); } },
     setWeather(w) {
-      if (!ok) return;
+      weatherName = w;
+      if (!ok) { handlers.sky?.(skyName, weatherName); return; }
       rain.visible = w === "rain";
       flood.visible = w === "flood";
       plots.forEach((p) => p.plants.forEach((pl) => { if (p.corn && w === "flood") pl.group.visible = false; }));
       if (w === "drought") setSky("drought");
+      else handlers.sky?.(skyName, weatherName);
     },
     setFlags({ mule: muleState, school: schoolOn } = {}) {
       if (!ok) return;
@@ -2869,19 +3026,24 @@ const World = (() => {
       if (!ok) return;
       wagon.userData.bales.forEach((b) => wagon.remove(b));
       wagon.userData.bales = [];
+      // bales laid flat, two across and two along, then a second layer
       const n = Math.max(1, Math.round(bales));
       for (let i = 0; i < n; i++) {
-        const b = new T3.Mesh(new T3.BoxGeometry(0.6, 0.6, 0.75), lambert(0xf6efdf));
-        b.position.set((i % 2) * 0.66 - 0.33, 1.45 + Math.floor(i / 4) * 0.62, -0.8 + (Math.floor(i / 2) % 2) * 0.8);
-        b.add(new T3.Mesh(new T3.BoxGeometry(0.62, 0.62, 0.06), lambert(0x4f2f1d)));
+        const b = new T3.Mesh(new T3.BoxGeometry(0.5, 0.48, 1.0), mats.bale);
+        const layer = Math.floor(i / 4), slot = i % 4;
+        b.position.set((slot % 2) * 0.52 - 0.26, 1.25 + layer * 0.49, -0.1 + Math.floor(slot / 2) * 1.04);
+        for (const z of [-0.3, 0, 0.3]) {
+          const tie = new T3.Mesh(new T3.BoxGeometry(0.52, 0.5, 0.03), mats.baleTie);
+          tie.position.z = z; b.add(tie);
+        }
         wagon.add(b);
         wagon.userData.bales.push(b);
       }
-      wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z - 1.6);
+      wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z - 1.2);
       wagon.rotation.y = 0;
       wagon.visible = true;
       muleCut.visible = true;
-      muleCut.position.set(SPOTS.wagon.x + 1.6, 0, SPOTS.wagon.z - 3);
+      muleCut.position.set(SPOTS.wagon.x + 0.7, 0, SPOTS.wagon.z - 1.2 - 3.4);   // at the end of the tongue
       scaleNeedle.rotation.z = Math.PI * 0.6;
     },
     hitchWagon() { if (ok) wagonFollow = true; },
@@ -2889,12 +3051,24 @@ const World = (() => {
     weigh(scaleLbs, maxLbs) {
       if (!ok) return Promise.resolve();
       wagonFollow = false;
-      wagon.position.set(SPOTS.gin.x, 0.25, SPOTS.gin.z);
-      wagon.rotation.y = 0;
-      muleCut.position.set(SPOTS.gin.x - 0.2, 0, SPOTS.gin.z - 2.6);
+      // the wagon rolls onto the platform, the mule beyond it; Papa turns to the dial
+      wagon.position.set(SPOTS.gin.x, 0.18, SPOTS.gin.z + 0.2);   // on top of the deck planks
+      wagon.rotation.y = Math.PI;
+      muleCut.position.set(SPOTS.gin.x + 0.5, 0, SPOTS.gin.z + 3.8);
+      // look between the dial and the loaded wagon, nearer the dial, so both are in view
+      const dial = scaleNeedle.parent;
+      const tx = dial.position.x * 0.62 + SPOTS.gin.x * 0.38, tz = dial.position.z * 0.62 + SPOTS.gin.z * 0.38;
+      const want = Math.atan2(-(tx - pos.x), -(tz - pos.z));
+      const y0 = look.yaw, p0 = look.pitch, dy = angleDiff(want, y0);
+      tween(0.9, (k) => { look.yaw = y0 + dy * k; look.pitch = p0 + (0.05 - p0) * k; });
       return new Promise((resolve) => {
         const frac = Math.min(1, scaleLbs / maxLbs);
-        tween(2, (k) => { scaleNeedle.rotation.z = Math.PI * 0.6 - k * frac * Math.PI * 1.4; }, resolve);
+        const rest = Math.PI * 0.6, to = rest - frac * Math.PI * 1.4;
+        // the needle swings past, wobbles, and settles, the way a spring dial does
+        setTimeout(() => tween(2.4, (k, raw) => {
+          const wob = Math.sin(raw * Math.PI * 3) * Math.exp(-raw * 3) * 0.18;
+          scaleNeedle.rotation.z = rest + (to - rest) * k - wob;
+        }, resolve), 600);
       });
     },
     resetWagon() {
@@ -2973,8 +3147,10 @@ const Voice = {
     const words = l.text.split(/\s+/).length;
     const readTime = Math.max(1600, (words / 2.4) * 1000);
     const src = o.voiced !== false && this.on ? this.src(l) : null;
+    if (src) Ambience.duck(true);
     return new Promise((resolve) => {
       const done = () => {
+        if (my === this.token) Ambience.duck(false);
         if (my !== this.token) return resolve();
         clearTimeout(this.hideTimer);
         this.hideTimer = setTimeout(() => { if (my === this.token) this.caption(null); }, 700);
@@ -3021,6 +3197,86 @@ const Voice = {
     what.textContent = l.delivery === "thought" ? l.text : `"${l.text}"`;
     what.classList.toggle("thought", l.delivery === "thought");
     el.hidden = false;
+  },
+};
+
+// ============================================================================
+// AMBIENCE — outdoor sound loops (audio/amb/, made by tools/ambience.mjs):
+// day, fall, dusk, and rain. Looped gaplessly with Web Audio, faded from one
+// to the next as the season and weather change, and turned down under the
+// voice. Browsers only allow sound after a tap or key, so start() waits.
+// ============================================================================
+const Ambience = {
+  on: (() => { try { return localStorage.getItem("settling-up:sound") !== "off"; } catch { return true; } })(),
+  LEVEL: 0.6,
+  ctx: null, master: null, ducker: null, cur: null, want: null, buffers: {},
+
+  src(name) {
+    const file = name + ".mp3";
+    if (typeof AMB_AUDIO !== "undefined" && AMB_AUDIO[file]) return AMB_AUDIO[file];
+    if (typeof AMB_BASE !== "undefined" && AMB_BASE) return AMB_BASE + file;
+    return null;
+  },
+  start() {
+    if (this.ctx) { this.ctx.resume?.(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC || !this.src("day")) return;
+    try {
+      this.ctx = new AC();
+      this.master = this.ctx.createGain();
+      this.ducker = this.ctx.createGain();
+      this.master.gain.value = this.on ? 1 : 0;
+      this.master.connect(this.ducker).connect(this.ctx.destination);
+    } catch { this.ctx = null; return; }
+    if (this.want) this.play(this.want);
+  },
+  async load(name) {
+    if (!this.buffers[name]) {
+      this.buffers[name] = fetch(this.src(name)).then((r) => r.arrayBuffer())
+        .then((b) => new Promise((ok, no) => this.ctx.decodeAudioData(b, ok, no))).catch(() => null);
+    }
+    return this.buffers[name];
+  },
+  set(name) {
+    this.want = name;
+    if (this.ctx) this.play(name);
+  },
+  async play(name) {
+    if (this.cur && this.cur.name === name) return;
+    const buf = await this.load(name);
+    if (!buf || this.want !== name || (this.cur && this.cur.name === name)) return;
+    const t = this.ctx.currentTime, fade = 2.5;
+    const node = this.ctx.createBufferSource();
+    node.buffer = buf; node.loop = true;
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(this.LEVEL, t + fade);
+    node.connect(gain).connect(this.master);
+    node.start(t, Math.random() * buf.duration);   // start anywhere, so it never sounds the same twice
+    const old = this.cur;
+    if (old) {
+      old.gain.gain.setValueAtTime(old.gain.gain.value, t);
+      old.gain.gain.linearRampToValueAtTime(0, t + fade);
+      old.node.stop(t + fade + 0.1);
+    }
+    this.cur = { name, node, gain };
+  },
+  // quieter while someone speaks
+  duck(down) {
+    if (!this.ctx) return;
+    this.ducker.gain.setTargetAtTime(down ? 0.4 : 1, this.ctx.currentTime, down ? 0.15 : 0.6);
+  },
+  setOn(on) {
+    this.on = on;
+    try { localStorage.setItem("settling-up:sound", on ? "on" : "off"); } catch { /* storage off */ }
+    if (this.ctx) this.master.gain.setTargetAtTime(on ? 1 : 0, this.ctx.currentTime, 0.3);
+  },
+  // the loop for a sky and weather (World tells us)
+  forSky(sky, weather) {
+    if (weather === "rain") return "rain";
+    if (sky === "dusk") return "dusk";
+    if (sky === "fall" || sky === "drought") return "fall";
+    return "day";
   },
 };
 
@@ -3113,6 +3369,7 @@ const Game = {
       arrive: (id) => this.onArrive(id),
       interact: (name) => this.onInteract(name),
       nameOf: (id) => NAMES[id] ? this.t(NAMES[id]) : "",
+      sky: (sky, weather) => Ambience.set(Ambience.forSky(sky, weather)),
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
@@ -3120,6 +3377,13 @@ const Game = {
     const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
     vb.addEventListener("click", () => { Voice.setOn(!Voice.on); showVoice(); });
     showVoice();
+    const sb = $("#sound-btn");
+    const showSound = () => { sb.textContent = Ambience.on ? "Sound on" : "Sound off"; sb.setAttribute("aria-pressed", String(Ambience.on)); };
+    sb.addEventListener("click", () => { Ambience.start(); Ambience.setOn(!Ambience.on); showSound(); });
+    showSound();
+    // browsers allow sound only after the player taps or presses a key
+    const wake = () => Ambience.start();
+    ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, wake, { passive: true }));
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !this.els.journal.hidden) this.els.journal.hidden = true;
     });
@@ -3162,6 +3426,45 @@ const Game = {
       return `<li class="${cur ? "cur" : ""} ${done ? "done" : ""}" aria-current="${cur ? "step" : "false"}"><span class="chip-yr">${yr}</span>${bal}</li>`;
     }).join("");
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
+    this.renderTally();
+  },
+
+  // ---- Hannah's tally -------------------------------------------------------------
+  // The family's own count through the year: what they were charged at the
+  // store, what the doctor cost, the cotton at its true weight (Hannah's
+  // knotted string), and the 10% interest he promised. At Christmas it sits
+  // beside his book, and the gap between them is what the system takes.
+  tallyLines() {
+    const g = this.g, y = this.y;
+    if (!g || g.ending || !y || y.year !== currentYear(g)) return null;
+    const STEPS = ["store", "plant", "event", "harvest", "settle"];
+    const past = (s) => STEPS.indexOf(g.step) > STEPS.indexOf(s);
+    const price = CONFIG.pricePerBale[y.year], prev = y.year - 1;
+    const lines = [];
+    if (y.startBalance) lines.push([y.startBalance > 0 ? `Saved from ${prev}` : `Owed from ${prev}`, y.startBalance]);
+    if (y.muleBought) lines.push(["Our own mule", -y.muleBought]);
+    if (y.eggs) lines.push(["Eggs and greens sold", y.eggs]);
+    if (past("store")) lines.push([`Store, ${CONFIG.baskets[y.basket].label.toLowerCase()} furnish`, -CONFIG.baskets[y.basket].credit]);
+    if (past("plant") && y.corn && !y.cornLost) lines.push([`Corn we grew, ${y.corn} acre${y.corn === 1 ? "" : "s"}`, y.corn * CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup)]);
+    if (past("event") && y.doctor) lines.push(["Doctor", -y.doctor]);
+    if (past("event") && y.muleCharge) lines.push(["His dead mule", -y.muleCharge]);
+    if (past("harvest") && y.familyBales != null) {
+      lines.push([`Cotton, ${fmtBales(y.familyBales)} bales by our count, at about $${price}`, y.familyBales * price]);
+      lines.push([`Ginning, ${fmtBales(y.familyBales)} bales at $${CONFIG.ginningPerBale}`, -y.familyBales * CONFIG.ginningPerBale]);
+    }
+    if (y.startBalance < 0) lines.push([`Interest at 10%, as he said`, y.startBalance * CONFIG.interestTold]);
+    return { lines, total: lines.reduce((t, [, v]) => t + v, 0), sold: past("harvest") };
+  },
+  renderTally() {
+    const el = $("#acct"), t = this.tallyLines();
+    if (!el) return;
+    el.hidden = !t;
+    if (!t) return;
+    el.querySelector("summary").innerHTML = `<span class="acct-k">Hannah's tally</span> <span class="acct-v ${t.total < 0 ? "neg" : ""}">${fmt(t.total)}</span>`;
+    el.querySelector(".acct-body").innerHTML = `
+      <p class="acct-note">${t.sold ? "Our count, with the cotton in." : "What we owe so far. The cotton comes in at harvest."}</p>
+      <table class="acct-t">${t.lines.map(([k, v]) => `<tr><th>${esc(k)}</th><td class="${v < 0 ? "neg" : ""}">${fmt(v)}</td></tr>`).join("")}
+        <tr class="sum"><th>${t.sold ? "Where we should stand" : "So far"}</th><td class="${t.total < 0 ? "neg" : ""}">${fmt(t.total)}</td></tr></table>`;
   },
 
   // ---- dock, sheet, objectives ----------------------------------------------------
@@ -3661,6 +3964,7 @@ const Game = {
         <span class="scale-v">${fmtLbs(y.scaleLbs)}</span>
         <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${y.shareRate > 0.5 ? "two-thirds" : "half"}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
       </div>
+      <p class="scale-count">Hannah's string counted <strong>${fmtLbs(y.trueLbs)}</strong>. At about $${CONFIG.pricePerBale[y.year]} a bale, our ${y.shareRate > 0.5 ? "two-thirds" : "half"} should bring about <strong>${fmt(y.familyBales * CONFIG.pricePerBale[y.year])}</strong>.</p>
       <button class="primary" id="to-settle">Continue</button>`);
     cue(sc, "At the scale");
     await new Promise((r) => $("#to-settle").addEventListener("click", r, { once: true }));
@@ -3707,6 +4011,69 @@ const Game = {
     return { said, react };
   },
 
+  // ---- his book -------------------------------------------------------------------------
+  // The year the way the planter reads it out, line by line: what the crop
+  // brought, what he charged, and the one number at the bottom. Lines he
+  // hid get a note in red once the family has demanded to see them.
+  bookRows() {
+    const y = this.y, g = this.g, L = y.ledger, prev = y.year - 1;
+    const basket = CONFIG.baskets[y.basket];
+    const cornCut = (y.cornLost ? 0 : y.corn * CONFIG.cornSavingsCash) * (1 + CONFIG.creditMarkup);
+    const knows = (k) => g.revealed.includes(k);
+    const ins = [], outs = [];
+    if (y.evicted) ins.push({ k: "Your share of the crop", sub: "put off the place: nothing", v: 0 });
+    else ins.push({ k: `Your ${y.shareRate > 0.5 ? "two-thirds" : "half"} of the cotton`, sub: `${fmtBales(y.creditedBales)} bales × $${L.price}`, v: L.share,
+      note: knows("weight") ? `By your wagon it was ${fmtBales(y.familyBales)} bales: ${fmt(y.familyBales * L.price)}` : "" });
+    if (y.startBalance > 0) ins.push({ k: `Saved from ${prev}`, v: y.startBalance });
+    if (y.eggs) ins.push({ k: "Eggs and greens sold in town", v: y.eggs });
+    if (y.startBalance < 0) outs.push({ k: `Owed from ${prev}`, sub: "carried on his book", v: -y.startBalance });
+    if (y.muleBought) outs.push({ k: "Your own mule", sub: "paid from savings", v: y.muleBought });
+    outs.push({ k: "Store account", sub: `${basket.label} furnish, on credit`, v: basket.credit,
+      note: knows("markup") ? `Cash price anywhere else: ${fmt(cashOf(basket.credit))}` : "" });
+    if (cornCut > 0) outs.push({ k: "Less the corn you grew", sub: `${y.corn} acre${y.corn === 1 ? "" : "s"} you didn't buy`, v: -cornCut });
+    if (y.doctor) outs.push({ k: "Doctor", sub: "on account", v: y.doctor });
+    if (y.muleCharge) outs.push({ k: "The mule that died", sub: "his mule, your account", v: y.muleCharge });
+    outs.push({ k: "Ginning", sub: `${fmtBales(y.familyBales)} bales × $${CONFIG.ginningPerBale}`, v: L.ginning });
+    if (L.interest) outs.push({ k: "Interest", sub: `on the ${fmt(-y.startBalance)} you carried`, v: L.interest,
+      note: knows("interest") ? `At the 10% he promised: ${fmt(-y.startBalance * CONFIG.interestTold)}` : "" });
+    if (L.leave) outs.push({ k: "Moving", v: L.leave });
+    const sum = (rows) => rows.reduce((t, r) => t + r.v, 0);
+    return { ins, outs, totalIn: sum(ins), totalOut: sum(outs) };
+  },
+  bookHTML() {
+    const y = this.y, bal = y.ledger.balance;
+    const { ins, outs, totalIn, totalOut } = this.bookRows();
+    let i = 0;
+    const row = (r) => `<tr style="--i:${i++}"><th>${esc(r.k)}${r.sub ? `<span class="sub">${esc(r.sub)}</span>` : ""}${r.note ? `<span class="note">${esc(r.note)}</span>` : ""}</th><td>${fmt(r.v)}</td></tr>`;
+    const inRows = ins.map(row).join(""), inSum = `<tr class="sum" style="--i:${i++}"><th>Brought in</th><td>${fmt(totalIn)}</td></tr>`;
+    const outRows = outs.map(row).join(""), outSum = `<tr class="sum" style="--i:${i++}"><th>Charged</th><td>${fmt(totalOut)}</td></tr>`;
+    // both on one scale, so the shortfall shows as a length
+    const top = Math.max(totalIn, totalOut, 1);
+    const pin = (totalIn / top) * 100, pout = (totalOut / top) * 100;
+    const short = totalOut > totalIn;
+    const gap = Math.abs(pout - pin);
+    const tally = `
+      <div class="tally" style="--i:${i++}" aria-hidden="true">
+        <div class="t-row in"><span class="t-k">Crop</span><span class="t-track"><span class="t-fill" style="width:${pin}%"></span>${short ? `<span class="t-gap" style="left:${pin}%;width:${gap}%"></span>` : ""}</span></div>
+        <div class="t-row out"><span class="t-k">Charges</span><span class="t-track"><span class="t-fill" style="width:${pout}%"></span>${!short && gap > 0.5 ? `<span class="t-gap ahead" style="left:${pout}%;width:${gap}%"></span>` : ""}</span></div>
+      </div>`;
+    const eq = `
+      <div class="book-eq" style="--i:${i++}">
+        <span>${fmt(totalIn)}</span><span class="op">−</span><span>${fmt(totalOut)}</span><span class="op">=</span>
+        <span class="res ${bal < 0 ? "neg" : ""}">${fmt(bal)}</span>
+        <span class="verdict ${bal < 0 ? "neg" : ""}">${bal < -0.005 ? `short ${fmt(-bal)}` : bal > 0.005 ? `ahead ${fmt(bal)}` : "even"}</span>
+      </div>`;
+    return `
+      <section class="book" aria-label="Mr. ${esc(this.planter())}'s book for ${y.year}">
+        <h3 class="book-h">Mr. ${esc(this.planter())}'s book, ${y.year}</h3>
+        <p class="book-k">What the crop brought</p>
+        <table class="book-t in">${inRows}${inSum}</table>
+        <p class="book-k">What he charged</p>
+        <table class="book-t out">${outRows}${outSum}</table>
+        ${tally}${eq}
+      </section>`;
+  },
+
   renderSettle(revealed, speak) {
     const y = this.y, g = this.g;
     const bal = y.ledger.balance;
@@ -3721,6 +4088,14 @@ const Game = {
     };
     const r = revealed ? REVEAL[revealed] : null;
     const nextPlanter = PLANTERS[Math.min(g.planterIndex + 1, PLANTERS.length - 1)];
+    // Hannah's tally beside his book: the gap is what the system takes
+    const t = this.tallyLines();
+    const vs = t && !y.evicted ? `
+      <div class="versus">
+        <div><span class="vs-k">Hannah's tally</span><span class="vs-v ${t.total < 0 ? "neg" : ""}">${fmt(t.total)}</span></div>
+        <div><span class="vs-k">His book</span><span class="vs-v ${bal < 0 ? "neg" : ""}">${fmt(bal)}</span></div>
+        ${t.total - bal > 0.005 ? `<p class="vs-gap">${fmt(t.total - bal)} that Hannah can't find in his book.</p>` : ""}
+      </div>` : "";
     let actions;
     if (y.evicted) {
       actions = `<button class="primary" data-act="move">${isLast ? "Load the wagon" : `Move to the ${esc(nextPlanter)} place`}</button>
@@ -3729,21 +4104,30 @@ const Game = {
       actions = `
         ${rent ? `<button class="primary" data-act="rent">Rent a farm</button>` : ""}
         <button class="${rent ? "secondary" : "primary"}" data-act="stay">${isLast ? "Stay on" : `Stay and sign for ${y.year + 1}`}</button>
-        <button class="secondary" data-act="leave">Leave the ${esc(this.planter())} place</button>
-        ${y.demanded ? "" : `<button class="secondary danger" data-act="demand">Demand to see the books</button>`}`;
+        <button class="secondary" data-act="leave" ${this.leaveTried === y.year ? "disabled" : ""}>Leave the ${esc(this.planter())} place</button>
+        ${y.demanded ? "" : `<button class="secondary danger" data-act="demand">Demand to see the books</button>`}
+        ${this.leaveTried === y.year ? `<p class="voice thought leave-why">${esc(say(bal < 0 ? "LEAVE-OWING" : "LEAVE-NOWHERE"))}</p>` : ""}`;
     }
+    const animate = this.bookShown !== y.year;
+    this.bookShown = y.year;
     this.sheet(`
-      <div class="settle">
+      <div class="settle ${animate ? "anim" : ""}">
         <p class="eyebrow">Christmas ${y.year} · ${esc(this.planter())}'s porch</p>
-        <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
-        <blockquote class="said">${esc(say(r ? r.h : said))}</blockquote>
-        <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
-        ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
-        <p class="voice thought">${esc(say(r ? r.t : react))}</p>
-        ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
-        <div class="settle-actions">${actions}</div>
-        ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
-      </div>`, { low: true });
+        <div class="settle-grid">
+          ${this.bookHTML()}
+          <section class="porch-side">
+            <p class="sold">He sold the cotton at <strong>$${price}</strong> a bale${y.event === "panic" ? ", after the Panic" : ""}.</p>
+            <blockquote class="said">${esc(say(r ? r.h : said))}</blockquote>
+            <div class="number ${bal < 0 ? "neg" : ""}" aria-label="Balance ${fmt(bal)}">${fmt(bal)}</div>
+            ${vs}
+            ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
+            <p class="voice thought">${esc(say(r ? r.t : react))}</p>
+            ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
+            <div class="settle-actions">${actions}</div>
+            ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
+          </section>
+        </div>
+      </div>`, { wide: true });
     const voiced = this.planterIsHolliday();
     if (speak) {
       (async () => {
@@ -3769,25 +4153,21 @@ const Game = {
       this.renderSettle(res.evicted ? null : res.item, true);
       return;
     }
-    if (act === "leave" && y.ledger.balance < 0 && !this.confirmLeave) {
-      this.confirmLeave = true;
-      const box = this.els.sheetBody.querySelector(".settle-actions");
-      box.innerHTML = `<p class="voice thought">${esc(say("LEAVE-OWING"))}</p>
-        <button class="primary" data-act="stay">Stay</button><button class="secondary danger" data-act="leave">Leave anyway</button>`;
-      Voice.play("LEAVE-OWING", { caption: false });
-      box.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
+    // Papa can think about leaving, but the system won't let him: owing, the
+    // lien holds him; even, every other place runs on the same book.
+    if (act === "leave") {
+      this.leaveTried = y.year;
+      this.renderSettle(null, false);
+      Voice.play(y.ledger.balance < 0 ? "LEAVE-OWING" : "LEAVE-NOWHERE", { caption: false });
       return;
     }
-    this.confirmLeave = false;
     const decision = act === "move" ? "stay" : act;
-    const owed = y.ledger.balance < 0;
     closeYear(g, y, decision);
     this.log(`Settled ${y.year}: ${fmt(y.ledger.balance)}.`, "settle");
     this.closeSheet();
     this.save();
     if (decision === "stay" && !y.evicted) await Voice.play("SET-YES");
     else if (decision === "rent") await Voice.play("RENT-01", { voiced });
-    else if (decision === "leave" && !owed) await Voice.play("LEAVE-FREE", { voiced });
     if (!g.ending) cue(this.sceneOf(y), "Leaving the porch");
     const done = this.settleResolve;
     this.settleResolve = null;
@@ -3938,6 +4318,6 @@ const Game = {
   },
 };
 
-window.SettlingUp = { Game, World, Voice, auditTotals };
+window.SettlingUp = { Game, World, Voice, Ambience, auditTotals };
 Game.boot();
 </script>
