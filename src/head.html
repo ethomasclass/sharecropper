@@ -360,6 +360,30 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .dial-pencil { font-family: var(--hand); font-weight: 700; font-size: 20px; fill: #5A5048; }
 .dial-hannah { transition: opacity .8s ease; }
 
+/* in plain words: what just happened, and what it means for the money */
+.plain { border: 1.5px solid #2F5FA8; border-left: 6px solid #2F5FA8; background: #EEF2F8; padding: 9px 12px; display: flex; flex-direction: column; gap: 4px; }
+.plain-k { margin: 0 !important; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #2F5FA8; }
+.plain-t { margin: 0 !important; font-size: .98rem; line-height: 1.45; color: var(--ink); }
+.plain-def { margin: 4px 0 0 !important; font-size: .9rem; background: #F8F3E7; border: 1px dashed #2F5FA8; padding: 6px 9px; }
+.term { font: inherit; color: #1F4A8A; font-weight: 700; background: none; border: none; padding: 0; border-bottom: 2px dotted #2F5FA8; cursor: help; }
+.term[aria-expanded="true"] { background: #DCE6F4; }
+#dock .plain { margin-top: 2px; }
+#dock .plain-t { font-size: .9rem; }
+.check { border: 1.5px solid var(--ink); background: #F8F3E7; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.check-k { margin: 0 !important; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.check-q { margin: 0 !important; font-weight: 700; }
+.check-opts { display: grid; gap: 6px; }
+.check-o { text-align: left; background: var(--paper); border: 1.5px solid var(--ink); padding: 7px 10px; cursor: pointer; font: inherit; }
+.check-o:hover:not(:disabled) { background: #EFE6D2; }
+.check-o.ok { border-color: #3B6B2A; background: #E8F0DF; font-weight: 700; }
+.check-o.no { border-color: var(--red); background: #F6E3DF; }
+.check-o:disabled { opacity: 1; cursor: default; }
+.check-a { margin: 0 !important; font-size: .95rem; }
+.check-a.ok { color: #2F5A20; }
+.words dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+.words dt { font-weight: 800; }
+.words dd { margin: 0; }
+
 /* the almanac */
 .almanac { display: flex; flex-direction: column; gap: 12px; }
 .al-lead { font-family: var(--hand); font-size: 1.45rem; line-height: 1.2; max-width: 60ch; }

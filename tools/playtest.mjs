@@ -153,6 +153,15 @@ for (let year = 0; year < 5; year++) {
   await page.waitForSelector(".settle [data-act]", { timeout: 30000 });
   await sleep(year === 0 ? 4500 : 0);   // let the book add itself up
   await shot(`settle-${1869 + year}`);
+  // In plain words: tap a word for its meaning, and answer the one check question.
+  if (year === 0) {
+    await page.click('.porch-side .term');
+    await page.waitForSelector('.porch-side .plain-def:not([hidden])', { timeout: 5000 });
+    await page.click('[data-check="b"]');
+    await page.waitForSelector('.check-a', { timeout: 5000 });
+    await shot("plain-words");
+    console.log("Plain words and check question: work");
+  }
   // Leaving is offered but never allowed: it stays this year and the next.
   if (year === 0) {
     const before = await page.evaluate(() => SettlingUp.Game.g.yearIndex);

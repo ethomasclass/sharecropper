@@ -87,3 +87,45 @@ const ALMANAC = {
   source: "1866–1868: New York price of middling upland cotton, per 400-pound bale. Historical Statistics of the United States, Colonial Times to 1957, series E 104 (from Watkins, Production and Price of Cotton for One Hundred Years, 1895). Your years: the price Mr. {P} says he got, a game value.",
   note: "An acre of cotton here is your share of one acre's crop at that year's price, less ginning. An acre of corn is what it takes off the store bill.",
 };
+
+// ---- In plain words --------------------------------------------------------------
+// One or two short sentences at each moment saying what just happened and
+// what it means for the family's money. [[term]] marks a word students can tap.
+const PLAIN = {
+  contract: "You just agreed to farm Mr. {P}'s land for a year. He supplies the land, a cabin, a mule, and seed; your family does all the work. At the end of the year you get a [[share]] of the cotton, but only after he takes back everything he lent you. Until then he holds a [[lien]] on your crop.",
+  store: "This is the [[furnish]]: food and supplies for the year, bought on [[credit]]. You pay nothing today. Mr. {P} writes it in his book and takes it out of your cotton at [[settling up]]. Credit prices are higher than cash prices, and you aren't told by how much.",
+  plan: "Cotton is the crop that can pay your debt, and it's what the planter wants. Corn feeds your family, so you buy less food at the store, but it earns no cash. The contract allows only 5 acres of corn.",
+  harvest: "The cotton you bring in is all you have to pay with. Your family keeps a [[share]]; the rest goes to Mr. {P} for the land.",
+  scale: "Your cotton is weighed on Mr. {P}'s scale, read by his man, and you can't check it. Every pound the scale doesn't count comes out of your share.",
+  almanac: "Cotton's price kept falling. When it falls, the same year of work earns less, but the store bill doesn't shrink.",
+  owe: "Your share of the cotton came to {in}, but Mr. {P} charged {out}. That leaves {short} unpaid. It becomes [[carried debt]], it grows with [[interest]], and under the [[lien]] you can't leave until it's paid. So next year starts in the hole, and the family has to sign again.",
+  ahead: "Your share of the cotton covered everything this year, with {left} over. But it sits in Mr. {P}'s book, not your pocket, and one bad year can wipe it out.",
+  even: "Your share of the cotton paid for exactly what you bought. Nothing left over, and you start next year with nothing saved.",
+  evicted: "Mr. {P} has put your family off the land. You lose this year's share, and your debt follows you to the next planter's book.",
+};
+const PLAIN_CARDS = {
+  rains: "More rain means more cotton to pay your debt. The store bill stays the same.",
+  drought: "Less cotton this year, but the store bill and your debt don't shrink. The family carries the loss, not the planter.",
+  flood: "Less cotton, and the corn is gone, so the family has to buy more food on [[credit]].",
+  muledies: "The contract makes the family pay for the planter's animals and tools. The mule goes on your account.",
+  sickness: "A sick child can't work, so less cotton comes in, and the doctor goes on your account.",
+  school: "A child in school can't work in the field, so there's less cotton. But a child who can read can check the planter's book.",
+  election: "Black men in Mississippi could vote in 1871 and 1872. A planter could punish a family for it by putting them off the land.",
+  mulebuy: "A family with its own mule keeps more of the crop: two-thirds instead of half. It costs savings the family rarely has.",
+  eggs: "Eggs and greens sold in town bring in a little cash the planter doesn't control.",
+  riders: "Night riders, like the Klan, threatened Black families who tried to leave or vote. Fear kept families in place.",
+  panic: "A money crisis in 1873 crashed cotton prices. The same work and the same debt, but far less money for the crop.",
+  none: "Nothing unusual this year. Only the crop and the bill count.",
+};
+const GLOSSARY = {
+  "sharecropper": "A farmer who works someone else's land and is paid with a share of the crop, not wages.",
+  "planter": "The man who owns the land and the store: here, Mr. {P}.",
+  "share": "Your part of the crop: half of the cotton (two-thirds if you own a mule). The planter takes the rest.",
+  "lien": "A legal claim on your crop. Until your debt is paid, the crop is the planter's first, and you can't sell it or leave.",
+  "furnish": "Food, cloth, and supplies the planter's store hands out for the year, on credit.",
+  "credit": "Taking things now and paying later. The store writes it in the book, at higher prices than cash.",
+  "settling up": "The yearly reckoning at Christmas. The planter sets your share of the crop against everything you owe.",
+  "carried debt": "Money still owed after settling up. It moves onto next year's account.",
+  "interest": "Extra money charged for carrying debt to next year. Mr. {P} says 10%.",
+  "ginning": "Cleaning the seeds out of picked cotton at the gin. The planter charges for it.",
+};

@@ -374,6 +374,30 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .dial-pencil { font-family: var(--hand); font-weight: 700; font-size: 20px; fill: #5A5048; }
 .dial-hannah { transition: opacity .8s ease; }
 
+/* in plain words: what just happened, and what it means for the money */
+.plain { border: 1.5px solid #2F5FA8; border-left: 6px solid #2F5FA8; background: #EEF2F8; padding: 9px 12px; display: flex; flex-direction: column; gap: 4px; }
+.plain-k { margin: 0 !important; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #2F5FA8; }
+.plain-t { margin: 0 !important; font-size: .98rem; line-height: 1.45; color: var(--ink); }
+.plain-def { margin: 4px 0 0 !important; font-size: .9rem; background: #F8F3E7; border: 1px dashed #2F5FA8; padding: 6px 9px; }
+.term { font: inherit; color: #1F4A8A; font-weight: 700; background: none; border: none; padding: 0; border-bottom: 2px dotted #2F5FA8; cursor: help; }
+.term[aria-expanded="true"] { background: #DCE6F4; }
+#dock .plain { margin-top: 2px; }
+#dock .plain-t { font-size: .9rem; }
+.check { border: 1.5px solid var(--ink); background: #F8F3E7; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.check-k { margin: 0 !important; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.check-q { margin: 0 !important; font-weight: 700; }
+.check-opts { display: grid; gap: 6px; }
+.check-o { text-align: left; background: var(--paper); border: 1.5px solid var(--ink); padding: 7px 10px; cursor: pointer; font: inherit; }
+.check-o:hover:not(:disabled) { background: #EFE6D2; }
+.check-o.ok { border-color: #3B6B2A; background: #E8F0DF; font-weight: 700; }
+.check-o.no { border-color: var(--red); background: #F6E3DF; }
+.check-o:disabled { opacity: 1; cursor: default; }
+.check-a { margin: 0 !important; font-size: .95rem; }
+.check-a.ok { color: #2F5A20; }
+.words dl { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; }
+.words dt { font-weight: 800; }
+.words dd { margin: 0; }
+
 /* the almanac */
 .almanac { display: flex; flex-direction: column; gap: 12px; }
 .al-lead { font-family: var(--hand); font-size: 1.45rem; line-height: 1.2; max-width: 60ch; }
@@ -1383,6 +1407,48 @@ const EXIT_TICKET = {
 const ALMANAC = {
   source: "1866–1868: New York price of middling upland cotton, per 400-pound bale. Historical Statistics of the United States, Colonial Times to 1957, series E 104 (from Watkins, Production and Price of Cotton for One Hundred Years, 1895). Your years: the price Mr. {P} says he got, a game value.",
   note: "An acre of cotton here is your share of one acre's crop at that year's price, less ginning. An acre of corn is what it takes off the store bill.",
+};
+
+// ---- In plain words --------------------------------------------------------------
+// One or two short sentences at each moment saying what just happened and
+// what it means for the family's money. [[term]] marks a word students can tap.
+const PLAIN = {
+  contract: "You just agreed to farm Mr. {P}'s land for a year. He supplies the land, a cabin, a mule, and seed; your family does all the work. At the end of the year you get a [[share]] of the cotton, but only after he takes back everything he lent you. Until then he holds a [[lien]] on your crop.",
+  store: "This is the [[furnish]]: food and supplies for the year, bought on [[credit]]. You pay nothing today. Mr. {P} writes it in his book and takes it out of your cotton at [[settling up]]. Credit prices are higher than cash prices, and you aren't told by how much.",
+  plan: "Cotton is the crop that can pay your debt, and it's what the planter wants. Corn feeds your family, so you buy less food at the store, but it earns no cash. The contract allows only 5 acres of corn.",
+  harvest: "The cotton you bring in is all you have to pay with. Your family keeps a [[share]]; the rest goes to Mr. {P} for the land.",
+  scale: "Your cotton is weighed on Mr. {P}'s scale, read by his man, and you can't check it. Every pound the scale doesn't count comes out of your share.",
+  almanac: "Cotton's price kept falling. When it falls, the same year of work earns less, but the store bill doesn't shrink.",
+  owe: "Your share of the cotton came to {in}, but Mr. {P} charged {out}. That leaves {short} unpaid. It becomes [[carried debt]], it grows with [[interest]], and under the [[lien]] you can't leave until it's paid. So next year starts in the hole, and the family has to sign again.",
+  ahead: "Your share of the cotton covered everything this year, with {left} over. But it sits in Mr. {P}'s book, not your pocket, and one bad year can wipe it out.",
+  even: "Your share of the cotton paid for exactly what you bought. Nothing left over, and you start next year with nothing saved.",
+  evicted: "Mr. {P} has put your family off the land. You lose this year's share, and your debt follows you to the next planter's book.",
+};
+const PLAIN_CARDS = {
+  rains: "More rain means more cotton to pay your debt. The store bill stays the same.",
+  drought: "Less cotton this year, but the store bill and your debt don't shrink. The family carries the loss, not the planter.",
+  flood: "Less cotton, and the corn is gone, so the family has to buy more food on [[credit]].",
+  muledies: "The contract makes the family pay for the planter's animals and tools. The mule goes on your account.",
+  sickness: "A sick child can't work, so less cotton comes in, and the doctor goes on your account.",
+  school: "A child in school can't work in the field, so there's less cotton. But a child who can read can check the planter's book.",
+  election: "Black men in Mississippi could vote in 1871 and 1872. A planter could punish a family for it by putting them off the land.",
+  mulebuy: "A family with its own mule keeps more of the crop: two-thirds instead of half. It costs savings the family rarely has.",
+  eggs: "Eggs and greens sold in town bring in a little cash the planter doesn't control.",
+  riders: "Night riders, like the Klan, threatened Black families who tried to leave or vote. Fear kept families in place.",
+  panic: "A money crisis in 1873 crashed cotton prices. The same work and the same debt, but far less money for the crop.",
+  none: "Nothing unusual this year. Only the crop and the bill count.",
+};
+const GLOSSARY = {
+  "sharecropper": "A farmer who works someone else's land and is paid with a share of the crop, not wages.",
+  "planter": "The man who owns the land and the store: here, Mr. {P}.",
+  "share": "Your part of the crop: half of the cotton (two-thirds if you own a mule). The planter takes the rest.",
+  "lien": "A legal claim on your crop. Until your debt is paid, the crop is the planter's first, and you can't sell it or leave.",
+  "furnish": "Food, cloth, and supplies the planter's store hands out for the year, on credit.",
+  "credit": "Taking things now and paying later. The store writes it in the book, at higher prices than cash.",
+  "settling up": "The yearly reckoning at Christmas. The planter sets your share of the crop against everything you owe.",
+  "carried debt": "Money still owed after settling up. It moves onto next year's account.",
+  "interest": "Extra money charged for carrying debt to next year. Mr. {P} says 10%.",
+  "ginning": "Cleaning the seeds out of picked cotton at the gin. The planter charges for it.",
 };
 
 // ============================================================================
@@ -3617,6 +3683,7 @@ const Game = {
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#almanac-btn").addEventListener("click", () => this.openAlmanac());
+    this.wireTerms();
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
     const vb = $("#voice-btn");
     const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
@@ -3673,6 +3740,30 @@ const Game = {
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
     this.renderTally();
     $("#almanac-btn").hidden = !g;
+  },
+
+  // ---- in plain words ------------------------------------------------------------------
+  // A short, plain explanation beside the story at each moment. Words in
+  // [[brackets]] become buttons that show their meaning right there.
+  plain(text, vars = {}) {
+    let t = esc(this.t(text));
+    Object.entries(vars).forEach(([k, v]) => { t = t.split(`{${k}}`).join(esc(v)); });
+    t = t.replace(/\[\[([^\]]+)\]\]/g, (_, w) => `<button type="button" class="term" data-term="${w}" aria-expanded="false">${w}</button>`);
+    return `<aside class="plain" aria-label="In plain words"><p class="plain-k">In plain words</p><p class="plain-t">${t}</p><p class="plain-def" hidden></p></aside>`;
+  },
+  wireTerms() {
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest?.(".term");
+      if (!b) return;
+      const box = b.closest(".plain")?.querySelector(".plain-def");
+      if (!box) return;
+      const open = b.getAttribute("aria-expanded") === "true";
+      b.closest(".plain").querySelectorAll(".term").forEach((x) => x.setAttribute("aria-expanded", "false"));
+      if (open) { box.hidden = true; return; }
+      b.setAttribute("aria-expanded", "true");
+      box.innerHTML = `<b>${esc(b.dataset.term)}:</b> ${esc(this.t(GLOSSARY[b.dataset.term] || ""))}`;
+      box.hidden = false;
+    });
   },
 
   // ---- who is outside ------------------------------------------------------------------
@@ -3753,6 +3844,7 @@ const Game = {
         <p class="eyebrow">The almanac · ${ys[0].year}–${last.year}</p>
         <h2>What the years did</h2>
         <p class="al-lead">${esc(lead)}${fall > 0 ? ` Since ${ys[0].year}, a bale has lost ${fmt(fall)}.` : ""}</p>
+        ${this.plain(PLAIN.almanac)}
         <div class="al-charts">
           <figure class="al-fig">
             <figcaption><span class="al-h">Cotton, per bale</span>
@@ -4041,6 +4133,7 @@ const Game = {
         <dl class="terms">${CONTRACT.terms.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
         <p class="voice thought">${esc(say("CON-07"))}</p>
         <p class="game-note">Game values. The contract excerpt is real and adapted. The dollar amounts are simplified.</p>
+        ${this.plain(PLAIN.contract)}
         <div class="mark-row">
           <button class="mark" id="mark-btn" aria-label="Make your mark">
             <span class="mark-line"></span><span class="mark-x" aria-hidden="true">X</span>
@@ -4097,6 +4190,7 @@ const Game = {
         <p class="eyebrow">Spring ${y.year} · ${esc(this.planter())} plantation store</p>
         <h2>Furnish for the year</h2>
         ${page ? `<p class="voice thought">${esc(page.text)}</p>` : ""}
+        ${this.plain(PLAIN.store)}
         <div class="baskets">${opts}</div>
         <p class="fine">${esc(cornNote)} Everything goes on account until settling up.</p>
         <p class="fine warn">A lean basket saves money now, but a hungry, barefoot family picks slower: about ${Math.round((1 - CONFIG.leanYield[0]) * 100)}% less cotton, ${Math.round((1 - CONFIG.leanYield[1]) * 100)}% after two lean years in a row, and a basic year only half mends it. They fall sick more, too.${(this.g.leanRun || 0) > 0 ? ` <strong>The family is still worn from lean years.</strong>` : ""}</p>`, { wide: true });
@@ -4147,6 +4241,7 @@ const Game = {
     this.dock(`
       <p class="eyebrow">Spring ${y.year} · Plan the field</p>
       <p class="how">${World.ok ? "Tap a square in the field, or here, to switch it between cotton and corn." : "Tap a square to switch it between cotton and corn."} Up to ${CONFIG.maxCornAcres} acres of corn.</p>
+      ${this.plain(PLAIN.plan)}
       <div class="acres" role="group" aria-label="Your 15 acres">${grid}</div>
       <div class="estimate">
         <div><span class="est-k">Cotton</span><span class="est-v">${est.cottonAcres} acres</span><span class="est-s">about ${fmtBales(est.bales)} bales. Your half: ${fmtBales(est.half)}</span></div>
@@ -4197,6 +4292,7 @@ const Game = {
       this.dock(`
         <p class="eyebrow">${esc(eyebrow)}</p>
         <p class="how">${esc(how)}</p>
+        ${kind === "harvest" ? this.plain(PLAIN.harvest) : ""}
         <div class="progress" aria-hidden="true"><span id="rows-bar"></span></div>
         <p class="pickcount" id="rows-pct" aria-live="polite">Rows walked: 0%</p>
         <button class="secondary" id="rows-done" disabled>Leave the rest to the family</button>`);
@@ -4260,6 +4356,7 @@ const Game = {
             ${line ? `<p class="voice thought">${esc(say(line))}</p>` : ""}
             ${after ? `<p class="voice thought">${esc(say(after))}</p>` : ""}
             ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(muleBlocked ? card.cantAfford : effect))}</p>`}
+            ${this.plain(PLAIN_CARDS[y.event] || PLAIN_CARDS.none)}
             ${card.dyk ? `<div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>` : ""}
             <div class="card-actions" id="card-actions">
               ${choice
@@ -4399,6 +4496,7 @@ const Game = {
                 <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${half}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
               </div>
               <p class="scale-count" id="dial-count" hidden>Hannah's string counted <strong>${fmtLbs(y.trueLbs)}</strong>, ${fmtLbs(y.trueLbs - y.scaleLbs)} more than his needle. At about $${CONFIG.pricePerBale[y.year]} a bale, our ${half} should bring about <strong>${fmt(y.familyBales * CONFIG.pricePerBale[y.year])}</strong>.</p>
+              ${this.plain(PLAIN.scale)}
               <button class="primary" id="to-settle">Continue</button>
             </div>
           </div>
@@ -4532,6 +4630,34 @@ const Game = {
       </section>`;
   },
 
+  // The year's money in plain words.
+  settlePlain() {
+    const y = this.y, bal = y.ledger.balance, { totalIn, totalOut } = this.bookRows();
+    if (y.evicted) return this.plain(PLAIN.evicted);
+    if (bal < -0.005) return this.plain(PLAIN.owe, { in: fmt(totalIn), out: fmt(totalOut), short: fmt(-bal) });
+    if (bal > 0.005) return this.plain(PLAIN.ahead, { left: fmt(bal) });
+    return this.plain(PLAIN.even);
+  },
+  // One question after the first settling up, to check the system is clear.
+  // It never blocks play.
+  checkHTML() {
+    const y = this.y, g = this.g;
+    if (g.yearIndex !== 0 || y.evicted) return "";
+    const ans = g.check;
+    const opts = [
+      ["a", "Mr. Holliday takes out his half and everything they owe him first."],
+      ["b", "They're paid wages every week, like a hired hand."],
+      ["c", "They sell their own cotton in town, then pay what they owe."],
+    ];
+    const right = ans === "a";
+    return `<div class="check">
+      <p class="check-k">Check your understanding</p>
+      <p class="check-q">Before the family gets any money from their cotton, what has to happen?</p>
+      <div class="check-opts">${opts.map(([k, t]) => `<button type="button" class="check-o ${ans && k === "a" ? "ok" : ans === k ? "no" : ""}" data-check="${k}" ${ans ? "disabled" : ""}>${esc(t)}</button>`).join("")}</div>
+      ${ans ? `<p class="check-a ${right ? "ok" : ""}">${right ? "Right." : "Not quite."} Sharecroppers weren't paid wages, and under the lien they couldn't sell their own cotton. Mr. ${esc(this.planter())} sold it, took his half and everything they owed, and gave them whatever was left, if anything.</p>` : ""}
+    </div>`;
+  },
+
   renderSettle(revealed, speak) {
     const y = this.y, g = this.g;
     const bal = y.ledger.balance;
@@ -4580,6 +4706,8 @@ const Game = {
             ${vs}
             ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
             <p class="voice thought">${esc(say(r ? r.t : react))}</p>
+            ${this.settlePlain()}
+            ${this.checkHTML()}
             ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
             <div class="settle-actions">${actions}</div>
             ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
@@ -4597,6 +4725,13 @@ const Game = {
       })();
     }
     this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
+    this.els.sheetBody.querySelectorAll("[data-check]").forEach((b) => b.addEventListener("click", () => {
+      this.g.check = b.dataset.check;
+      this.log(`Check your understanding: answered ${b.dataset.check === "a" ? "right" : "not quite"}.`, "settle");
+      this.save();
+      const box = this.els.sheetBody.querySelector(".check");
+      box.outerHTML = this.checkHTML();
+    }));
   },
 
   async settleAct(act) {
@@ -4768,9 +4903,10 @@ const Game = {
     const j = (this.g && this.g.journal) || [];
     const byYear = {};
     j.forEach((e) => { (byYear[e.year] = byYear[e.year] || []).push(e); });
-    $("#journal-list").innerHTML = j.length
+    const words = `<section class="words"><h3>Words to know</h3><dl>${Object.entries(GLOSSARY).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(this.t(v))}</dd>`).join("")}</dl></section>`;
+    $("#journal-list").innerHTML = words + (j.length
       ? Object.entries(byYear).map(([yr, es]) => `<section><h3>${yr}</h3>${es.map((e) => `<p class="j-${e.kind}">${esc(e.text)}</p>`).join("")}</section>`).join("")
-      : `<p class="fine">Everything said in the game shows up here, so you can look back at anything you missed.</p>`;
+      : `<p class="fine">Everything said in the game shows up here, so you can look back at anything you missed.</p>`);
     this.els.journal.hidden = false;
     $("#journal-close").focus();
   },

@@ -77,6 +77,7 @@ const Game = {
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#almanac-btn").addEventListener("click", () => this.openAlmanac());
+    this.wireTerms();
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
     const vb = $("#voice-btn");
     const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
@@ -133,6 +134,30 @@ const Game = {
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
     this.renderTally();
     $("#almanac-btn").hidden = !g;
+  },
+
+  // ---- in plain words ------------------------------------------------------------------
+  // A short, plain explanation beside the story at each moment. Words in
+  // [[brackets]] become buttons that show their meaning right there.
+  plain(text, vars = {}) {
+    let t = esc(this.t(text));
+    Object.entries(vars).forEach(([k, v]) => { t = t.split(`{${k}}`).join(esc(v)); });
+    t = t.replace(/\[\[([^\]]+)\]\]/g, (_, w) => `<button type="button" class="term" data-term="${w}" aria-expanded="false">${w}</button>`);
+    return `<aside class="plain" aria-label="In plain words"><p class="plain-k">In plain words</p><p class="plain-t">${t}</p><p class="plain-def" hidden></p></aside>`;
+  },
+  wireTerms() {
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest?.(".term");
+      if (!b) return;
+      const box = b.closest(".plain")?.querySelector(".plain-def");
+      if (!box) return;
+      const open = b.getAttribute("aria-expanded") === "true";
+      b.closest(".plain").querySelectorAll(".term").forEach((x) => x.setAttribute("aria-expanded", "false"));
+      if (open) { box.hidden = true; return; }
+      b.setAttribute("aria-expanded", "true");
+      box.innerHTML = `<b>${esc(b.dataset.term)}:</b> ${esc(this.t(GLOSSARY[b.dataset.term] || ""))}`;
+      box.hidden = false;
+    });
   },
 
   // ---- who is outside ------------------------------------------------------------------
@@ -213,6 +238,7 @@ const Game = {
         <p class="eyebrow">The almanac · ${ys[0].year}–${last.year}</p>
         <h2>What the years did</h2>
         <p class="al-lead">${esc(lead)}${fall > 0 ? ` Since ${ys[0].year}, a bale has lost ${fmt(fall)}.` : ""}</p>
+        ${this.plain(PLAIN.almanac)}
         <div class="al-charts">
           <figure class="al-fig">
             <figcaption><span class="al-h">Cotton, per bale</span>
@@ -501,6 +527,7 @@ const Game = {
         <dl class="terms">${CONTRACT.terms.map(([a, b]) => `<dt>${esc(a)}</dt><dd>${esc(b)}</dd>`).join("")}</dl>
         <p class="voice thought">${esc(say("CON-07"))}</p>
         <p class="game-note">Game values. The contract excerpt is real and adapted. The dollar amounts are simplified.</p>
+        ${this.plain(PLAIN.contract)}
         <div class="mark-row">
           <button class="mark" id="mark-btn" aria-label="Make your mark">
             <span class="mark-line"></span><span class="mark-x" aria-hidden="true">X</span>
@@ -557,6 +584,7 @@ const Game = {
         <p class="eyebrow">Spring ${y.year} · ${esc(this.planter())} plantation store</p>
         <h2>Furnish for the year</h2>
         ${page ? `<p class="voice thought">${esc(page.text)}</p>` : ""}
+        ${this.plain(PLAIN.store)}
         <div class="baskets">${opts}</div>
         <p class="fine">${esc(cornNote)} Everything goes on account until settling up.</p>
         <p class="fine warn">A lean basket saves money now, but a hungry, barefoot family picks slower: about ${Math.round((1 - CONFIG.leanYield[0]) * 100)}% less cotton, ${Math.round((1 - CONFIG.leanYield[1]) * 100)}% after two lean years in a row, and a basic year only half mends it. They fall sick more, too.${(this.g.leanRun || 0) > 0 ? ` <strong>The family is still worn from lean years.</strong>` : ""}</p>`, { wide: true });
@@ -607,6 +635,7 @@ const Game = {
     this.dock(`
       <p class="eyebrow">Spring ${y.year} · Plan the field</p>
       <p class="how">${World.ok ? "Tap a square in the field, or here, to switch it between cotton and corn." : "Tap a square to switch it between cotton and corn."} Up to ${CONFIG.maxCornAcres} acres of corn.</p>
+      ${this.plain(PLAIN.plan)}
       <div class="acres" role="group" aria-label="Your 15 acres">${grid}</div>
       <div class="estimate">
         <div><span class="est-k">Cotton</span><span class="est-v">${est.cottonAcres} acres</span><span class="est-s">about ${fmtBales(est.bales)} bales. Your half: ${fmtBales(est.half)}</span></div>
@@ -657,6 +686,7 @@ const Game = {
       this.dock(`
         <p class="eyebrow">${esc(eyebrow)}</p>
         <p class="how">${esc(how)}</p>
+        ${kind === "harvest" ? this.plain(PLAIN.harvest) : ""}
         <div class="progress" aria-hidden="true"><span id="rows-bar"></span></div>
         <p class="pickcount" id="rows-pct" aria-live="polite">Rows walked: 0%</p>
         <button class="secondary" id="rows-done" disabled>Leave the rest to the family</button>`);
@@ -720,6 +750,7 @@ const Game = {
             ${line ? `<p class="voice thought">${esc(say(line))}</p>` : ""}
             ${after ? `<p class="voice thought">${esc(say(after))}</p>` : ""}
             ${choice ? `<p class="q">${esc(this.t(card.question))}</p>` : `<p class="effect">${esc(this.t(muleBlocked ? card.cantAfford : effect))}</p>`}
+            ${this.plain(PLAIN_CARDS[y.event] || PLAIN_CARDS.none)}
             ${card.dyk ? `<div class="dyk"><span class="dyk-k">Did you know?</span> ${esc(card.dyk)}${card.credit ? ` <span class="credit">${esc(card.credit)}</span>` : ""}</div>` : ""}
             <div class="card-actions" id="card-actions">
               ${choice
@@ -859,6 +890,7 @@ const Game = {
                 <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${half}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
               </div>
               <p class="scale-count" id="dial-count" hidden>Hannah's string counted <strong>${fmtLbs(y.trueLbs)}</strong>, ${fmtLbs(y.trueLbs - y.scaleLbs)} more than his needle. At about $${CONFIG.pricePerBale[y.year]} a bale, our ${half} should bring about <strong>${fmt(y.familyBales * CONFIG.pricePerBale[y.year])}</strong>.</p>
+              ${this.plain(PLAIN.scale)}
               <button class="primary" id="to-settle">Continue</button>
             </div>
           </div>
@@ -992,6 +1024,34 @@ const Game = {
       </section>`;
   },
 
+  // The year's money in plain words.
+  settlePlain() {
+    const y = this.y, bal = y.ledger.balance, { totalIn, totalOut } = this.bookRows();
+    if (y.evicted) return this.plain(PLAIN.evicted);
+    if (bal < -0.005) return this.plain(PLAIN.owe, { in: fmt(totalIn), out: fmt(totalOut), short: fmt(-bal) });
+    if (bal > 0.005) return this.plain(PLAIN.ahead, { left: fmt(bal) });
+    return this.plain(PLAIN.even);
+  },
+  // One question after the first settling up, to check the system is clear.
+  // It never blocks play.
+  checkHTML() {
+    const y = this.y, g = this.g;
+    if (g.yearIndex !== 0 || y.evicted) return "";
+    const ans = g.check;
+    const opts = [
+      ["a", "Mr. Holliday takes out his half and everything they owe him first."],
+      ["b", "They're paid wages every week, like a hired hand."],
+      ["c", "They sell their own cotton in town, then pay what they owe."],
+    ];
+    const right = ans === "a";
+    return `<div class="check">
+      <p class="check-k">Check your understanding</p>
+      <p class="check-q">Before the family gets any money from their cotton, what has to happen?</p>
+      <div class="check-opts">${opts.map(([k, t]) => `<button type="button" class="check-o ${ans && k === "a" ? "ok" : ans === k ? "no" : ""}" data-check="${k}" ${ans ? "disabled" : ""}>${esc(t)}</button>`).join("")}</div>
+      ${ans ? `<p class="check-a ${right ? "ok" : ""}">${right ? "Right." : "Not quite."} Sharecroppers weren't paid wages, and under the lien they couldn't sell their own cotton. Mr. ${esc(this.planter())} sold it, took his half and everything they owed, and gave them whatever was left, if anything.</p>` : ""}
+    </div>`;
+  },
+
   renderSettle(revealed, speak) {
     const y = this.y, g = this.g;
     const bal = y.ledger.balance;
@@ -1040,6 +1100,8 @@ const Game = {
             ${vs}
             ${r ? `<div class="reveal"><p class="eyebrow">One line from his book</p><p class="figure-line">${esc(r.detail)}</p></div>` : ""}
             <p class="voice thought">${esc(say(r ? r.t : react))}</p>
+            ${this.settlePlain()}
+            ${this.checkHTML()}
             ${rent ? `<p class="voice">You have the savings, and the mule is yours. A man two miles off has land to rent.</p>` : ""}
             <div class="settle-actions">${actions}</div>
             ${!y.evicted && !y.demanded ? `<p class="fine">Demanding the books shows one hidden line. He may put you off the place (1 in 3).</p>` : ""}
@@ -1057,6 +1119,13 @@ const Game = {
       })();
     }
     this.els.sheetBody.querySelectorAll("[data-act]").forEach((b) => b.addEventListener("click", () => this.settleAct(b.dataset.act)));
+    this.els.sheetBody.querySelectorAll("[data-check]").forEach((b) => b.addEventListener("click", () => {
+      this.g.check = b.dataset.check;
+      this.log(`Check your understanding: answered ${b.dataset.check === "a" ? "right" : "not quite"}.`, "settle");
+      this.save();
+      const box = this.els.sheetBody.querySelector(".check");
+      box.outerHTML = this.checkHTML();
+    }));
   },
 
   async settleAct(act) {
@@ -1228,9 +1297,10 @@ const Game = {
     const j = (this.g && this.g.journal) || [];
     const byYear = {};
     j.forEach((e) => { (byYear[e.year] = byYear[e.year] || []).push(e); });
-    $("#journal-list").innerHTML = j.length
+    const words = `<section class="words"><h3>Words to know</h3><dl>${Object.entries(GLOSSARY).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(this.t(v))}</dd>`).join("")}</dl></section>`;
+    $("#journal-list").innerHTML = words + (j.length
       ? Object.entries(byYear).map(([yr, es]) => `<section><h3>${yr}</h3>${es.map((e) => `<p class="j-${e.kind}">${esc(e.text)}</p>`).join("")}</section>`).join("")
-      : `<p class="fine">Everything said in the game shows up here, so you can look back at anything you missed.</p>`;
+      : `<p class="fine">Everything said in the game shows up here, so you can look back at anything you missed.</p>`);
     this.els.journal.hidden = false;
     $("#journal-close").focus();
   },

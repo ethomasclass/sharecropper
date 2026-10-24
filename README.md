@@ -33,6 +33,8 @@ Papa walks everywhere himself:
 
 **The almanac** opens at the field's edge each spring, before the cotton-or-corn choice (and from the top bar any time). It charts cotton's price per bale, from real New York prices for 1866–1868 (Historical Statistics of the United States, series E 104) through each year the family has settled, and what one acre of cotton earned the family against what one acre of corn saved. It never shows a year that hasn't happened.
 
+**In plain words.** The voiced story stays as it is, but every key moment also has a blue "In plain words" box: one or two plain sentences on what just happened and what it means for the family's money (the contract, the store, planting, each event card, the harvest, the scale, the almanac, and each settling up, where it spells out the year's arithmetic). Key words (lien, furnish, credit, share, settling up, carried debt, interest, ginning) can be tapped for a definition, and the Journal lists them all under "Words to know." After the first settling up, one check-your-understanding question asks what has to happen before the family sees any money; it explains the answer and never blocks play.
+
 **Hannah's tally** stays in the top bar all year, so students watch the family's account build: last year's debt, the store, the doctor, the cotton coming in.
 
 **Leaving.** The button to leave the planter's place is always offered, and never works: in debt, Papa knows the planter's lien holds him; even, he knows every planter in the county keeps the same book. Students can try the door and find it shut.
