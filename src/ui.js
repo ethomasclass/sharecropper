@@ -658,20 +658,95 @@ const Game = {
     await this.goTo("gin", "ginFront", `Lead the wagon to Mr. ${this.planter()}'s gin scale`, 2.2);
     World.setMode("locked");
     const maxLbs = (CONFIG.acres / CONFIG.acresPerBale) * 1.2 * CONFIG.poundsPerBale;
-    await World.weigh(y.scaleLbs, maxLbs);
-    this.showFlat("porchLantern");
+    World.weigh(y.scaleLbs, maxLbs);
     this.log(`Mr. ${this.planter()}'s scale read ${fmtLbs(y.scaleLbs)}.`);
-    this.dock(`
-      <p class="eyebrow">Fall ${y.year} · The scale</p>
-      <div class="scale-read">
-        <span class="scale-k">Mr. ${esc(this.planter())}'s scale</span>
-        <span class="scale-v">${fmtLbs(y.scaleLbs)}</span>
-        <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${y.shareRate > 0.5 ? "two-thirds" : "half"}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
-      </div>
-      <p class="scale-count">Hannah's string counted <strong>${fmtLbs(y.trueLbs)}</strong>. At about $${CONFIG.pricePerBale[y.year]} a bale, our ${y.shareRate > 0.5 ? "two-thirds" : "half"} should bring about <strong>${fmt(y.familyBales * CONFIG.pricePerBale[y.year])}</strong>.</p>
-      <button class="primary" id="to-settle">Continue</button>`);
     cue(sc, "At the scale");
-    await new Promise((r) => $("#to-settle").addEventListener("click", r, { once: true }));
+    this.dock("");
+    await this.scaleDial(y, maxLbs);
+    this.showFlat("porchLantern");
+  },
+
+  // ---- the scale, up close --------------------------------------------------------------
+  // The dial drawn big: the needle swings to his reading, then a pencil tick
+  // shows where Hannah's string says it should have stopped.
+  scaleDial(y, maxLbs) {
+    const full = Math.ceil(maxLbs / 500) * 500;
+    const C = 200, SWEEP = 252, START = -126;                   // degrees from straight up
+    const ang = (lbs) => START + SWEEP * Math.min(1, lbs / full);
+    const pt = (deg, r) => { const a = (deg - 90) * Math.PI / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
+    let ticks = "";
+    for (let lb = 0; lb <= full; lb += 50) {
+      const major = lb % 500 === 0, mid = lb % 100 === 0;
+      const [x1, y1] = pt(ang(lb), 158), [x2, y2] = pt(ang(lb), major ? 128 : mid ? 140 : 148);
+      ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#1E1B18" stroke-width="${major ? 5 : mid ? 3 : 1.6}" stroke-linecap="round"/>`;
+      if (major) {
+        const [tx, ty] = pt(ang(lb), 106);
+        ticks += `<text x="${tx.toFixed(1)}" y="${(ty + 7).toFixed(1)}" text-anchor="middle" class="dial-num">${lb.toLocaleString("en-US")}</text>`;
+      }
+    }
+    const [hx1, hy1] = pt(ang(y.trueLbs), 176), [hx2, hy2] = pt(ang(y.trueLbs), 118);
+    const [lx, ly] = pt(ang(y.trueLbs), 196);
+    const svg = `
+      <svg class="dial-svg" viewBox="-20 -20 440 440" role="img" aria-label="The scale reads ${fmtLbs(y.scaleLbs)}">
+        <defs><radialGradient id="dialFace" cx="45%" cy="40%" r="70%"><stop offset="0" stop-color="#FBF6EA"/><stop offset="1" stop-color="#E9DDC2"/></radialGradient></defs>
+        <circle cx="${C}" cy="${C}" r="198" fill="#2C2C30"/>
+        <circle cx="${C}" cy="${C}" r="188" fill="#A8823A" stroke="#6E5424" stroke-width="4"/>
+        <circle cx="${C}" cy="${C}" r="172" fill="url(#dialFace)" stroke="#6E5424" stroke-width="2"/>
+        <path d="M ${pt(START, 164).join(" ")} A 164 164 0 1 1 ${pt(START + SWEEP, 164).join(" ")}" fill="none" stroke="#1E1B18" stroke-width="2"/>
+        ${ticks}
+        <text x="${C}" y="${C - 52}" text-anchor="middle" class="dial-make">${esc(this.planter().toUpperCase())} GIN</text>
+        <text x="${C}" y="${C + 70}" text-anchor="middle" class="dial-unit">POUNDS</text>
+        <g class="dial-hannah" opacity="0">
+          <line x1="${hx1.toFixed(1)}" y1="${hy1.toFixed(1)}" x2="${hx2.toFixed(1)}" y2="${hy2.toFixed(1)}" stroke="#5A5048" stroke-width="3" stroke-dasharray="6 4"/>
+          <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" class="dial-pencil">Hannah's string</text>
+        </g>
+        <g class="dial-needle" transform="rotate(${START} ${C} ${C})">
+          <path d="M ${C - 7} ${C + 34} L ${C} ${C - 150} L ${C + 7} ${C + 34} Z" fill="#A3271F" stroke="#6E1A14" stroke-width="1.5"/>
+          <circle cx="${C}" cy="${C + 40}" r="13" fill="#A3271F" stroke="#6E1A14" stroke-width="1.5"/>
+        </g>
+        <circle cx="${C}" cy="${C}" r="16" fill="#A8823A" stroke="#6E5424" stroke-width="3"/>
+      </svg>`;
+    const half = y.shareRate > 0.5 ? "two-thirds" : "half";
+    return new Promise((resolve) => {
+      this.sheet(`
+        <div class="scale-modal">
+          <p class="eyebrow">Fall ${y.year} · Mr. ${esc(this.planter())}'s scale</p>
+          <div class="scale-grid">
+            <div class="dial-wrap">${svg}</div>
+            <div class="scale-facts">
+              <div class="scale-read">
+                <span class="scale-k">The needle reads</span>
+                <span class="scale-v" id="dial-v">0 lb</span>
+                <span class="scale-s">${fmtBales(y.scaleLbs / CONFIG.poundsPerBale)} bales. Your ${half}: ${fmtBales(y.creditedBales)} bales. Ginning: $${CONFIG.ginningPerBale} a bale.</span>
+              </div>
+              <p class="scale-count" id="dial-count" hidden>Hannah's string counted <strong>${fmtLbs(y.trueLbs)}</strong>, ${fmtLbs(y.trueLbs - y.scaleLbs)} more than his needle. At about $${CONFIG.pricePerBale[y.year]} a bale, our ${half} should bring about <strong>${fmt(y.familyBales * CONFIG.pricePerBale[y.year])}</strong>.</p>
+              <button class="primary" id="to-settle">Continue</button>
+            </div>
+          </div>
+        </div>`, { wide: true });
+      const needle = this.els.sheetBody.querySelector(".dial-needle"), read = $("#dial-v");
+      const to = ang(y.scaleLbs), still = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const t0 = performance.now() + 500, dur = 2600;
+      const settle = () => {
+        needle.setAttribute("transform", `rotate(${to} ${C} ${C})`);
+        read.textContent = fmtLbs(y.scaleLbs);
+        this.els.sheetBody.querySelector(".dial-hannah").setAttribute("opacity", "1");
+        $("#dial-count").hidden = false;
+      };
+      const frame = (now) => {
+        if (!needle.isConnected) return;
+        const raw = Math.max(0, Math.min(1, (now - t0) / dur));
+        const k = 1 - Math.pow(1 - raw, 3);
+        // a spring dial swings past, wobbles, and settles
+        const wob = Math.sin(raw * Math.PI * 3) * Math.exp(-raw * 3) * 14;
+        const deg = START + (to - START) * k + wob;
+        needle.setAttribute("transform", `rotate(${deg.toFixed(2)} ${C} ${C})`);
+        read.textContent = fmtLbs(Math.max(0, (deg - START) / SWEEP * full));
+        if (raw < 1) requestAnimationFrame(frame); else settle();
+      };
+      if (still) settle(); else requestAnimationFrame(frame);
+      $("#to-settle").addEventListener("click", () => { this.closeSheet(); resolve(); }, { once: true });
+    });
   },
 
   onInteract(name) {

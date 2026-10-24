@@ -66,7 +66,7 @@ async function walkRows() {
     if (!(await page.$("#rows-pct"))) return;
   }
   const left = await page.$("#rows-done:not([disabled])");
-  if (left) await left.click();
+  if (left) await left.click().catch(() => {});   // the rows may finish on their own first
 }
 
 await page.goto(`http://localhost:${server.address().port}/`);
@@ -130,6 +130,7 @@ for (let year = 0; year < 5; year++) {
   if (year === 0 && worldOk) { await walkTo(12.4, 0.6); await shot("leading-wagon"); }
   await followFlag("gin");
   await page.waitForSelector("#to-settle", { timeout: 30000 });
+  await sleep(year === 0 ? 3600 : 0);
   if (year === 0) await shot("scale");
   await page.click("#to-settle");
   await followFlag("porch");

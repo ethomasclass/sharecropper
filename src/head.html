@@ -348,6 +348,17 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .acct-t td { text-align: right; font-family: var(--figures); font-weight: 700; padding: 3px 0 3px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
 .acct-t tr.sum th, .acct-t tr.sum td { border-top: 1.5px solid var(--ink); border-bottom: none; font-weight: 800; }
 .scale-count { margin-top: 8px !important; font-size: .95rem; }
+.scale-modal { display: flex; flex-direction: column; gap: 10px; }
+.scale-grid { display: grid; gap: 22px; align-items: center; }
+@media (min-width: 820px) { .scale-grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); } }
+.scale-facts { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dial-wrap { justify-self: center; width: min(460px, 100%, 62vh); aspect-ratio: 1; max-width: 100%; }
+.dial-svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 12px 18px rgba(30,27,24,.35)); }
+.dial-num { font-family: var(--figures); font-weight: 700; font-size: 17px; fill: var(--ink); }
+.dial-make { font-family: var(--display); font-stretch: 72%; font-weight: 900; font-size: 16px; letter-spacing: .14em; fill: #6E5424; }
+.dial-unit { font-family: var(--display); font-stretch: 72%; font-weight: 800; font-size: 13px; letter-spacing: .3em; fill: var(--ink-soft); }
+.dial-pencil { font-family: var(--hand); font-weight: 700; font-size: 20px; fill: #5A5048; }
+.dial-hannah { transition: opacity .8s ease; }
 
 /* audit */
 .ledger-wrap { overflow-x: auto; border: 1.5px solid var(--ink); background: #F7F2E6; max-width: 100%; }

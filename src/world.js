@@ -42,6 +42,8 @@ const World = (() => {
   let porchY = 0.2;                  // the cabin porch, where Lucy and Mother Ruth stand
   const tinted = [];                 // painted materials that dim at dusk
   const propMeshes = [];             // props that only show in some seasons
+  const chimneyTops = [];            // where the cabin's smoke rises
+  const life = { birds: [], smoke: [], lint: null };   // the small things that move
   let sky = null;                    // the painted sky, if there is one
 
   // ---- where things are --------------------------------------------------
@@ -97,6 +99,8 @@ const World = (() => {
     flag:     () => cut(160, 420, R(74, 40, 10, 380, AC.ink) + P([[84, 44], [156, 76], [84, 112]], AC.brick)),
     hills1:   () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" width="1600" height="300">${P([[0, 300], [0, 170], [220, 90], [430, 150], [700, 60], [980, 140], [1230, 80], [1600, 160], [1600, 300]], AC.indigoLt)}</svg>`,
     hills2:   () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 300" width="1600" height="300">${P([[0, 300], [0, 210], [300, 140], [560, 200], [820, 120], [1100, 190], [1380, 130], [1600, 200], [1600, 300]], "#6C7A4C")}</svg>`,
+    bird:     () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40" width="128" height="52"><path d="M2 14 Q26 2 50 24 Q74 2 98 14 Q74 10 50 34 Q26 10 2 14 Z" fill="#2A2420"/></svg>`,
+    puff:     () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="96" height="96"><defs><radialGradient id="p"><stop offset="0" stop-color="#EDE6D8" stop-opacity=".85"/><stop offset=".6" stop-color="#D9D1C2" stop-opacity=".45"/><stop offset="1" stop-color="#D9D1C2" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="48" fill="url(#p)"/></svg>`,
     blob:     () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" width="128" height="64"><ellipse cx="50" cy="25" rx="48" ry="22" fill="#1E1B18" opacity="0.28"/></svg>`,
     dial:     () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256"><circle cx="100" cy="100" r="94" fill="${AC.cream}" stroke="${AC.ink}" stroke-width="8"/>${Array.from({ length: 11 }, (_, i) => { const a = Math.PI * (0.8 + i * 0.14); return L(100 + 70 * Math.cos(a), 100 + 70 * Math.sin(a), 100 + 86 * Math.cos(a), 100 + 86 * Math.sin(a), AC.ink, 5); }).join("")}</svg>`,
     needle:   () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256">${P([[96, 100], [104, 100], [100, 22]], AC.brick)}${C(100, 100, 9, AC.ink)}</svg>`,
@@ -377,6 +381,7 @@ const World = (() => {
           const stack = new T3.Mesh(new T3.BoxGeometry(alongX ? cw : cd, top - H + 0.3, alongX ? cd : cw), lambert(0xffffff, map));
           stack.position.set(s.at.x - f.x * fromFront + n.x * outward, y0 + H - 0.3 + (top - H + 0.3) / 2, s.at.z - f.z * fromFront + n.z * outward);
           parent.add(stack);
+          if (s.smoke) chimneyTops.push({ x: stack.position.x, y: y0 + top + 0.3, z: stack.position.z });
         }
       }
     }
@@ -662,13 +667,16 @@ const World = (() => {
 
     // the cabin: its gable front, with the door and porch, faces the yard (+x)
     const cab = building({ at: { x: -15, z: 13 }, f: { x: 1, z: 0 }, width: 4.2, length: 5, wall: 3, roof: 1.9, gable: true,
-      front: "cabinFront", side: "cabinSide", wallMat: surface(0x7a4a2e, "wallPlanks", 0xffffff, grain), roofMat: surface(0x4f2f1d, "roofShingle") });
+      smoke: true, front: "cabinFront", side: "cabinSide", wallMat: surface(0x7a4a2e, "wallPlanks", 0xffffff, grain), roofMat: surface(0x4f2f1d, "roofShingle") });
     if (!cab.F) {
       box(2.2, 0.2, 4.2, 0x5a3a24, -15 + 0.9, 0, 13);                          // porch
       box(1.1, 2, 0.1, 0x1e1b18, -15 + 0.01, 0, 13, { ry: Math.PI / 2 });     // door
       box(0.1, 0.9, 1, 0x1e1b18, -15 + 0.02, 1.4, 13 - 1.4);                  // window
     } else porchY = 0;   // the porch is in the painting; the family stands in front of it
-    if (!cab.S) box(0.9, cab.H + 1.4, 0.6, 0x6d5f52, -15 - 3.3, 0, 13 + 2.4, { map: grain });   // stone chimney
+    if (!cab.S) {
+      box(0.9, cab.H + 1.4, 0.6, 0x6d5f52, -15 - 3.3, 0, 13 + 2.4, { map: grain });   // stone chimney
+      chimneyTops.push({ x: -18.3, y: cab.H + 1.5, z: 15.4 });
+    }
 
     // store and gin house: its front faces the road (-z)
     const st = { x: 17.5, z: 9.5 };
@@ -885,6 +893,39 @@ const World = (() => {
     flag = cutout("flag", HEIGHTS.flag, 0, 0, { blob: false });
     flag.visible = false;
 
+    // ---- the small things that move: birds, chimney smoke, cotton lint ----
+    // A few dozen tiny flat planes and one point cloud: almost free to draw.
+    const birdMat = new T3.MeshBasicMaterial({ map: tex.bird, transparent: true, depthWrite: false, side: T3.DoubleSide, fog: false });
+    const birdGeo = new T3.PlaneGeometry(1.4, 0.56);
+    [[-20, -10, 34, 7, 0.16], [25, 20, 26, 5, -0.2], [5, -45, 40, 6, 0.12]].forEach(([cx, cz, r, n, speed]) => {
+      const flock = { cx, cz, r, speed, a: Math.random() * 6.28, h: 11 + Math.random() * 7, birds: [] };
+      for (let i = 0; i < n; i++) {
+        const m = new T3.Mesh(birdGeo, birdMat);
+        m.userData = { off: [(Math.random() - 0.5) * 6, (Math.random() - 0.5) * 3, (Math.random() - 0.5) * 6], phase: Math.random() * 6.28, rate: 7 + Math.random() * 3 };
+        scene.add(m); flock.birds.push(m);
+      }
+      life.birds.push(flock);
+    });
+    const puffMat = new T3.MeshBasicMaterial({ map: tex.puff, transparent: true, depthWrite: false, fog: true });
+    chimneyTops.slice(0, 1).forEach((top) => {
+      for (let i = 0; i < 7; i++) {
+        const m = new T3.Mesh(new T3.PlaneGeometry(1, 1), puffMat.clone());
+        m.userData = { top, t: i / 7 };
+        scene.add(m); life.smoke.push(m);
+      }
+    });
+    const lintN = 140, lintPos = new Float32Array(lintN * 3);
+    for (let i = 0; i < lintN; i++) lintPos.set([(Math.random() - 0.5) * 24, 0.25 + Math.random() * 1.2, (Math.random() - 0.5) * 16], i * 3);
+    const dot = document.createElement("canvas"); dot.width = dot.height = 32;
+    const dg = dot.getContext("2d"), grd = dg.createRadialGradient(16, 16, 0, 16, 16, 16);
+    grd.addColorStop(0, "rgba(255,252,244,1)"); grd.addColorStop(0.5, "rgba(255,252,244,.6)"); grd.addColorStop(1, "rgba(255,252,244,0)");
+    dg.fillStyle = grd; dg.fillRect(0, 0, 32, 32);
+    const lintGeo = new T3.BufferGeometry();
+    lintGeo.setAttribute("position", new T3.BufferAttribute(lintPos, 3));
+    life.lint = new T3.Points(lintGeo, new T3.PointsMaterial({ map: new T3.CanvasTexture(dot), size: 0.06, transparent: true, opacity: 0.9, depthWrite: false }));
+    life.lint.visible = false;
+    scene.add(life.lint);
+
     // flood water and rain
     flood = new T3.Mesh(new T3.PlaneGeometry(30, 12), new T3.MeshLambertMaterial({ color: 0x4c5c7e, transparent: true, opacity: 0.78 }));
     flood.rotation.x = -Math.PI / 2;
@@ -1053,6 +1094,7 @@ const World = (() => {
       }
     }
 
+    animateLife(dt);
     for (const b of billboards) {
       if (!b.visible) continue;
       b.rotation.y = Math.atan2(camera.position.x - b.position.x, camera.position.z - b.position.z);
@@ -1096,6 +1138,57 @@ const World = (() => {
     if (reduceMotion) { fn(1, 1); done?.(); return; }
     tweens.push({ t: 0, dur, fn, done });
   }
+  // Birds wheel over the farm (fewer and slower at dusk, none in the rain),
+  // smoke drifts from the cabin chimney, crops sway, lint floats at harvest.
+  let clock = 0;
+  function animateLife(dt) {
+    clock += dt;
+    const dusk = skyName === "dusk", wet = weatherName === "rain" || weatherName === "flood";
+    life.birds.forEach((fl, fi) => {
+      const show = !wet && (!dusk || fi === 0);
+      fl.a += dt * fl.speed * (dusk ? 0.6 : 1);
+      const fx = fl.cx + Math.cos(fl.a) * fl.r, fz = fl.cz + Math.sin(fl.a) * fl.r, fy = fl.h + Math.sin(clock * 0.3 + fi) * 2;
+      fl.birds.forEach((b) => {
+        b.visible = show;
+        if (!show) return;
+        const u = b.userData;
+        b.position.set(fx + u.off[0] + Math.sin(clock * 0.7 + u.phase) * 1.2, fy + u.off[1] + Math.sin(clock * 1.1 + u.phase) * 0.5, fz + u.off[2]);
+        b.lookAt(camera.position);
+        b.scale.y = 0.35 + Math.abs(Math.sin(clock * u.rate + u.phase)) * 0.75;   // wings beat
+      });
+    });
+    life.smoke.forEach((m) => {
+      const u = m.userData;
+      u.t = (u.t + dt * 0.09) % 1;
+      const k = u.t;
+      m.position.set(u.top.x + k * 2.2 + Math.sin(clock * 0.5 + k * 6) * 0.25, u.top.y + k * 4.5, u.top.z - k * 0.8);
+      const sz = 0.5 + k * 2.2;
+      m.scale.set(sz, sz, sz);
+      m.material.opacity = Math.sin(k * Math.PI) * (dusk ? 0.75 : 0.5);
+      m.lookAt(camera.position);
+    });
+    // crops lean together in the wind, each a little out of step
+    if (stage !== "plan") {
+      const gust = 0.035 + Math.sin(clock * 0.23) * 0.02;
+      for (let i = 0; i < plants.length; i += 1) {
+        const p = plants[i];
+        if (p.group.visible) p.group.rotation.z = Math.sin(clock * 1.4 + p.x * 0.35 + p.z * 0.2) * gust;
+      }
+    }
+    if (life.lint) {
+      life.lint.visible = stage === "ripe" && !wet;
+      if (life.lint.visible) {
+        const a = life.lint.geometry.attributes.position.array;
+        for (let i = 0; i < a.length; i += 3) {
+          a[i] += dt * (0.5 + Math.sin(clock + i) * 0.2);
+          a[i + 1] = Math.min(1.5, Math.max(0.2, a[i + 1] + Math.sin(clock * 0.8 + i * 0.37) * dt * 0.25));
+          if (a[i] > 12) a[i] = -12;
+        }
+        life.lint.geometry.attributes.position.needsUpdate = true;
+      }
+    }
+  }
+
   // turn the wagon wheels as it moves
   function rollWheels(dist) {
     (wagon.userData.wheels || []).forEach((spin) => { spin.rotation.z -= dist / spin.userData.r; });
