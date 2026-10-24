@@ -116,9 +116,23 @@ These only appear if you add them. Each has a set place in the world.
 
 ### Building fronts (`art/facades/`)
 
-Each painting stands on its 3D building like a stage flat, fronts and both sides. The build trims the magenta, so the bottom of the painting is the ground line. The width is set by the building; the height comes from your painting, and the 3D wall and roof shrink or grow to match the side painting so no roof pokes out above it. With a front painting in place, the drawn door, windows, and (on the big house) columns are hidden.
+Each building is a 3D box and roof wearing three paintings: its front and both sides. The build trims the magenta, so the bottom of each painting is its ground line.
 
 `cabinFront`, `cabinSide`, `storeFront`, `storeSide`, `bigHouseFront`, `bigHouseSide`, `schoolFront`, `schoolSide`
+
+**How the paintings fit together.** [`facades.json`](facades.json) records, for each painting, where its wall corners are, where the wall meets the ground (base), the top of the wall (eave), and the top of the roof (ridge), as fractions of the picture. The game uses them to:
+
+- **Land each painted wall exactly on the 3D wall,** so the front and sides meet at the corners and the eaves line up all the way around. The building's depth and wall height come from the paintings' own shapes, so nothing is stretched.
+- **Copy the front's roof.** The 3D roof takes the front painting's ridge height, pitch, and eave overhang (`eaves`). On the cabin and school, whose sides are the long eave walls, the sides are cut off at the eave and the 3D roof carries the front's roof over them. On the store and big house, whose sides are gable ends, the painted gable is kept and re-pitched to meet the 3D ridge.
+- **Carry chimneys up.** A chimney on a cut side (`chimney`) becomes a 3D stack above the roof, wearing the painting's own stonework.
+- **Split joined buildings.** `sections` tells the game when one front shows two buildings joined, like the store's gable-fronted commissary beside its tin-roofed gin barn. Each part gets its own 3D roof.
+- **Match the plain walls.** `planks` names a patch of plain painted wall; the 3D back wall and gable ends wear it, so they match the paintings.
+- **Cut openings.** `holes` makes dark painted openings see-through, like the big house's open side porch.
+- **Place the store sign** on the painting's blank sign board (`sign`).
+
+Roofs, porches, and chimneys painted past the wall stand out past the corners, like the wings of a stage flat. With a front painting in place, the drawn door, windows, porch, and columns are hidden.
+
+**When you replace a building painting,** run `python3 tools/facade_check.py`. It draws the calibration lines over each painting in `dist/facade-check/`. Move any line that's off by editing `facades.json`, then rebuild.
 
 ### Ground and wall textures (`art/textures/`, square, seamless)
 

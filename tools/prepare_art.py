@@ -18,7 +18,9 @@ except ImportError:
     np = None
 
 root = Path(__file__).resolve().parent.parent
+art_dir = Path(os.environ.get("ART_DIR") or root / "art")
 slots = json.loads((root / "tools" / "art-slots.json").read_text())
+fits = json.loads((art_dir / "facades.json").read_text()) if (art_dir / "facades.json").exists() else {}
 out, notes = {}, []
 CREAM = (246, 239, 223, 255)
 
@@ -54,6 +56,23 @@ def key_out(img, top_only=False):
         a[:e, :, 3] = 0; a[-e:, :, 3] = 0; a[:, :e, 3] = 0; a[:, -e:, 3] = 0
     return Image.fromarray(a.astype(np.uint8), "RGBA"), True
 
+def cut_hole(img, hole):
+    """Make a dark painted opening see-through. `hole` is [left, bottom, right, top]
+    as fractions of the trimmed picture; only the dark pixels inside it go, so
+    the cut follows the painted edges of the posts and walls around it."""
+    if np is None:
+        return img
+    a = np.asarray(img).copy()
+    h, w = a.shape[:2]
+    x0, x1 = int(hole[0] * w), int(hole[2] * w)
+    y0, y1 = int((1 - hole[3]) * h), int((1 - hole[1]) * h)
+    part = a[y0:y1, x0:x1].astype(np.float32)
+    lum = part[..., 0] * 0.3 + part[..., 1] * 0.59 + part[..., 2] * 0.11
+    keep = np.clip((lum - 95) / 30, 0, 1)        # dark goes, light stays, soft between
+    part[..., 3] = np.minimum(part[..., 3], keep * 255)
+    a[y0:y1, x0:x1] = part.astype(np.uint8)
+    return Image.fromarray(a, "RGBA")
+
 def paper_edge(img):
     w, h = img.size
     pad = max(4, round(h * 0.012))
@@ -68,7 +87,7 @@ def paper_edge(img):
     return edge
 
 for kind in ("sprites", "props", "facades", "textures", "backdrops", "scenes", "cards"):
-    folder = Path(os.environ.get("ART_DIR") or root / "art") / kind
+    folder = art_dir / kind
     if not folder.exists():
         continue
     for f in sorted(folder.iterdir()):
@@ -88,6 +107,8 @@ for kind in ("sprites", "props", "facades", "textures", "backdrops", "scenes", "
             box = img.getchannel("A").point(lambda a: 255 if a > 96 else 0).filter(ImageFilter.MinFilter(5)).getbbox()
             if box:
                 img = img.crop(box)
+            for hole in fits.get(name, {}).get("holes", []):
+                img = cut_hole(img, hole)
         if kind == "textures" and img.width != img.height:
             notes.append(f"art/{kind}/{f.name} is not square; textures should be 1:1 and seamless")
         if kind in ("facades", "textures", "backdrops"):

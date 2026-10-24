@@ -66,12 +66,15 @@ function audioInline() {
 const before = ["src/config.js", "src/engine.js"];
 const scripts = ["src/story.js", "src/art.js", "src/world.js", "src/voice.js", "src/ui.js"];
 const art = customArt();
+// where each building painting's wall corners, eave, and ridge are (art/facades.json)
+const artDir = process.env.ART_DIR ? process.env.ART_DIR.replace(/\/?$/, "/") : root + "art/";
+const facadeFit = fs.existsSync(artDir + "facades.json") ? JSON.parse(fs.readFileSync(artDir + "facades.json", "utf8")) : {};
 const head = read("src/head.html").replace("/*FONTS*/", fontFaces());
 // One page, three ways to get its voice: packed in, from a folder, or none.
 const pageWith = (voice, artMap) => [
   head,
   read("src/body.html"),
-  `<script type="module">\n${threeInline()}\nconst CUSTOM_ART = ${JSON.stringify(artMap)};\n${voice}\n${before.map(read).join("\n")}\n${storyInline()}\n${scripts.map(read).join("\n")}\nwindow.SettlingUp = { Game, World, Voice, auditTotals };\nGame.boot();\n</script>\n`,
+  `<script type="module">\n${threeInline()}\nconst CUSTOM_ART = ${JSON.stringify(artMap)};\nconst FACADE_FIT = ${JSON.stringify(facadeFit)};\n${voice}\n${before.map(read).join("\n")}\n${storyInline()}\n${scripts.map(read).join("\n")}\nwindow.SettlingUp = { Game, World, Voice, auditTotals };\nGame.boot();\n</script>\n`,
 ].join("\n");
 // The prepared art as files for GitHub Pages: assets/art/<kind>/<name>.webp
 function artFiles(art) {
