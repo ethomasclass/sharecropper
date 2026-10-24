@@ -360,6 +360,32 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .dial-pencil { font-family: var(--hand); font-weight: 700; font-size: 20px; fill: #5A5048; }
 .dial-hannah { transition: opacity .8s ease; }
 
+/* the almanac */
+.almanac { display: flex; flex-direction: column; gap: 12px; }
+.al-lead { font-family: var(--hand); font-size: 1.45rem; line-height: 1.2; max-width: 60ch; }
+.al-charts { display: grid; gap: 18px; }
+@media (min-width: 900px) { .al-charts { grid-template-columns: 1fr 1fr; } }
+.al-fig { margin: 0; background: #F8F3E7; border: 1.5px solid var(--ink); padding: 10px 12px 6px; min-width: 0; }
+.al-fig figcaption { display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px; }
+.al-h { font-family: var(--display); font-stretch: 78%; font-weight: 800; text-transform: uppercase; font-size: 1rem; }
+.al-key { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: .8rem; color: var(--ink-soft); }
+.al-key .sw { display: inline-block; width: 14px; height: 10px; border-radius: 2px; background: #5A5048; vertical-align: middle; margin-right: 4px; }
+.al-key .sw.hist { background: repeating-linear-gradient(45deg, #5A5048 0 2px, #F8F3E7 2px 4px); border: 1px solid #5A5048; }
+.al-key .sw.cot { background: #B07A2E; } .al-key .sw.corn { background: #2F5FA8; }
+.al-svg { width: 100%; height: auto; display: block; }
+.al-grid { stroke: #D8CDB4; stroke-width: 1; }
+.al-base { stroke: var(--ink); stroke-width: 1.5; }
+.al-tick { font-family: var(--figures); font-size: 14px; fill: var(--ink-soft); }
+.al-yr { font-family: var(--figures); font-weight: 700; font-size: 15px; fill: var(--ink); }
+.al-val { font-family: var(--figures); font-weight: 700; font-size: 15px; fill: var(--ink); }
+.al-bar { fill: #5A5048; } .al-bar.hist { fill: url(#al-hatch); stroke: #5A5048; stroke-width: 1; }
+.al-hatch-ink { fill: #5A5048; }
+.al-cot { fill: #B07A2E; } .al-cot.hist { fill: url(#al-hatch-c); stroke: #B07A2E; stroke-width: 1; }
+.al-corn { fill: #2F5FA8; } .al-corn.hist { fill: url(#al-hatch-k); stroke: #2F5FA8; stroke-width: 1; }
+.al-svg g:hover path { opacity: .8; }
+.al-table summary { cursor: pointer; font-weight: 700; }
+.linkish { background: none; border: none; padding: 0; color: var(--ink); text-decoration: underline; cursor: pointer; font: inherit; }
+
 /* audit */
 .ledger-wrap { overflow-x: auto; border: 1.5px solid var(--ink); background: #F7F2E6; max-width: 100%; }
 .ledger { border-collapse: collapse; width: 100%; font-family: var(--figures); font-variant-numeric: tabular-nums; font-size: .86rem; }

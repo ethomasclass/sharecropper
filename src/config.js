@@ -16,6 +16,12 @@ const CONFIG = {
   // Cotton price per bale, announced each year
   pricePerBale: { 1869: 110, 1870: 95, 1871: 85, 1872: 85, 1873: 60 },
 
+  // The almanac's years before the game: real New York prices, dollars per
+  // pound of middling upland cotton (a history, not a game value). Historical
+  // Statistics of the United States, Colonial Times to 1957, series E 104,
+  // from James L. Watkins, Production and Price of Cotton for One Hundred Years (1895).
+  historyPricePerLb: { 1866: 0.432, 1867: 0.316, 1868: 0.249 },
+
   // Store (furnish). Students only ever see credit prices.
   creditMarkup: 0.40,       // hidden: credit price = cash price x 1.40
   baskets: {

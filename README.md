@@ -31,6 +31,8 @@ Papa walks everywhere himself:
 4. **The harvest.** In the fall he walks the rows with the family, then leads the loaded wagon to the planter's scale. The 10% short weight is applied silently.
 5. **Settling up.** He walks up to the big house. The planter's book adds itself up line by line: what the crop brought, every charge, and a bar that shows the shortfall as a length. Beside it sits **Hannah's tally**, the family's own count (store charges, the cotton's true weight on Hannah's knotted string, and the 10% interest he promised); the gap between the two is what the system took that year. Students choose to stay, demand the books, or rent a farm if they qualify. Demanding the books writes the hidden truth into the book in red.
 
+**The almanac** opens at the field's edge each spring, before the cotton-or-corn choice (and from the top bar any time). It charts cotton's price per bale, from real New York prices for 1866–1868 (Historical Statistics of the United States, series E 104) through each year the family has settled, and what one acre of cotton earned the family against what one acre of corn saved. It never shows a year that hasn't happened.
+
 **Hannah's tally** stays in the top bar all year, so students watch the family's account build: last year's debt, the store, the doctor, the cotton coming in.
 
 **Leaving.** The button to leave the planter's place is always offered, and never works: in debt, Papa knows the planter's lien holds him; even, he knows every planter in the county keeps the same book. Students can try the door and find it shut.

@@ -76,6 +76,7 @@ const Game = {
       sky: (sky, weather) => Ambience.set(Ambience.forSky(sky, weather)),
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
+    $("#almanac-btn").addEventListener("click", () => this.openAlmanac());
     $("#journal-close").addEventListener("click", () => { this.els.journal.hidden = true; });
     const vb = $("#voice-btn");
     const showVoice = () => { vb.textContent = Voice.on ? "Voice on" : "Voice off"; vb.setAttribute("aria-pressed", String(Voice.on)); };
@@ -131,6 +132,104 @@ const Game = {
     }).join("");
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
     this.renderTally();
+    $("#almanac-btn").hidden = !g;
+  },
+
+  // ---- the almanac --------------------------------------------------------------------
+  // What cotton and corn did in the years past: real New York prices for
+  // 1866–1868, then each year this family has settled. Never a future year.
+  almanacYears() {
+    const g = this.g, out = [];
+    const acreCorn = CONFIG.cornSavingsCash * (1 + CONFIG.creditMarkup);
+    const acreCotton = (price, yieldMult, share) => (yieldMult / CONFIG.acresPerBale) * share * (price - CONFIG.ginningPerBale);
+    Object.entries(CONFIG.historyPricePerLb).forEach(([yr, lb]) => {
+      const price = lb * CONFIG.poundsPerBale;
+      out.push({ year: +yr, price, history: true, cotton: acreCotton(price, 1, CONFIG.familyShare), corn: acreCorn });
+    });
+    (g?.years || []).filter(Boolean).forEach((y) => {
+      out.push({ year: y.year, price: y.ledger.price, history: false, note: CARDS[y.event]?.title ? this.t(CARDS[y.event].title).replace("{Y}", y.year) : "",
+        cotton: y.evicted ? 0 : acreCotton(y.ledger.price, y.yieldMult, y.shareRate), corn: y.cornLost ? 0 : acreCorn });
+    });
+    return out;
+  },
+  almanacHTML() {
+    const ys = this.almanacYears();
+    const W = 560, H = 240, L = 52, B = 34, T = 22, R = 8;
+    const iw = W - L - R, ih = H - T - B;
+    const slot = iw / ys.length;
+    // chart 1: price per bale
+    const pmax = Math.ceil(Math.max(...ys.map((a) => a.price)) / 50) * 50;
+    const py = (v) => T + ih - (v / pmax) * ih;
+    let grid = "";
+    for (let v = 0; v <= pmax; v += 50) grid += `<line x1="${L}" x2="${W - R}" y1="${py(v)}" y2="${py(v)}" class="al-grid"/><text x="${L - 6}" y="${py(v) + 4}" class="al-tick" text-anchor="end">$${v}</text>`;
+    const bw = Math.min(46, slot * 0.6);
+    const bars1 = ys.map((a, i) => {
+      const x = L + slot * i + (slot - bw) / 2, y = py(a.price), h = T + ih - y;
+      const r = Math.min(4, h);
+      return `<g><title>${a.year}: ${fmt(a.price)} a bale${a.history ? " (New York)" : ` (Mr. ${this.planter()})`}</title>
+        <path d="M${x} ${T + ih} V${y + r} Q${x} ${y} ${x + r} ${y} H${x + bw - r} Q${x + bw} ${y} ${x + bw} ${y + r} V${T + ih} Z" class="${a.history ? "al-bar hist" : "al-bar"}"/>
+        <text x="${x + bw / 2}" y="${y - 6}" text-anchor="middle" class="al-val">$${Math.round(a.price)}</text>
+        <text x="${x + bw / 2}" y="${H - B + 16}" text-anchor="middle" class="al-yr">${a.year}</text></g>`;
+    }).join("");
+    // chart 2: one acre, your share: cotton vs corn
+    const amax = Math.max(20, Math.ceil(Math.max(...ys.flatMap((a) => [a.cotton, a.corn])) / 10) * 10);
+    const ay = (v) => T + ih - (v / amax) * ih;
+    let grid2 = "";
+    for (let v = 0; v <= amax; v += 10) grid2 += `<line x1="${L}" x2="${W - R}" y1="${ay(v)}" y2="${ay(v)}" class="al-grid"/><text x="${L - 6}" y="${ay(v) + 4}" class="al-tick" text-anchor="end">$${v}</text>`;
+    const gw = Math.min(22, slot * 0.32);
+    const bars2 = ys.map((a, i) => {
+      const cx = L + slot * i + slot / 2;
+      const one = (v, x, cls, label) => {
+        const y = ay(v), h = T + ih - y, r = Math.min(4, h);
+        return `<g><title>${a.year}: ${label} ${fmt(v)}</title>${h > 0.5 ? `<path d="M${x} ${T + ih} V${y + r} Q${x} ${y} ${x + r} ${y} H${x + gw - r} Q${x + gw} ${y} ${x + gw} ${y + r} V${T + ih} Z" class="${cls}"/>` : ""}</g>`;
+      };
+      return one(a.cotton, cx - gw - 1, `al-cot${a.history ? " hist" : ""}`, "an acre of cotton earned") + one(a.corn, cx + 1, `al-corn${a.history ? " hist" : ""}`, "an acre of corn saved") +
+        `<text x="${cx}" y="${H - B + 16}" text-anchor="middle" class="al-yr">${a.year}</text>`;
+    }).join("");
+    const last = ys[ys.length - 1];
+    const lead = last.cotton > last.corn
+      ? `In ${last.year}, an acre of cotton earned you ${fmt(last.cotton)}. An acre of corn saved ${fmt(last.corn)}.`
+      : `In ${last.year}, an acre of corn did more for you (${fmt(last.corn)} off the store bill) than an acre of cotton (${fmt(last.cotton)}).`;
+    const fall = ys[0].price - last.price;
+    const defs = `<defs><pattern id="al-hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#F8F3E7"/><rect width="3" height="6" class="al-hatch-ink"/></pattern>
+      <pattern id="al-hatch-c" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#F8F3E7"/><rect width="3" height="6" fill="#B07A2E"/></pattern>
+      <pattern id="al-hatch-k" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#F8F3E7"/><rect width="3" height="6" fill="#2F5FA8"/></pattern></defs>`;
+    return `
+      <div class="almanac">
+        <p class="eyebrow">The almanac · ${ys[0].year}–${last.year}</p>
+        <h2>What the years did</h2>
+        <p class="al-lead">${esc(lead)}${fall > 0 ? ` Since ${ys[0].year}, a bale has lost ${fmt(fall)}.` : ""}</p>
+        <div class="al-charts">
+          <figure class="al-fig">
+            <figcaption><span class="al-h">Cotton, per bale</span>
+              <span class="al-key"><span class="sw hist"></span>New York, before your time <span class="sw"></span>What Mr. ${esc(this.planter())} got</span></figcaption>
+            <svg viewBox="0 0 ${W} ${H}" class="al-svg" role="img" aria-label="Cotton price per bale by year">${defs}${grid}<line x1="${L}" x2="${W - R}" y1="${T + ih}" y2="${T + ih}" class="al-base"/>${bars1}</svg>
+          </figure>
+          <figure class="al-fig">
+            <figcaption><span class="al-h">One acre, for your family</span>
+              <span class="al-key"><span class="sw cot"></span>Cotton: your share, less ginning <span class="sw corn"></span>Corn: off the store bill</span></figcaption>
+            <svg viewBox="0 0 ${W} ${H}" class="al-svg" role="img" aria-label="What an acre of cotton earned and an acre of corn saved, by year">${defs}${grid2}<line x1="${L}" x2="${W - R}" y1="${T + ih}" y2="${T + ih}" class="al-base"/>${bars2}</svg>
+          </figure>
+        </div>
+        <details class="al-table"><summary>Show the numbers</summary>
+          <table class="ledger"><thead><tr><th scope="col">Year</th><th scope="col">Per bale</th><th scope="col">Acre of cotton</th><th scope="col">Acre of corn</th><th scope="col">What happened</th></tr></thead>
+          <tbody>${ys.map((a) => `<tr><th scope="row">${a.year}</th><td>${fmt(a.price)}${a.history ? " (N.Y.)" : ""}</td><td>${fmt(a.cotton)}</td><td>${fmt(a.corn)}</td><td>${esc(a.history ? "" : a.note || "")}</td></tr>`).join("")}</tbody></table>
+        </details>
+        <p class="fine">${esc(ALMANAC.note)}</p>
+        <p class="fine">${esc(this.t(ALMANAC.source))}</p>
+      </div>`;
+  },
+  openAlmanac(o = {}) {
+    const before = World.debug?.mode;
+    return new Promise((resolve) => {
+      this.sheet(`${this.almanacHTML()}
+        <button class="primary" id="almanac-close">${o.planting ? "Plan the field" : "Close the almanac"}</button>`, { wide: true });
+      $("#almanac-close").addEventListener("click", () => {
+        this.closeSheet();
+        if (!o.planting && before && before !== "locked") World.setMode(before);
+        resolve();
+      }, { once: true });
+    });
   },
 
   // ---- Hannah's tally -------------------------------------------------------------
@@ -464,6 +563,8 @@ const Game = {
     this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The seed is on the wagon. Now the field.</p>`);
     cue(sc, "Walk to the field");
     await this.goTo("field", "field", "Walk to the field", 3.2);
+    // Before choosing, the almanac: what cotton and corn did in the years past.
+    await this.openAlmanac({ planting: true });
     // The split is a choice, made standing at the field's edge.
     await new Promise((resolve) => {
       this.planDone = () => { this.planDone = null; resolve(); };
@@ -484,7 +585,7 @@ const Game = {
     const y = this.y;
     const corn = this.corn.size;
     const est = plantingEstimate(corn, y.year);
-    const prev = CONFIG.years.indexOf(y.year) > 0 ? CONFIG.pricePerBale[y.year - 1] : CONFIG.pricePerBale[y.year];
+    const prev = Math.round(this.almanacYears().filter((a) => a.year < y.year).pop()?.price || CONFIG.pricePerBale[y.year]);
     const grid = Array.from({ length: CONFIG.acres }, (_, i) => {
       const isCorn = this.corn.has(i);
       return `<button class="acre ${isCorn ? "corn" : "cotton"}" data-acre="${i}" aria-pressed="${isCorn}" aria-label="Acre ${i + 1}: ${isCorn ? "corn" : "cotton"}">${isCorn ? "Corn" : "Cotton"}</button>`;
@@ -497,8 +598,9 @@ const Game = {
         <div><span class="est-k">Cotton</span><span class="est-v">${est.cottonAcres} acres</span><span class="est-s">about ${fmtBales(est.bales)} bales. Your half: ${fmtBales(est.half)}</span></div>
         <div><span class="est-k">Corn</span><span class="est-v">${corn} acres</span><span class="est-s">store bill about ${fmt(est.storeSavings)} lower</span></div>
       </div>
-      <p class="fine">Cotton sold for about $${prev} a bale last fall.</p>
+      <p class="fine">Cotton sold for about $${prev} a bale last fall. <button class="linkish" id="plan-almanac" type="button">Open the almanac</button></p>
       <button class="primary" id="plan-done">Start planting</button>`);
+    $("#plan-almanac").addEventListener("click", () => this.openAlmanac());
     this.els.dock.querySelectorAll("[data-acre]").forEach((b) => b.addEventListener("click", () => this.togglePlot(+b.dataset.acre)));
     $("#plan-done").addEventListener("click", () => this.planDone?.());
   },

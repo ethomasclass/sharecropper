@@ -100,6 +100,9 @@ for (let year = 0; year < 5; year++) {
   if (year === 0) await shot("store");
   await page.click(`[data-basket="${year % 2 ? "lean" : "basic"}"]`);
   await followFlag("field");
+  await page.waitForSelector("#almanac-close", { timeout: 20000 });
+  if (year < 2) await shot(`almanac-${1869 + year}`);
+  await page.click("#almanac-close");
   await page.waitForSelector("#plan-done", { timeout: 20000 });
   for (const a of [0, 1, 2, 5, 6]) await page.click(`[data-acre="${a}"]`);
   if (year === 0) await shot("plan");

@@ -82,3 +82,8 @@ const EXIT_TICKET = {
   prompt: "Answer in one TEA paragraph. Use one number from your own audit as evidence.",
   tracker: "LANDLESS stays on the tracker. Write the one mechanism from the sim that kept it there.",
 };
+
+const ALMANAC = {
+  source: "1866–1868: New York price of middling upland cotton, per 400-pound bale. Historical Statistics of the United States, Colonial Times to 1957, series E 104 (from Watkins, Production and Price of Cotton for One Hundred Years, 1895). Your years: the price Mr. {P} says he got, a game value.",
+  note: "An acre of cotton here is your share of one acre's crop at that year's price, less ginning. An acre of corn is what it takes off the store bill.",
+};
