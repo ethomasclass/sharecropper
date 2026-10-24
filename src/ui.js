@@ -135,6 +135,20 @@ const Game = {
     $("#almanac-btn").hidden = !g;
   },
 
+  // ---- who is outside ------------------------------------------------------------------
+  // The sick stay in. In a sickness year Sam is in bed from the card on (and
+  // Hannah sits with him at home); when lean years make Mother Ruth sick, she
+  // stays in from the harvest on.
+  kept(where) {
+    const g = this.g, y = this.y, out = [];
+    if (!g || !y || y.year !== currentYear(g)) return out;
+    const STEPS = ["store", "plant", "event", "harvest", "settle"], at = STEPS.indexOf(g.step);
+    if (y.event === "sickness" && at >= 2) { out.push("sam"); if (where === "home" && at === 2) out.push("mama"); }
+    if (y.leanSick && at >= 3) out.push("ruth");
+    return out;
+  },
+  folk(where) { World.setPeople(where, this.kept(where)); },
+
   // ---- the almanac --------------------------------------------------------------------
   // What cotton and corn did in the years past: real New York prices for
   // 1866–1868, then each year this family has settled. Never a future year.
@@ -455,7 +469,7 @@ const Game = {
   newSpring() {
     World.place("home");
     World.setSky("spring"); World.setWeather("none"); World.setStage("plan");
-    World.setPeople("home"); World.resetWagon();
+    this.folk("home"); World.resetWagon();
     World.setFlags({ mule: "planter", school: !!this.g.education });
     World.setCorn(this.corn);
     World.setPlanter(this.planter());
@@ -465,7 +479,7 @@ const Game = {
   async contract() {
     World.place("home");
     World.setSky("spring");
-    World.setPeople("home");
+    this.folk("home");
     this.showFlat("bigHouse");
     this.dock(`<p class="eyebrow">January 1869</p><p class="voice">Walk up the hill to the big house and sign for the year.</p>`);
     cue("CON", "At the cabin");
@@ -545,7 +559,7 @@ const Game = {
         ${page ? `<p class="voice thought">${esc(page.text)}</p>` : ""}
         <div class="baskets">${opts}</div>
         <p class="fine">${esc(cornNote)} Everything goes on account until settling up.</p>
-        <p class="fine warn">A lean basket saves money, but a family without shoes and cloth gets sick more easily in a bad year.</p>`, { wide: true });
+        <p class="fine warn">A lean basket saves money now, but a hungry, barefoot family picks slower: about ${Math.round((1 - CONFIG.leanYield[0]) * 100)}% less cotton, ${Math.round((1 - CONFIG.leanYield[1]) * 100)}% after two lean years in a row, and a basic year only half mends it. They fall sick more, too.${(this.g.leanRun || 0) > 0 ? ` <strong>The family is still worn from lean years.</strong>` : ""}</p>`, { wide: true });
       if (page) Voice.play(page.id, { caption: false });
       this.els.sheetBody.querySelectorAll("[data-basket]").forEach((b) => b.addEventListener("click", () => {
         y.basket = b.dataset.basket;
@@ -558,7 +572,7 @@ const Game = {
 
   async plant() {
     const y = this.y, sc = this.sceneOf(y);
-    World.setPeople("home");
+    this.folk("home");
     this.showFlat("plow");
     this.dock(`<p class="eyebrow">Spring ${y.year}</p><p class="voice">The seed is on the wagon. Now the field.</p>`);
     cue(sc, "Walk to the field");
@@ -576,7 +590,7 @@ const Game = {
     y.cornPlots = [...this.corn];
     // Then Papa walks the rows. The family follows with the seed.
     World.setStage("sown");
-    World.setPeople("field");
+    this.folk("field");
     cue(sc, "Planting");
     await this.walkRows("sow", `Spring ${y.year} · Planting`, "Walk the rows to plant. Hannah and the children follow behind with the seed.", "Walk every row of the field", "FIELD-SOWN");
     cue(sc, "Planting done");
@@ -667,9 +681,10 @@ const Game = {
     await this.goTo("cabin", "cabin", "Walk home to the cabin", 3.2);
     World.setSky("summer");
     World.setStage("grow");
-    World.setPeople("home");
+    this.folk("home");
     if (y.event === "panic") { this.save(); return; } // 1873: the Panic comes in the fall
     await this.eventCard();
+    if (y.event === "sickness") Voice.play("SICK-HOME");
     World.setWeather({ rains: "rain", drought: "drought", flood: "flood" }[y.event] || "none");
     if (y.event === "muledies") World.setFlags({ mule: "none" });
     if (y.event === "school") World.setFlags({ school: true });
@@ -745,19 +760,41 @@ const Game = {
       await this.eventCard();
     }
     harvest(g, y);
+    // what the lean years cost, said where it shows: in the rows
+    const worn = y.leanRun > 0;
+    if (worn) {
+      const line = y.basket !== "lean" ? "LEAN-WORN" : y.leanRun >= 3 ? "LEAN-3" : y.leanRun >= 2 ? "LEAN-2" : "LEAN-1";
+      Voice.seq([line, y.leanSick ? "LEAN-SICK" : null].filter(Boolean));
+    }
     World.setWeather(y.event === "drought" ? "drought" : y.event === "flood" ? "flood" : "none");
     World.setSky(y.event === "drought" ? "drought" : "fall");
     World.setStage("ripe");
-    World.setPeople("field");
+    this.folk("field");
     this.showFlat("longRows");
     cue(sc, "Harvest");
     await this.walkRows("harvest", `Fall ${y.year} · Harvest`, "Walk the rows with the family. They pick; you lead.", "Walk the rows with the family", "FIELD-PICKED");
     World.readyWagon(y.totalBales);
-    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">It takes until frost. The bales are tied and loaded on the wagon.</p>`);
+    const lost = worn ? y.totalBales / wearCut(y.leanRun) - y.totalBales : 0;
+    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">It takes until frost. The bales are tied and loaded on the wagon at the far end of the field.</p>
+      ${worn ? `<p class="effect">Worn down from lean years, the family brought in about ${fmtBales(lost)} bale${Math.abs(lost - 1) < 0.01 ? "" : "s"} less.${y.leanSick ? " Mother Ruth is sick in bed: a doctor's bill on the account." : ""}</p>` : ""}`);
     cue(sc, "Walk to the wagon");
-    await this.goTo("wagon", "wagon", "Walk to the loaded wagon at the end of the field", 2.6);
-    World.hitchWagon();
-    await this.goTo("gin", "ginFront", `Lead the wagon to Mr. ${this.planter()}'s gin scale`, 2.2);
+    await this.goTo("wagon", "wagon", "Walk to the loaded wagon at the far end of the field", 2.6);
+    // Hitch Old Jack, then walk beside him as he pulls it to the scale.
+    World.setMode("locked");
+    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">Old Jack is grazing by the wagon.</p><button class="primary" id="hitch">Hitch Old Jack to the wagon</button>`);
+    await new Promise((r) => $("#hitch").addEventListener("click", r, { once: true }));
+    this.dock("");
+    Voice.play("FIELD-HITCH");
+    await World.hitchWagon();
+    const pulled = World.driveWagon();
+    setTimeout(() => { if (!World.wagonArrived) Voice.play("FIELD-TOSCALE"); }, 9000);
+    this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">Walk beside Old Jack to Mr. ${esc(this.planter())}'s scale. He takes his time.</p>`);
+    await this.goTo("gin", "ginFront", `Walk with Old Jack to Mr. ${this.planter()}'s scale`, 2.6);
+    if (!World.wagonArrived) {
+      World.setMode("locked");
+      this.dock(`<p class="eyebrow">Fall ${y.year}</p><p class="voice">You wait at the scale while Old Jack brings the wagon on.</p>`);
+    }
+    await pulled;
     World.setMode("locked");
     const maxLbs = (CONFIG.acres / CONFIG.acresPerBale) * 1.2 * CONFIG.poundsPerBale;
     World.weigh(y.scaleLbs, maxLbs);
@@ -864,7 +901,7 @@ const Game = {
     const y = this.y, g = this.g, sc = this.sceneOf(y);
     World.setSky("dusk");
     World.setStage("picked");
-    World.setPeople("porch");
+    this.folk("porch");
     this.showFlat("porchLantern");
     this.dock(`<p class="eyebrow">Christmas ${y.year} · Settling up</p><p class="voice">Every Christmas, the planter reads each family one number.</p>`);
     cue(sc, "Walk to the big house");

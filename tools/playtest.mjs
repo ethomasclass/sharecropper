@@ -60,10 +60,14 @@ async function followFlag(id) {
 }
 async function walkRows() {
   if (!worldOk) { await page.click("#rows-done"); return; }
-  for (const [z, xs] of [[4.6, [-10.5, 10.5]], [0, [10.5, -10.5]], [-4.6, [-10.5, 10.5]]]) {
-    await walkTo(xs[0], z);
-    await walkTo(xs[1], z);
-    if (!(await page.$("#rows-pct"))) return;
+  // A slow software renderer can skip plants between steps, so walk again if needed.
+  for (let pass = 0; pass < 3; pass++) {
+    for (const [z, xs] of [[4.6, [-10.5, 10.5]], [0, [10.5, -10.5]], [-4.6, [-10.5, 10.5]]]) {
+      await walkTo(xs[0], z);
+      await walkTo(xs[1], z);
+      if (!(await page.$("#rows-pct"))) return;
+    }
+    if (await page.$("#rows-done:not([disabled])")) break;
   }
   const left = await page.$("#rows-done:not([disabled])");
   if (left) await left.click().catch(() => {});   // the rows may finish on their own first
@@ -73,6 +77,7 @@ await page.goto(`http://localhost:${server.address().port}/`);
 await page.waitForSelector("#fam-name", { timeout: 30000 });
 const worldOk = await page.evaluate(() => SettlingUp.World.ok);
 console.log("3D world:", worldOk ? "running" : "flat fallback");
+await page.evaluate(() => { SettlingUp.World._fast = true; });
 await page.evaluate(() => { window.__voice = 0; SettlingUp.Voice.audio.addEventListener("playing", () => window.__voice++); });
 await shot("join");
 await page.fill("#fam-name", "Whitfield");
@@ -130,7 +135,15 @@ for (let year = 0; year < 5; year++) {
   if (year === 0 && worldOk) { await walkTo(-10.5, 6.6); await walkTo(-2, 6.6); await shot("harvest-rows"); }
   await walkRows();
   await followFlag("wagon");
-  if (year === 0 && worldOk) { await walkTo(12.4, 0.6); await shot("leading-wagon"); }
+  await page.waitForSelector("#hitch", { timeout: 20000 });
+  await page.click("#hitch");
+  if (year === 0 && worldOk) {
+    await page.evaluate(() => { SettlingUp.World._fast = false; });
+    await sleep(5200);
+    const d = await dbg(); await walkTo(d.x + 3, d.z + 4);
+    await shot("walking-with-jack");
+    await page.evaluate(() => { SettlingUp.World._fast = true; });
+  }
   await followFlag("gin");
   await page.waitForSelector("#to-settle", { timeout: 30000 });
   await sleep(year === 0 ? 3600 : 0);

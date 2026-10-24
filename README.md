@@ -64,20 +64,25 @@ The voice and sound are made with ElevenLabs and saved in `audio/`, so the game 
 
 Every number is in `src/config.js`. Results from `npm run sim`:
 
-| Play style | Rent a farm | Ends in debt |
-| --- | --- | --- |
-| Careful (5 corn, lean every year) | about 32% | about 10% |
-| Good (5 corn, basic) | 0% | about 84% |
-| Thoughtful, mixed choices | about 3% | about 79% |
-| All cotton | 0% | about 95% |
+| Play style | Rent a farm | Ends in debt | Ahead every year |
+| --- | --- | --- | --- |
+| Lean basket every year, 5 corn | under 1% | about 93% | about 7% |
+| Lean and basic in turn, 5 corn | about 2% | about 89% | about 11% |
+| Basic every year, 5 corn | about 2% | about 93% | about 7% |
+| All cotton, basic | 0% | about 98% | about 2% |
+| Thoughtful, mixed choices | under 1% | about 98% | about 2% |
+
+Renting takes $80 saved and a mule of your own. With honest books (no markup, no short weight, the promised interest), about 55 to 90% of families would have had enough to rent: the audit's point.
 
 ## Choices made beyond the spec
 
 - **Single player, self-contained.** No class codes, teacher board, or shared database.
 - **First person through Papa's eyes,** with paper cutouts in a 3D world. Lucy narrates the cutscenes, looking back as an adult.
 - **A mule raises the share.** An owned mule raises the family's share to two-thirds, following the spec's note on shares. Without it, renting was out of reach.
-- **Lean basket risk.** In a bad year, a Lean basket has a 40% chance of a "thin winter" sickness.
-- **Leaving.** Leaving with no debt costs $10 to move ($20 after the night riders card), and savings go with the family.
+- **Lean baskets wear the family down.** Each lean year adds a year of wear (a basic year mends half, an extra year all of it), and wear cuts the crop: 14% after one lean year, 24% after two, 32% after three. Lean years bring sickness more often too (Mother Ruth takes to her bed, with a doctor's bill). Papa says so at harvest, and the harvest note counts the bales lost.
+- **Prices follow the 1871 collapse.** 1871 is $70 a bale and 1872 $80, nearer the real fall in New York prices.
+- **Leaving is refused.** The button is offered and never works, so the five years always play out.
+- **The cart.** At harvest the wagon waits at the field's far end; Papa hitches Old Jack and walks beside him down the cart road to the scale, at a mule's pace.
 
 ## Files
 

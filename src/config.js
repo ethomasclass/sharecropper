@@ -14,7 +14,8 @@ const CONFIG = {
   poundsPerBale: 400,
 
   // Cotton price per bale, announced each year
-  pricePerBale: { 1869: 110, 1870: 95, 1871: 85, 1872: 85, 1873: 60 },
+  // 1871 follows the real collapse (New York fell to 17 cents a pound).
+  pricePerBale: { 1869: 110, 1870: 95, 1871: 70, 1872: 80, 1873: 60 },
 
   // The almanac's years before the game: real New York prices, dollars per
   // pound of middling upland cotton (a history, not a game value). Historical
@@ -45,10 +46,18 @@ const CONFIG = {
   evictOddsDemand: 1 / 3,   // demanding the books
   evictOddsVote: 1 / 4,     // voting
 
-  leanSickOdds: 0.4,       // a lean basket in a bad year: chance someone falls sick
+  // Cheaping out at the store wears the family down. Each lean year adds a
+  // year of wear; a basic year takes off half a year, an extra year all of it.
+  // The crop is cut by wear: 1 year 0.86, 2 years 0.76, 3 or more 0.68 (and
+  // in between for half years). They fall sick more, too.
+  leanYield: [0.86, 0.76, 0.68],
+  wearRecover: { lean: -1, basic: 0.5, extra: 3 },
+  leanSickOdds: 0.25,       // chance someone falls sick in a lean year...
+  leanSickStep: 0.15,       // ...more for each lean year in a row...
+  leanSickBad: 0.15,        // ...and more again in a bad year
 
   // The ladder out
-  rentSavings: 150,         // plus owning a mule
+  rentSavings: 80,         // plus owning a mule
 };
 
 // The event deck. Weights set how often each card is drawn.

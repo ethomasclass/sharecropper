@@ -16,7 +16,7 @@ function playFamily(seedName, style, rnd) {
   while (!g.ending) {
     const y = E.blankYear(g);
     y.corn = style.corn(rnd);
-    y.basket = style.basket(rnd);
+    y.basket = style.basket(rnd, g.yearIndex);
     if (y.event === "school") y.choice = rnd() < style.school ? "yes" : "no";
     if (y.event === "election") y.choice = rnd() < style.vote ? "yes" : "no";
     if (y.event === "mulebuy") {
@@ -40,6 +40,7 @@ function playFamily(seedName, style, rnd) {
 const pick = (arr) => (rnd) => arr[Math.floor(rnd() * arr.length)];
 const STYLES = {
   "careful (5 corn, lean)": { corn: () => 5, basket: () => "lean", school: 0, vote: 0, mule: 1, demand: 0, leave: 0 },
+  "gamer (5 corn, lean/basic)": { corn: () => 5, basket: (r, i) => (i % 2 ? "basic" : "lean"), school: 0, vote: 0, mule: 1, demand: 0, leave: 0 },
   "good (5 corn, basic)": { corn: () => 5, basket: () => "basic", school: 0.5, vote: 0.5, mule: 1, demand: 0, leave: 0 },
   "all cotton, basic": { corn: () => 0, basket: () => "basic", school: 0.5, vote: 0.5, mule: 1, demand: 0, leave: 0 },
   "thoughtful class": {
@@ -60,16 +61,17 @@ function mulberry(a) { return () => { a |= 0; a = (a + 0x6d2b79f5) | 0; let t = 
 const N = 20000;
 for (const [name, style] of Object.entries(STYLES)) {
   const counts = { cropping: 0, rent: 0, left: 0 };
-  let debt = 0, sum = 0, honestRent = 0;
+  let debt = 0, sum = 0, honestRent = 0, aheadAll = 0;
   for (let i = 0; i < N; i++) {
     const g = playFamily("fam" + seedCounter++, style, mulberry(seedCounter * 7919));
     counts[g.ending]++;
     if (g.balance < 0) debt++;
     sum += g.balance;
     if (E.auditTotals(g).wouldRent) honestRent++;
+    if (g.years.filter(Boolean).every((y) => y.ledger.balance > 0)) aheadAll++;
   }
   const pct = (n) => (100 * n / N).toFixed(1) + "%";
-  console.log(`${name.padEnd(26)} rent ${pct(counts.rent).padStart(6)}  left owing ${pct(counts.left).padStart(6)}  in debt ${pct(debt).padStart(6)}  avg $${(sum / N).toFixed(0).padStart(5)}  honest books ≥$150 ${pct(honestRent)}`);
+  console.log(`${name.padEnd(26)} rent ${pct(counts.rent).padStart(6)}  left owing ${pct(counts.left).padStart(6)}  in debt ${pct(debt).padStart(6)}  avg $${(sum / N).toFixed(0).padStart(5)}  honest books could rent ${pct(honestRent).padStart(6)}  ahead every year ${pct(aheadAll)}`);
 }
 
 if (process.argv.includes("--check")) {

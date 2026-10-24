@@ -49,12 +49,12 @@ The supporting question is the spine: *Can you be free if you can't leave?* Each
 
 | | Papa | Mr. Holliday | Total |
 | --- | --- | --- | --- |
-| Lines | 124 | 22 | 146 |
-| Characters (credits for one take) | 12,032 | 2,459 | 14,491 |
-| Audio if every line is recorded | 12:53 | 2:21 | 15:15 |
+| Lines | 132 | 22 | 154 |
+| Characters (credits for one take) | 12,940 | 2,459 | 15,399 |
+| Audio if every line is recorded | 13:57 | 2:21 | 16:18 |
 
 - **One playthrough hears about 11:01 of voice.** Most of it plays while Papa walks, so it adds little to play time.
-- **Three takes of every line** come to about 43,473 credits.
+- **Three takes of every line** come to about 46,197 credits.
 - **Play time stays inside 30 minutes** with the cuts in `node tools/timing.mjs --proposed`: about 29 minutes as modeled, before the voice that plays during walking.
 - **Spoken lines are short.** Lines heard while walking stay between 3 and 8 seconds. Longer moments sit in cutscenes and pages the student moves through.
 
@@ -259,6 +259,14 @@ These come from the history fact-check. Each needs a small code change when the 
 | `FIELD-LIMIT` | PAPA (thinking) | *Five acres of corn. That's all the contract allows. He wants cotton.* | Trying to plant a sixth acre of corn |
 | `FIELD-SOWN` | PAPA (thinking) | *That's enough. The family will finish the rest.* | Planting done early |
 | `FIELD-PICKED` | PAPA (thinking) | *Hannah and the children will bring in the rest.* | Harvest done early |
+| `FIELD-HITCH` | PAPA (thinking) | *Old Jack knows the road to the gin. He's pulled this wagon every fall of his life.* | Hitching the mule to the loaded wagon |
+| `FIELD-TOSCALE` | PAPA (thinking) | *Easy, Jack. No sense hurrying to hear what his scale has to say.* | Walking beside the wagon to the scale |
+| `LEAN-1` | PAPA (thinking) | *We ate lean this year. Hannah gave the children her share, and Sam went barefoot till June. You can see it in the rows.* | Harvest after one lean year |
+| `LEAN-2` | PAPA (thinking) | *Two lean years. The children drag at the end of a row now, and so do I. Every row comes in lighter.* | Harvest after two lean years running |
+| `LEAN-3` | PAPA (thinking) | *Meal and molasses, year on year. We're thin as rails. A thin family picks a thin crop.* | Harvest after three or more lean years |
+| `LEAN-WORN` | PAPA (thinking) | *We ate better this year, but a lean winter stays in you. We're not back to ourselves yet.* | Harvest in a basic year, still worn from lean ones |
+| `LEAN-SICK` | PAPA (thinking) | *Mother Ruth took sick in August, thin as she's got. She's in the bed, and the doctor's bill is on the account.* | A lean year brings sickness |
+| `SICK-HOME` | PAPA (thinking) | *Sam's in the bed, and Hannah won't leave him. It's quiet in the yard without him.* | Walking home in a sickness year |
 
 ## Settling up (every year)
 

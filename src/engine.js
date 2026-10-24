@@ -140,14 +140,37 @@ function applyEvent(g, y) {
       break;
     default: break;
   }
-  // A lean basket leaves the family thin when a bad year comes.
-  if (y.basket === "lean" && isBadCard(id) && roll(g.seed, "lean:" + y.year) < CONFIG.leanSickOdds) {
-    mult *= 0.85;
-    y.doctor += CONFIG.doctorCredit;
-    notes.push(["Thin winter, sickness", 0.85]);
+  // Cheaping out at the store costs the family. Hungry, barefoot hands pick
+  // slower, worse each lean year in a row, and they fall sick more often.
+  y.leanRun = 0; y.leanSick = false;
+  const wear = wearThisYear(g, y);
+  if (wear > 0) {
+    const cut = wearCut(wear);
+    y.leanRun = wear;
+    mult *= cut;
+    notes.push([y.basket === "lean" ? (wear >= 2 ? `${Math.floor(wear)} lean years running` : "A lean year") : "Still worn from lean years", cut]);
+    const odds = CONFIG.leanSickOdds + CONFIG.leanSickStep * (wear - 1) + (isBadCard(id) ? CONFIG.leanSickBad : 0);
+    if (y.basket === "lean" && id !== "sickness" && roll(g.seed, "lean:" + y.year) < odds) {
+      mult *= 0.85;
+      y.doctor += CONFIG.doctorCredit;
+      y.leanSick = true;
+      notes.push(["Mother Ruth sick, thin as she is", 0.85]);
+    }
   }
   y.yieldMult = mult;
   y.yieldNotes = notes;
+}
+
+// Wear after this year's basket: lean adds a year, basic takes off half, extra clears it.
+function wearThisYear(g, y) {
+  const r = CONFIG.wearRecover[y.basket] ?? 0;
+  return Math.max(0, Math.min(CONFIG.leanYield.length, (g.leanRun || 0) - r));
+}
+// The crop cut for a given wear, in between for half years.
+function wearCut(w) {
+  if (w <= 0) return 1;
+  const steps = [1, ...CONFIG.leanYield], i = Math.min(steps.length - 2, Math.floor(w)), f = w - i;
+  return steps[i] + (steps[i + 1] - steps[i]) * f;
 }
 
 // Mule purchase happens on the card, in cash, if the family has it.
@@ -265,6 +288,7 @@ function closeYear(g, y, decision) {
   g.balance = y.ledger.balance;
   g.honestBalance = y.honest.balance;
   if (y.lostOwnMule) g.ownMule = false;
+  g.leanRun = wearThisYear(g, y);
   g.years[g.yearIndex] = y;
 
   if (decision === "rent") { g.ending = "rent"; return g; }

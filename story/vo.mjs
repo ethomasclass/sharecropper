@@ -139,6 +139,14 @@ export const VO = {
   // leaving, renting
   "LEAVE-OWING": "[tense, low] If we leave owing, his lien takes the crop, the mule, everything we can't carry. [grim] No planter in the county will sign me.",
   "LEAVE-FREE": "[cool, indifferent] Suit yourself. Plenty of men want this place.",
+  "FIELD-HITCH": "[fond, quiet] Old Jack knows the road to the gin. [warm] He's pulled this wagon every fall of his life.",
+  "FIELD-TOSCALE": "[low, wry] Easy, Jack. [sighs] No sense hurrying to hear what his scale has to say.",
+  "LEAN-1": "[tired] We ate lean this year. Hannah gave the children her share, and Sam went barefoot till June. [quietly] You can see it in the rows.",
+  "LEAN-2": "[weary] Two lean years. The children drag at the end of a row now, and so do I. [heavy] Every row comes in lighter.",
+  "LEAN-3": "[hollow, exhausted] Meal and molasses, year on year. We're thin as rails. [bitter] A thin family picks a thin crop.",
+  "LEAN-WORN": "[reflective] We ate better this year, but a lean winter stays in you. [quietly] We're not back to ourselves yet.",
+  "LEAN-SICK": "[worried, low] Mother Ruth took sick in August, thin as she's got. [strained] She's in the bed, and the doctor's bill is on the account.",
+  "SICK-HOME": "[quiet, worried] Sam's in the bed, and Hannah won't leave him. [softly] It's quiet in the yard without him.",
   "LEAVE-NOWHERE": "[tired, bitter] Leave for where? [quietly] Every planter in this county keeps the same kind of book, and weighs on the same kind of scale.",
   "RENT-01": "[surprised, a little stiff] Renting. Well. You've got the mule and the money. [grudgingly polite] I won't stand in your way.",
 

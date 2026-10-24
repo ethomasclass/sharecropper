@@ -47,20 +47,24 @@ const World = (() => {
   let sky = null;                    // the painted sky, if there is one
 
   // ---- where things are --------------------------------------------------
+  // The field sits in the middle. The cabin and its yard, the store, the big
+  // house on its hill, and the school stand well out around it.
   const SPOTS = {
-    home:   { x: -11.5, z: 10, face: [0, 0, 0] },
+    home:   { x: -18.5, z: 15, face: [0, 0, 0] },
     field:  { x: 0, z: 8.6 },
-    cabin:  { x: -14, z: 13 },
-    store:  { x: 15.9, z: 8.4 },
-    wagon:  { x: 12.6, z: -2.6 },     // the loaded wagon waits at the field's east end
-    gin:    { x: 12.5, z: 7 },        // the middle of the scale's platform
-    ginFront: { x: 12.2, z: 2.8 },    // where Papa stands to watch the needle, clear of the field
-    porch:  { x: 0.6, z: -22.8 },
-    school: { x: -24.2, z: -9 },
+    cabin:  { x: -21, z: 18 },
+    store:  { x: 24.9, z: 14.4 },
+    wagon:  { x: -14, z: 3.6 },       // the loaded wagon waits at the field's far (west) end
+    gin:    { x: 14, z: 1.2 },        // the middle of the scale's platform, well apart from the store
+    ginFront: { x: 12, z: -3.2 },     // where Papa stands to watch the needle, clear of the field
+    porch:  { x: 0.6, z: -34.8 },
+    school: { x: -33.2, z: -16 },
   };
+  // The road Old Jack pulls the wagon along, from the field's far end to the scale.
+  const WAGON_ROAD = [[-14, 3.6], [-14, 8.8], [14, 8.8], [14, 1.2]];
 
   // ---- terrain -----------------------------------------------------------
-  const HILL = { x: 0, z: -31, top: 9, base: 19, h: 2.4 };
+  const HILL = { x: 0, z: -43, top: 9, base: 19, h: 2.4 };
   function heightAt(x, z) {
     const d = Math.hypot(x - HILL.x, z - HILL.z);
     if (d <= HILL.top) return HILL.h;
@@ -113,27 +117,27 @@ const World = (() => {
   };
   // Optional props. Each appears only if you add its art to art/props/.
   const PROPS = [
-    { name: "chickens", x: -10.6, z: 15.8, h: 0.55 },
-    { name: "dog", x: -11.8, z: 11.2, h: 0.65 },
-    { name: "washtub", x: -15.8, z: 9.6, h: 0.9 },
-    { name: "woodpile", x: -20.8, z: 10.8, h: 1.1 },
-    { name: "rocker", x: -14.6, z: 15.6, h: 1.1, onPorch: true },
-    { name: "well", x: -9.2, z: 18.4, h: 1.8 },
-    { name: "bench", x: 19.2, z: 8.6, h: 0.9 },
-    { name: "clerk", x: 18.4, z: 8.8, h: 1.75 },
-    { name: "neighbors", x: 24, z: -6, h: 1.65 },
-    { name: "church", x: -36, z: -24, h: 7 },
-    { name: "oak", x: -4, z: 22, h: 9 },
-    { name: "fieldhand", x: -30, z: 6, h: 1.65 },
-    { name: "clothesline", x: -13.4, z: 18.6, h: 1.9, face: SPOTS.home },
-    { name: "baskets", x: 11.3, z: 0.6, h: 1.0, stages: ["ripe", "picked"] },
-    { name: "bales", x: 21.8, z: 6.2, h: 1.4 },
-    { name: "crates", x: 21.2, z: 9.0, h: 1.3 },
-    { name: "ledgerTable", x: -0.7, z: -25.9, h: 1.0, y: HILL.h + 0.4, face: SPOTS.porch },
-    { name: "lantern", x: -0.35, z: -25.85, h: 0.42, y: HILL.h + 0.4, onTable: 0.74, skies: ["dusk"], blob: false },
-    { name: "rainBarrel", x: -20.5, z: 15.6, h: 1.2 },
+    { name: "chickens", x: -17.6, z: 20.8, h: 0.55 },
+    { name: "dog", x: -18.8, z: 16.2, h: 0.65 },
+    { name: "washtub", x: -22.8, z: 14.6, h: 0.9 },
+    { name: "woodpile", x: -27.8, z: 15.8, h: 1.1 },
+    { name: "rocker", x: -21.6, z: 20.6, h: 1.1, onPorch: true },
+    { name: "well", x: -16.2, z: 23.4, h: 1.8 },
+    { name: "bench", x: 28.2, z: 14.6, h: 0.9 },
+    { name: "clerk", x: 27.4, z: 14.8, h: 1.75 },
+    { name: "neighbors", x: 32.4, z: -8.1, h: 1.65 },
+    { name: "church", x: -48.6, z: -32.4, h: 7 },
+    { name: "oak", x: -5.4, z: 29.7, h: 9 },
+    { name: "fieldhand", x: -40.5, z: 8.1, h: 1.65 },
+    { name: "clothesline", x: -20.4, z: 23.6, h: 1.9, face: SPOTS.home },
+    { name: "baskets", x: -12, z: 1.2, h: 1.0, stages: ["ripe", "picked"] },
+    { name: "bales", x: 30.8, z: 12.2, h: 1.4 },
+    { name: "crates", x: 30.2, z: 15.0, h: 1.3 },
+    { name: "ledgerTable", x: -0.7, z: -37.9, h: 1.0, y: HILL.h + 0.4, face: SPOTS.porch },
+    { name: "lantern", x: -0.35, z: -37.85, h: 0.42, y: HILL.h + 0.4, onTable: 0.74, skies: ["dusk"], blob: false },
+    { name: "rainBarrel", x: -27.5, z: 20.6, h: 1.2 },
     { name: "plow", x: -12.6, z: 4.6, h: 1.1, face: SPOTS.home },
-    { name: "outhouse", x: -23.5, z: 18.5, h: 2.4, face: SPOTS.home },
+    { name: "outhouse", x: -30.5, z: 23.5, h: 2.4, face: SPOTS.home },
   ];
   // fence (art/props/fence) replaces the drawn rail fence behind the field.
   const custom = (kind, name) => (typeof CUSTOM_ART !== "undefined" && CUSTOM_ART[kind] && CUSTOM_ART[kind][name]) || null;
@@ -600,10 +604,11 @@ const World = (() => {
       m.position.set((x1 + x2) / 2, 0.02, (z1 + z2) / 2);
       scene.add(m);
     };
-    strip(-16, 12, 16, 12, 2.2);
-    strip(0, 12, 0, -14, 2.2);
-    strip(0, -14, 0, -23, 2.2);
-    strip(12.5, 12, 12.5, -4, 2);
+    strip(-20, 13.5, 27, 13.5, 2.2);                  // the road from the cabin to the store
+    strip(0, 13.5, 0, -14, 2.2);                      // up through the field gate
+    strip(0, -14, 0, -35, 2.2);                       // and up the hill to the big house
+    for (let i = 1; i < WAGON_ROAD.length; i++) strip(...WAGON_ROAD[i - 1], ...WAGON_ROAD[i], 2);   // the cart road
+    strip(14, 8.8, 24, 13.5, 1.6);                    // a path from the scale road to the store
 
     // the field: 15 one-acre plots, 5 across and 3 deep
     mats.soil = surface(0x7a4e31, "soil", 0xffffff, grain);
@@ -666,20 +671,20 @@ const World = (() => {
     }
 
     // the cabin: its gable front, with the door and porch, faces the yard (+x)
-    const cab = building({ at: { x: -15, z: 13 }, f: { x: 1, z: 0 }, width: 4.2, length: 5, wall: 3, roof: 1.9, gable: true,
+    const cab = building({ at: { x: -22, z: 18 }, f: { x: 1, z: 0 }, width: 4.2, length: 5, wall: 3, roof: 1.9, gable: true,
       smoke: true, front: "cabinFront", side: "cabinSide", wallMat: surface(0x7a4a2e, "wallPlanks", 0xffffff, grain), roofMat: surface(0x4f2f1d, "roofShingle") });
     if (!cab.F) {
-      box(2.2, 0.2, 4.2, 0x5a3a24, -15 + 0.9, 0, 13);                          // porch
-      box(1.1, 2, 0.1, 0x1e1b18, -15 + 0.01, 0, 13, { ry: Math.PI / 2 });     // door
-      box(0.1, 0.9, 1, 0x1e1b18, -15 + 0.02, 1.4, 13 - 1.4);                  // window
+      box(2.2, 0.2, 4.2, 0x5a3a24, -22 + 0.9, 0, 18);                          // porch
+      box(1.1, 2, 0.1, 0x1e1b18, -22 + 0.01, 0, 18, { ry: Math.PI / 2 });     // door
+      box(0.1, 0.9, 1, 0x1e1b18, -22 + 0.02, 1.4, 18 - 1.4);                  // window
     } else porchY = 0;   // the porch is in the painting; the family stands in front of it
     if (!cab.S) {
-      box(0.9, cab.H + 1.4, 0.6, 0x6d5f52, -15 - 3.3, 0, 13 + 2.4, { map: grain });   // stone chimney
-      chimneyTops.push({ x: -18.3, y: cab.H + 1.5, z: 15.4 });
+      box(0.9, cab.H + 1.4, 0.6, 0x6d5f52, -22 - 3.3, 0, 18 + 2.4, { map: grain });   // stone chimney
+      chimneyTops.push({ x: -25.3, y: cab.H + 1.5, z: 20.4 });
     }
 
     // store and gin house: its front faces the road (-z)
-    const st = { x: 17.5, z: 9.5 };
+    const st = { x: 26.5, z: 15.5 };
     const store = building({ at: st, f: { x: 0, z: -1 }, width: 7, length: 5, wall: 4, roof: 2, gable: false,
       front: "storeFront", side: "storeSide", wallMat: surface(0xc7b08a, "wallClapboard", 0xe6d3ae, grain), roofMat: surface(0x7a4a2e, "roofTin") });
     if (!store.F) box(1.4, 2.4, 0.1, 0x2e3b56, st.x - 1.6, 0, st.z - 0.01);
@@ -749,7 +754,7 @@ const World = (() => {
     }
 
     // the big house on the hill: its front and open porch face down the hill (+z)
-    const bhFront = { x: 0, y: HILL.h, z: -26.1 };
+    const bhFront = { x: 0, y: HILL.h, z: -38.1 };
     const bh = building({ at: bhFront, f: { x: 0, z: 1 }, width: 13, length: 9.9, wall: 6.4, roof: 2.6, gable: false, porch: 2.9 / 9.9,
       front: "bigHouseFront", side: "bigHouseSide", wallMat: surface(0xefe6d2, "wallClapboard", 0xffffff, grain), roofMat: surface(0xa3271f, "roofShingle", 0xe08c7c) });
     const porchD = bh.L * bh.porch;
@@ -775,11 +780,11 @@ const World = (() => {
     // the church school, shown once the school card is drawn; its gable front,
     // with the bell tower, faces +x toward the road
     school = new T3.Group();
-    const sch = building({ at: { x: -24.5, z: -9 }, f: { x: 1, z: 0 }, width: 6, length: 5, wall: 3.2, roof: 2.2, gable: true, parent: school,
+    const sch = building({ at: { x: -33.5, z: -16 }, f: { x: 1, z: 0 }, width: 6, length: 5, wall: 3.2, roof: 2.2, gable: true, parent: school,
       front: "schoolFront", side: "schoolSide", wallMat: surface(0xf6efdf, "wallClapboard", 0xffffff, grain), roofMat: surface(0xa3271f, "roofShingle", 0xe08c7c) });
     if (!sch.F) {
       const tower = new T3.Mesh(new T3.BoxGeometry(1.1, 2.4, 1.1), lambert(0xf6efdf));
-      tower.position.set(-24.5 - 0.3, sch.H + sch.R * 0.8, -9);
+      tower.position.set(-33.5 - 0.3, sch.H + sch.R * 0.8, -16);
       school.add(tower);
     }
     school.visible = false;
@@ -787,7 +792,7 @@ const World = (() => {
 
     // trees and distant paper hills
     const treeSpots = [[-30, 18], [-24, 24], [-8, 26], [10, 25], [26, 22], [32, 4], [30, -14], [16, -22], [-16, -22], [-32, -2], [-36, 10], [22, -34], [-22, -36], [38, -26], [-40, -22], [6, 30], [-14, 32]];
-    treeSpots.forEach(([x, z], i) => cutout(i % 2 ? "tree1" : "tree2", 6 + (i % 3), x, z));
+    treeSpots.forEach(([x, z], i) => cutout(i % 2 ? "tree1" : "tree2", 6 + (i % 3), x * 1.4, z * 1.4));
     // painted sky and horizon bands, where you added them
     if (tex.bd_skyDay || tex.bd_skyDusk) {
       sky = band(tex.bd_skyDay || tex.bd_skyDusk, 150, 177, 3, -20, false);
@@ -820,13 +825,13 @@ const World = (() => {
     });
 
     // the family and the planter
-    people.mama = cutout("mama", HEIGHTS.mama, -12.3, 11.4);
-    people.lucy = cutout("lucy", HEIGHTS.lucy, -13.4, 13.8, { y: porchY });
-    people.sam = cutout("sam", HEIGHTS.sam, -12.6, 12.6);
-    people.ruth = cutout("ruth", HEIGHTS.ruth, -14.4, 14.6, { y: porchY });
-    people.holliday = cutout("holliday", HEIGHTS.holliday, 0.6, -25.9, { y: HILL.h + 0.4 });
+    people.mama = cutout("mama", HEIGHTS.mama, -19.3, 16.4);
+    people.lucy = cutout("lucy", HEIGHTS.lucy, -20.4, 18.8, { y: porchY });
+    people.sam = cutout("sam", HEIGHTS.sam, -19.6, 17.6);
+    people.ruth = cutout("ruth", HEIGHTS.ruth, -21.4, 19.6, { y: porchY });
+    people.holliday = cutout("holliday", HEIGHTS.holliday, 0.6, -37.9, { y: HILL.h + 0.4 });
     Object.entries(people).forEach(([id, m]) => { m.userData.click = { kind: "person", id }; clickables.push(m); });
-    muleCut = cutout("mule", HEIGHTS.mule, -9.5, 15.5);
+    muleCut = cutout("mule", HEIGHTS.mule, -16.5, 20.5);
     muleCut.userData.click = { kind: "person", id: "mule" };
     muleCut.userData.home = muleCut.position.clone();
     clickables.push(muleCut);
@@ -1029,7 +1034,7 @@ const World = (() => {
       }
     }
     const rr = Math.hypot(x, z);
-    if (rr > 60) { x *= 60 / rr; z *= 60 / rr; }
+    if (rr > 85) { x *= 85 / rr; z *= 85 / rr; }
     return [x, z];
   }
   const angleDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
@@ -1095,6 +1100,7 @@ const World = (() => {
     }
 
     animateLife(dt);
+    stepDrive(dt);
     for (const b of billboards) {
       if (!b.visible) continue;
       b.rotation.y = Math.atan2(camera.position.x - b.position.x, camera.position.z - b.position.z);
@@ -1187,6 +1193,36 @@ const World = (() => {
         life.lint.geometry.attributes.position.needsUpdate = true;
       }
     }
+  }
+
+  // ---- the cart road ----
+  const TONGUE = 3.4;                    // the mule walks this far ahead of the wagon's middle
+  const MULE_PACE = 2.0;                 // meters a second: an easy walk, slower than Papa
+  let drive = null;                      // { s, done } while Old Jack is pulling
+  const roadLength = () => WAGON_ROAD.slice(1).reduce((t, p, i) => t + Math.hypot(p[0] - WAGON_ROAD[i][0], p[1] - WAGON_ROAD[i][1]), 0);
+  // A point s meters along the road, and the way the wagon faces there (its front is local -z).
+  function roadAt(s) {
+    let left = Math.max(0, s);
+    for (let i = 1; i < WAGON_ROAD.length; i++) {
+      const [ax, az] = WAGON_ROAD[i - 1], [bx, bz] = WAGON_ROAD[i];
+      const len = Math.hypot(bx - ax, bz - az), dx = (bx - ax) / len, dz = (bz - az) / len;
+      if (left <= len || i === WAGON_ROAD.length - 1) return { x: ax + dx * left, z: az + dz * left, ry: Math.atan2(-dx, -dz) };
+      left -= len;
+    }
+  }
+  function stepDrive(dt) {
+    if (!drive) return;
+    const total = roadLength();
+    if (drive.s >= total) return;
+    const step = Math.min(total - drive.s, dt * MULE_PACE * (api._fast ? 6 : 1));
+    drive.s += step;
+    const p = roadAt(drive.s), m = roadAt(drive.s + TONGUE);
+    wagon.position.x = p.x; wagon.position.z = p.z;
+    wagon.position.y = drive.s > total - 1.2 ? 0.18 : 0;     // up onto the platform at the end
+    wagon.rotation.y += angleDiff(p.ry, wagon.rotation.y) * Math.min(1, dt * 4);
+    rollWheels(step);
+    muleCut.position.set(m.x, Math.abs(Math.sin(clock * 5.5)) * 0.06, m.z);   // the mule's walk bobs
+    if (drive.s >= total) { const d = drive.done; d(); }
   }
 
   // turn the wagon wheels as it moves
@@ -1363,9 +1399,9 @@ const World = (() => {
     }
   }
 
-  return {
+  const api = {
     get ok() { return ok; },
-    get debug() { return { x: pos.x, z: pos.z, yaw: look.yaw, mode, objective: objective && objective.id, ox: objective && objective.x, oz: objective && objective.z }; },
+    get debug() { return { x: pos.x, z: pos.z, yaw: look.yaw, mode, objective: objective && objective.id, ox: objective && objective.x, oz: objective && objective.z, wx: wagon && wagon.position.x, wz: wagon && wagon.position.z }; },
     init,
     on(h) { handlers = { ...handlers, ...h }; },
     setMode(m) {
@@ -1428,17 +1464,19 @@ const World = (() => {
       if (muleState != null) muleCut.visible = muleState !== "none";
       if (schoolOn != null) school.visible = schoolOn;
     },
-    setPeople(where) {
+    // `hidden`: anyone kept inside (sick in bed, or sitting up with them).
+    setPeople(where, hidden = []) {
       if (!ok) return;
       const spots = {
-        home: { mama: [-12.3, 11.4, "mama"], lucy: [-13.4, 13.8, "lucy", porchY], sam: [-12.6, 12.6, "sam"], ruth: [-14.4, 14.6, "ruth", porchY] },
-        field: { mama: [-6.6, 4.4, "mamaWork"], lucy: [4.4, 0, "lucyWork"], sam: [6.6, -4.4, "samWork"], ruth: [-13.9, 12.4, "ruth"] },
-        porch: { mama: [1.8, -21.8, "mama"], lucy: [-13.4, 13.8, "lucy", porchY], sam: [-12.6, 12.6, "sam"], ruth: [-14.4, 14.6, "ruth", porchY] },
+        home: { mama: [-19.3, 16.4, "mama"], lucy: [-20.4, 18.8, "lucy", porchY], sam: [-19.6, 17.6, "sam"], ruth: [-21.4, 19.6, "ruth", porchY] },
+        field: { mama: [-6.6, 4.4, "mamaWork"], lucy: [4.4, 0, "lucyWork"], sam: [6.6, -4.4, "samWork"], ruth: [-20.9, 17.4, "ruth"] },
+        porch: { mama: [1.8, -33.8, "mama"], lucy: [-20.4, 18.8, "lucy", porchY], sam: [-19.6, 17.6, "sam"], ruth: [-21.4, 19.6, "ruth", porchY] },
       }[where] || {};
       Object.entries(spots).forEach(([id, [x, z, t, y]]) => {
         const m = people[id];
         m.position.set(x, y != null ? y : heightAt(x, z), z);
         setCutoutTex(m, t);
+        m.visible = !hidden.includes(id);
       });
     },
     hush() { bubble = null; if (bubbleEl) bubbleEl.hidden = true; },
@@ -1452,35 +1490,47 @@ const World = (() => {
       if (!ok) return;
       wagon.userData.bales.forEach((b) => wagon.remove(b));
       wagon.userData.bales = [];
-      // bales laid flat, two across and two along, then a second layer
+      // bales laid flat, two across, stacked so the load rises above the sides
       const n = Math.max(1, Math.round(bales));
       for (let i = 0; i < n; i++) {
-        const b = new T3.Mesh(new T3.BoxGeometry(0.5, 0.48, 1.0), mats.bale);
-        const layer = Math.floor(i / 4), slot = i % 4;
-        b.position.set((slot % 2) * 0.52 - 0.26, 1.25 + layer * 0.49, -0.1 + Math.floor(slot / 2) * 1.04);
-        for (const z of [-0.3, 0, 0.3]) {
-          const tie = new T3.Mesh(new T3.BoxGeometry(0.52, 0.5, 0.03), mats.baleTie);
+        const b = new T3.Mesh(new T3.BoxGeometry(0.5, 0.62, 1.1), mats.bale);
+        const layer = Math.floor(i / 2), across = n - layer * 2 === 1 ? 0 : (i % 2) * 0.52 - 0.26;
+        b.position.set(across, 1.36 + layer * 0.63, layer % 2 ? 0.45 : -0.2);
+        for (const z of [-0.33, 0, 0.33]) {
+          const tie = new T3.Mesh(new T3.BoxGeometry(0.52, 0.64, 0.03), mats.baleTie);
           tie.position.z = z; b.add(tie);
         }
         wagon.add(b);
         wagon.userData.bales.push(b);
       }
-      wagon.position.set(SPOTS.wagon.x, 0, SPOTS.wagon.z - 1.2);
-      wagon.rotation.y = 0;
+      // parked at the start of the cart road, Old Jack grazing a little way off
+      const p0 = roadAt(0);
+      wagon.position.set(p0.x, 0, p0.z);
+      wagon.rotation.y = p0.ry;
       wagon.visible = true;
       muleCut.visible = true;
-      muleCut.position.set(SPOTS.wagon.x + 0.7, 0, SPOTS.wagon.z - 1.2 - 3.4);   // at the end of the tongue
+      muleCut.position.set(SPOTS.wagon.x - 3.2, 0, SPOTS.wagon.z - 2.6);
       scaleNeedle.rotation.z = Math.PI * 0.6;
+      drive = null;
     },
-    hitchWagon() { if (ok) wagonFollow = true; },
-    // Papa has led the wagon onto the scale. The needle swings to his weight.
+    // Old Jack walks over and is hitched to the tongue. Resolves when he's in place.
+    hitchWagon() {
+      if (!ok) return Promise.resolve();
+      const from = muleCut.position.clone(), to = roadAt(TONGUE);
+      return new Promise((resolve) => tween(2.2, (k, raw) => {
+        muleCut.position.set(from.x + (to.x - from.x) * k, Math.abs(Math.sin(raw * Math.PI * 6)) * 0.05, from.z + (to.z - from.z) * k);
+      }, resolve));
+    },
+    // Then he pulls the wagon down the cart road to the scale, at a mule's walk.
+    // Resolves when the wagon stands on the platform.
+    driveWagon() {
+      if (!ok) return Promise.resolve();
+      return new Promise((resolve) => { drive = { s: 0, done: resolve }; });
+    },
+    get wagonArrived() { return !drive || drive.s >= roadLength(); },
     weigh(scaleLbs, maxLbs) {
       if (!ok) return Promise.resolve();
       wagonFollow = false;
-      // the wagon rolls onto the platform, the mule beyond it; Papa turns to the dial
-      wagon.position.set(SPOTS.gin.x, 0.18, SPOTS.gin.z + 0.2);   // on top of the deck planks
-      wagon.rotation.y = Math.PI;
-      muleCut.position.set(SPOTS.gin.x + 0.5, 0, SPOTS.gin.z + 3.8);
       // look between the dial and the loaded wagon, nearer the dial, so both are in view
       const dial = scaleNeedle.parent;
       const tx = dial.position.x * 0.62 + SPOTS.gin.x * 0.38, tz = dial.position.z * 0.62 + SPOTS.gin.z * 0.38;
@@ -1512,5 +1562,7 @@ const World = (() => {
     },
     // For the automated playtest only: jump Papa to a point.
     _teleport(x, z, yaw) { pos.x = x; pos.z = z; if (yaw != null) look.yaw = yaw; },
+    _fast: false,     // the playtest sets this so Old Jack doesn't take all day
   };
+  return api;
 })();
