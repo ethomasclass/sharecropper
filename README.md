@@ -10,6 +10,8 @@ Open `Settling-Up.html` in Chrome. That one file is the whole game: the 3D libra
 
 If a computer can't run 3D, the game switches to flat screens and still plays all the way through.
 
+**Which file to open.** From a folder, a USB stick, or Google Drive, open `Settling-Up.html`: everything is inside it. `index.html` is for GitHub Pages; opened straight from a folder, the browser won't let it load its painted art into 3D, so it falls back to the simple drawn art and says so. If the graphics card ever drops the 3D view, the game says so and saves progress; reloading picks up where you left off.
+
 **Controls:**
 
 - **Walk:** W A S D or the arrow keys. Hold Shift to hurry.

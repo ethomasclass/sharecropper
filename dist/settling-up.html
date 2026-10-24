@@ -366,6 +366,13 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .dial-pencil { font-family: var(--hand); font-weight: 700; font-size: 20px; fill: #5A5048; }
 .dial-hannah { transition: opacity .8s ease; }
 
+/* a notice when the 3D view can't run as it should */
+.notice { position: absolute; z-index: 70; left: 50%; top: calc(var(--top, 56px) + 12px); transform: translateX(-50%); width: min(560px, calc(100% - 32px));
+  background: #F8F3E7; border: 1.5px solid var(--ink); border-left: 6px solid var(--red); padding: 12px 14px; box-shadow: 0 14px 30px -12px rgba(30,27,24,.5);
+  display: flex; gap: 12px; align-items: flex-start; }
+.notice p { margin: 0; flex: 1; }
+.notice .primary { margin-top: 6px; padding: 6px 12px; }
+
 /* in plain words: what just happened, and what it means for the money */
 .plain { border: 1.5px solid #2F5FA8; border-left: 6px solid #2F5FA8; background: #EEF2F8; padding: 9px 12px; display: flex; flex-direction: column; gap: 4px; }
 .plain-k { margin: 0 !important; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #2F5FA8; }
@@ -1860,6 +1867,8 @@ const World = (() => {
   let lastT = 0;
   let drag = null;
   let stage = "plan";
+  let blocked = 0;                   // pictures the browser wouldn't let into 3D
+  let failures = 0;                  // frames in a row that failed to draw
   let skyName = "spring";
   let weatherName = "none";
   let porchY = 0.2;                  // the cabin porch, where Lucy and Mother Ruth stand
@@ -2269,7 +2278,11 @@ const World = (() => {
       img.onload = () => {
         const c = document.createElement("canvas");
         c.width = img.naturalWidth || img.width; c.height = img.naturalHeight || img.height;
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const g2 = c.getContext("2d");
+        g2.drawImage(img, 0, 0, c.width, c.height);
+        // A picture the browser won't let us read (art loaded from a folder,
+        // not a web address) can't go into 3D either. Use the drawn art instead.
+        try { g2.getImageData(0, 0, 1, 1); } catch { blocked++; resolve(null); return; }
         const t = new T3.CanvasTexture(c);
         t.colorSpace = T3.SRGBColorSpace;
         t.anisotropy = 4;
@@ -3061,8 +3074,23 @@ const World = (() => {
     if (document.hidden) return;
     const dt = Math.min(0.1, (t - lastT) / 1000 || 0.016);
     lastT = t;
-    step(dt);
-    renderer.render(scene, camera);
+    // A frame that fails must never leave a blank screen: after a few in a
+    // row, stop drawing and tell the player (their progress is saved).
+    try {
+      step(dt);
+      renderer.render(scene, camera);
+      failures = 0;
+    } catch (err) {
+      if (++failures === 1) console.error("3D frame failed", err);
+      if (failures === 5) broken("The 3D view hit an error.");
+    }
+  }
+  let isBroken = false;
+  function broken(why) {
+    if (isBroken) return;
+    isBroken = true;
+    mode = "locked";
+    handlers.broken?.(why);
   }
   function resize() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -3166,6 +3194,8 @@ const World = (() => {
       renderer.outputColorSpace = T3.SRGBColorSpace;
       el.prepend(renderer.domElement);
       renderer.domElement.className = "world-canvas";
+      // the graphics card can drop the 3D view (out of memory, a driver reset)
+      renderer.domElement.addEventListener("webglcontextlost", (e) => { e.preventDefault(); broken("The graphics card dropped the 3D view."); });
       renderer.domElement.setAttribute("role", "img");
       renderer.domElement.setAttribute("aria-label", "The farm, seen through Papa's eyes. Use W A S D or the arrow keys to walk, and drag to look around.");
       scene = new T3.Scene();
@@ -3224,6 +3254,7 @@ const World = (() => {
 
   const api = {
     get ok() { return ok; },
+    get blocked() { return blocked; },
     get debug() { return { x: pos.x, z: pos.z, yaw: look.yaw, mode, objective: objective && objective.id, ox: objective && objective.x, oz: objective && objective.z, wx: wagon && wagon.position.x, wz: wagon && wagon.position.z }; },
     init,
     on(h) { handlers = { ...handlers, ...h }; },
@@ -3671,6 +3702,7 @@ const Game = {
       interact: (name) => this.onInteract(name),
       nameOf: (id) => NAMES[id] ? this.t(NAMES[id]) : "",
       sky: (sky, weather) => Ambience.set(Ambience.forSky(sky, weather)),
+      broken: (why) => this.worldBroken(why),
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#almanac-btn").addEventListener("click", () => this.openAlmanac());
@@ -3697,6 +3729,7 @@ const Game = {
     this.showFlat("fieldSun");
     await World.init(this.els.world);
     if (World.ok) this.els.flat.hidden = true;
+    if (World.blocked) this.notice(`This page was opened from a folder, so the browser won't load its painted art into the 3D farm, and the game is using its simple drawn art instead. For the full art, open <b>Settling-Up.html</b>, or play from the class web link.`);
     else document.querySelectorAll(".world-help, #pad").forEach((el) => el.remove());
     this.showJoin();
   },
@@ -3731,6 +3764,22 @@ const Game = {
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
     this.renderTally();
     $("#almanac-btn").hidden = !g;
+  },
+
+  // ---- when something goes wrong ---------------------------------------------------------
+  notice(html) {
+    const el = document.createElement("div");
+    el.className = "notice";
+    el.setAttribute("role", "status");
+    el.innerHTML = `<p>${html}</p><button type="button" class="ghost">OK</button>`;
+    el.querySelector("button").addEventListener("click", () => el.remove());
+    document.getElementById("app").appendChild(el);
+  },
+  worldBroken(why) {
+    this.save();
+    this.showFlat("fieldSun");
+    this.els.flat.hidden = false;
+    this.notice(`${esc(why)} Your progress is saved. <button type="button" class="primary" onclick="location.reload()">Reload the game</button> and pick up where you left off. If it keeps happening, close other tabs or try another browser.`);
   },
 
   // ---- in plain words ------------------------------------------------------------------

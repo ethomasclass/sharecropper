@@ -37,6 +37,8 @@ const World = (() => {
   let lastT = 0;
   let drag = null;
   let stage = "plan";
+  let blocked = 0;                   // pictures the browser wouldn't let into 3D
+  let failures = 0;                  // frames in a row that failed to draw
   let skyName = "spring";
   let weatherName = "none";
   let porchY = 0.2;                  // the cabin porch, where Lucy and Mother Ruth stand
@@ -446,7 +448,11 @@ const World = (() => {
       img.onload = () => {
         const c = document.createElement("canvas");
         c.width = img.naturalWidth || img.width; c.height = img.naturalHeight || img.height;
-        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        const g2 = c.getContext("2d");
+        g2.drawImage(img, 0, 0, c.width, c.height);
+        // A picture the browser won't let us read (art loaded from a folder,
+        // not a web address) can't go into 3D either. Use the drawn art instead.
+        try { g2.getImageData(0, 0, 1, 1); } catch { blocked++; resolve(null); return; }
         const t = new T3.CanvasTexture(c);
         t.colorSpace = T3.SRGBColorSpace;
         t.anisotropy = 4;
@@ -1238,8 +1244,23 @@ const World = (() => {
     if (document.hidden) return;
     const dt = Math.min(0.1, (t - lastT) / 1000 || 0.016);
     lastT = t;
-    step(dt);
-    renderer.render(scene, camera);
+    // A frame that fails must never leave a blank screen: after a few in a
+    // row, stop drawing and tell the player (their progress is saved).
+    try {
+      step(dt);
+      renderer.render(scene, camera);
+      failures = 0;
+    } catch (err) {
+      if (++failures === 1) console.error("3D frame failed", err);
+      if (failures === 5) broken("The 3D view hit an error.");
+    }
+  }
+  let isBroken = false;
+  function broken(why) {
+    if (isBroken) return;
+    isBroken = true;
+    mode = "locked";
+    handlers.broken?.(why);
   }
   function resize() {
     const w = container.clientWidth, h = container.clientHeight;
@@ -1343,6 +1364,8 @@ const World = (() => {
       renderer.outputColorSpace = T3.SRGBColorSpace;
       el.prepend(renderer.domElement);
       renderer.domElement.className = "world-canvas";
+      // the graphics card can drop the 3D view (out of memory, a driver reset)
+      renderer.domElement.addEventListener("webglcontextlost", (e) => { e.preventDefault(); broken("The graphics card dropped the 3D view."); });
       renderer.domElement.setAttribute("role", "img");
       renderer.domElement.setAttribute("aria-label", "The farm, seen through Papa's eyes. Use W A S D or the arrow keys to walk, and drag to look around.");
       scene = new T3.Scene();
@@ -1401,6 +1424,7 @@ const World = (() => {
 
   const api = {
     get ok() { return ok; },
+    get blocked() { return blocked; },
     get debug() { return { x: pos.x, z: pos.z, yaw: look.yaw, mode, objective: objective && objective.id, ox: objective && objective.x, oz: objective && objective.z, wx: wagon && wagon.position.x, wz: wagon && wagon.position.z }; },
     init,
     on(h) { handlers = { ...handlers, ...h }; },

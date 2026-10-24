@@ -74,6 +74,7 @@ const Game = {
       interact: (name) => this.onInteract(name),
       nameOf: (id) => NAMES[id] ? this.t(NAMES[id]) : "",
       sky: (sky, weather) => Ambience.set(Ambience.forSky(sky, weather)),
+      broken: (why) => this.worldBroken(why),
     });
     $("#journal-btn").addEventListener("click", () => this.openJournal());
     $("#almanac-btn").addEventListener("click", () => this.openAlmanac());
@@ -100,6 +101,7 @@ const Game = {
     this.showFlat("fieldSun");
     await World.init(this.els.world);
     if (World.ok) this.els.flat.hidden = true;
+    if (World.blocked) this.notice(`This page was opened from a folder, so the browser won't load its painted art into the 3D farm, and the game is using its simple drawn art instead. For the full art, open <b>Settling-Up.html</b>, or play from the class web link.`);
     else document.querySelectorAll(".world-help, #pad").forEach((el) => el.remove());
     this.showJoin();
   },
@@ -134,6 +136,22 @@ const Game = {
     $("#fam").innerHTML = g ? `The ${esc(g.family)} family${g.ownMule ? ' · <span class="tag">own mule</span>' : ""}${g.education ? ' · <span class="tag">Lucy reads</span>' : ""}` : "";
     this.renderTally();
     $("#almanac-btn").hidden = !g;
+  },
+
+  // ---- when something goes wrong ---------------------------------------------------------
+  notice(html) {
+    const el = document.createElement("div");
+    el.className = "notice";
+    el.setAttribute("role", "status");
+    el.innerHTML = `<p>${html}</p><button type="button" class="ghost">OK</button>`;
+    el.querySelector("button").addEventListener("click", () => el.remove());
+    document.getElementById("app").appendChild(el);
+  },
+  worldBroken(why) {
+    this.save();
+    this.showFlat("fieldSun");
+    this.els.flat.hidden = false;
+    this.notice(`${esc(why)} Your progress is saved. <button type="button" class="primary" onclick="location.reload()">Reload the game</button> and pick up where you left off. If it keeps happening, close other tabs or try another browser.`);
   },
 
   // ---- in plain words ------------------------------------------------------------------

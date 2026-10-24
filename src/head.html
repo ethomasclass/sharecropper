@@ -360,6 +360,13 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 .dial-pencil { font-family: var(--hand); font-weight: 700; font-size: 20px; fill: #5A5048; }
 .dial-hannah { transition: opacity .8s ease; }
 
+/* a notice when the 3D view can't run as it should */
+.notice { position: absolute; z-index: 70; left: 50%; top: calc(var(--top, 56px) + 12px); transform: translateX(-50%); width: min(560px, calc(100% - 32px));
+  background: #F8F3E7; border: 1.5px solid var(--ink); border-left: 6px solid var(--red); padding: 12px 14px; box-shadow: 0 14px 30px -12px rgba(30,27,24,.5);
+  display: flex; gap: 12px; align-items: flex-start; }
+.notice p { margin: 0; flex: 1; }
+.notice .primary { margin-top: 6px; padding: 6px 12px; }
+
 /* in plain words: what just happened, and what it means for the money */
 .plain { border: 1.5px solid #2F5FA8; border-left: 6px solid #2F5FA8; background: #EEF2F8; padding: 9px 12px; display: flex; flex-direction: column; gap: 4px; }
 .plain-k { margin: 0 !important; font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #2F5FA8; }
