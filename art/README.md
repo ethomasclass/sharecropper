@@ -125,7 +125,8 @@ Each building is a 3D box and roof wearing three paintings: its front and both s
 - **Land each painted wall exactly on the 3D wall,** so the front and sides meet at the corners and the eaves line up all the way around. The building's depth and wall height come from the paintings' own shapes, so nothing is stretched.
 - **Copy the front's roof.** The 3D roof takes the front painting's ridge height, pitch, and eave overhang (`eaves`). On the cabin and school, whose sides are the long eave walls, the sides are cut off at the eave and the 3D roof carries the front's roof over them. On the store and big house, whose sides are gable ends, the painted gable is kept and re-pitched to meet the 3D ridge.
 - **Carry chimneys up.** A chimney on a cut side (`chimney`) becomes a 3D stack above the roof, wearing the painting's own stonework.
-- **Split joined buildings.** `sections` tells the game when one front shows two buildings joined, like the store's gable-fronted commissary beside its tin-roofed gin barn. Each part gets its own 3D roof.
+- **Split joined buildings.** `sections` tells the game when one front shows two buildings joined, like the store's gable-fronted commissary beside its tin-roofed gin barn. Each part gets its own 3D roof. A roof drawn flat-on above an eave (the barn's tin) is cut from the painting, since it would stand up like a sign, and its 3D roof shows the real slope instead; `rise` pitches it steep enough to see from the ground.
+- **Trim leftovers.** `clear` makes a polygon of a painting see-through, for bits of one roof showing past another's edge.
 - **Match the plain walls.** `planks` names a patch of plain painted wall; the 3D back wall and gable ends wear it, so they match the paintings.
 - **Cut openings.** `holes` makes dark painted openings see-through, like the big house's open side porch.
 - **Place the store sign** on the painting's blank sign board (`sign`).

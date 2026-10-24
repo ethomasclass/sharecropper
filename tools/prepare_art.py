@@ -11,7 +11,7 @@ be made on a solid magenta (#FF00FF) background. The build removes it.
 """
 import base64, io, json, os, sys
 from pathlib import Path
-from PIL import Image, ImageFilter
+from PIL import Image, ImageDraw, ImageFilter
 try:
     import numpy as np
 except ImportError:
@@ -73,6 +73,13 @@ def cut_hole(img, hole):
     a[y0:y1, x0:x1] = part.astype(np.uint8)
     return Image.fromarray(a, "RGBA")
 
+def clear_poly(img, poly):
+    """Make a polygon of the picture fully see-through; points are [u, v] fractions."""
+    alpha = img.getchannel("A")
+    ImageDraw.Draw(alpha).polygon([(u * img.width, (1 - v) * img.height) for u, v in poly], fill=0)
+    img.putalpha(alpha)
+    return img
+
 def paper_edge(img):
     w, h = img.size
     pad = max(4, round(h * 0.012))
@@ -109,6 +116,8 @@ for kind in ("sprites", "props", "facades", "textures", "backdrops", "scenes", "
                 img = img.crop(box)
             for hole in fits.get(name, {}).get("holes", []):
                 img = cut_hole(img, hole)
+            for poly in fits.get(name, {}).get("clear", []):
+                img = clear_poly(img, poly)
         if kind == "textures" and img.width != img.height:
             notes.append(f"art/{kind}/{f.name} is not square; textures should be 1:1 and seamless")
         if kind in ("facades", "textures", "backdrops"):

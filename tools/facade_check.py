@@ -41,6 +41,8 @@ for name, uri in facades.items():
         d.rectangle([u0 * w, (1 - v1) * h, u1 * w, (1 - v0) * h], outline=(240, 140, 20), width=line)
     for u0, v0, u1, v1 in f.get("holes", []):
         d.rectangle([u0 * w, (1 - v1) * h, u1 * w, (1 - v0) * h], outline=(240, 140, 20), width=line)
+    for poly in f.get("clear", []):
+        d.polygon([(u * w, (1 - v) * h) for u, v in poly], outline=(240, 140, 20), width=line)
     if "porch" in f:
         d.line([(f["porch"] * w, 0), (f["porch"] * w, h)], fill=(240, 140, 20), width=line)
     sheet.convert("RGB").save(out / f"{name}.png")

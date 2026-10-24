@@ -179,8 +179,9 @@ const World = (() => {
   // `at`, and it faces `normal`. Built as a 3 x 3 grid so the wall part can
   // take exactly the wall's size while the rest keeps the painting's scale.
   // `o.cut` drops everything above the eave (a side whose roof the 3D roof
-  // replaces); `o.ridge` re-pitches the painted roof so its peak is that many
-  // meters up (a gable side meeting a 3D roof that copies the front).
+  // replaces); `o.cutAbove` drops it only across some spans of the picture,
+  // [[u0, u1], ...]; `o.ridge` re-pitches the painted roof so its peak is that
+  // many meters up (a gable side meeting a 3D roof that copies the front).
   function paintedFlat(m, width, wallH, at, normal, mirror, parent, o = {}) {
     const { t, f, iw, ih } = m;
     const [uL, uR] = f.wall;
@@ -188,13 +189,17 @@ const World = (() => {
     const natural = wallH + (f.ridge - f.eave) * ih * sx;
     const ridgeY = o.ridge || natural;
     const k = f.ridge > f.eave ? (ridgeY - wallH) / ((f.ridge - f.eave) * ih) : sx;   // roof meters per pixel
-    const us = [0, uL, uR, 1], vs = [0, f.base, f.eave, f.ridge, 1];
+    const spans = o.cutAbove || [];
+    const us = [...new Set([0, uL, uR, 1, ...spans.flat()])].filter((u) => u >= 0 && u <= 1).sort((a, b) => a - b);
+    const vs = [0, f.base, f.eave, f.ridge, 1];
     const xs = us.map((u) => (u - (uL + uR) / 2) * iw * sx * (mirror ? -1 : 1));
     const ys = [-f.base * ih * sx, 0, wallH, ridgeY, ridgeY + (1 - f.ridge) * ih * k];
-    const pos = [], uv = [], idx = [];
-    for (let j = 0; j < 5; j++) for (let i = 0; i < 4; i++) { pos.push(xs[i], ys[j], 0); uv.push(us[i], vs[j]); }
-    for (let j = 0; j < (o.cut ? 2 : 4); j++) for (let i = 0; i < 3; i++) {
-      const a = j * 4 + i, b = a + 1, c = a + 4, d = c + 1;
+    const n = us.length, pos = [], uv = [], idx = [];
+    for (let j = 0; j < 5; j++) for (let i = 0; i < n; i++) { pos.push(xs[i], ys[j], 0); uv.push(us[i], vs[j]); }
+    for (let j = 0; j < (o.cut ? 2 : 4); j++) for (let i = 0; i < n - 1; i++) {
+      const mid = (us[i] + us[i + 1]) / 2;
+      if (j >= 2 && spans.some(([a, b]) => mid > a && mid < b)) continue;
+      const a = j * n + i, b = a + 1, c = a + n, d = c + 1;
       if (mirror) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c);
     }
     const geo = new T3.BufferGeometry();
@@ -304,15 +309,23 @@ const World = (() => {
       sections.forEach((sec, i) => {
         const to = i === sections.length - 1 ? w1 : sec.to;
         const width = toR(to) - toR(from), side = (toR(from) + toR(to)) / 2;
-        const Rs = (sec.ridge - F.f.eave) * F.ih * sx * 0.98;
+        const Rs = sec.rise || (sec.ridge - F.f.eave) * F.ih * sx * 0.98;
         const mat = surface(0x7a4a2e, sec.roof || "roofShingle", sec.roof === "roofShingle" ? 0xa08a78 : 0xffffff);
+        // tin is corrugated: turn the ribs to run down the slope, not along the ridge
+        if (!sec.gable && mat.map && sec.roof === "roofTin") {
+          mat.map = mat.map.clone();
+          mat.map.rotation = Math.PI / 2;
+          mat.map.needsUpdate = true;
+        }
         if (sec.gable) {
           const e = sec.eaves || [from, to];
           const o = clamp(((from - e[0]) + (e[1] - to)) / 2 * F.iw * sx, 0, 1);
           const slope = Rs / (width / 2);
           addRoof(true, width + o * 2, Rs + o * slope, H - o * slope, L + 0.26, 0.04, side, mat);
         } else {
-          addRoof(false, L - 0.04, Rs, H, width - 0.03, 0.04, side, mat);
+          // its own eave lip over the front and back, at the same pitch
+          const lip = 0.35, slope = Rs / (L / 2);
+          addRoof(false, L + lip * 2, Rs + lip * slope, H - lip * slope, width - 0.03, -lip, side, mat);
         }
         from = to;
       });
@@ -321,7 +334,19 @@ const World = (() => {
     }
     // the paintings
     const lift = (p) => ({ x: p.x, y: y0 - 0.02, z: p.z });
-    if (F) paintedFlat(F, W, H, lift({ x: s.at.x + f.x * 0.03, z: s.at.z + f.z * 0.03 }), f, false, parent);
+    // A roof drawn flat-on over an eave-type section would stand up like a
+    // sign; cut it, and let that section's 3D roof show its real slope.
+    const cutAbove = [];
+    if (F && F.f.sections) {
+      let from = F.f.wall[0];
+      F.f.sections.forEach((sec, i) => {
+        const last = i === F.f.sections.length - 1, to = last ? F.f.wall[1] : sec.to;
+        // the neighboring gable's 3D roof supplies its own eave tip, so cut right from the wall
+        if (!sec.gable) cutAbove.push([i === 0 ? 0 : from, last ? 1 : to]);
+        from = to;
+      });
+    }
+    if (F) paintedFlat(F, W, H, lift({ x: s.at.x + f.x * 0.03, z: s.at.z + f.z * 0.03 }), f, false, parent, { cutAbove });
     if (S) {
       const mid = { x: s.at.x - f.x * L / 2, z: s.at.z - f.z * L / 2 };
       for (const k of [1, -1]) {
