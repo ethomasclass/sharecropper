@@ -5,61 +5,75 @@
 <title>Settling Up: Student Worksheet</title>
 <style>
 /*FONTS*/
-@page { size: letter; margin: 0.42in 0.5in; }
-:root { --ink: #1E1B18; --soft: #5A5048; --red: #A3271F; --blue: #2F5FA8; --rule: #B9AE98; --wash: #F4EEE1; }
+@page { size: letter; margin: 0.4in 0.5in; }
+:root { --ink: #1E1B18; --soft: #5A5048; --red: #A3271F; --blue: #2F5FA8; --rule: #B9AE98; --wash: #F4EEE1; --ochre: #B07A2E; }
 * { box-sizing: border-box; }
 html, body { margin: 0; background: #fff; color: var(--ink); }
-body { font-family: "Public Sans", Arial, sans-serif; font-size: 9.6pt; line-height: 1.32; }
-.page { height: 10.16in; display: flex; flex-direction: column; gap: 7pt; break-after: page; overflow: hidden; }
+body { font-family: "Public Sans", Arial, sans-serif; font-size: 9.8pt; line-height: 1.3; }
+.page { height: 10.2in; display: flex; flex-direction: column; gap: 6.5pt; break-after: page; overflow: hidden; }
 .page:last-child { break-after: auto; }
-h1, h2 { font-family: "Archivo", "Arial Narrow", sans-serif; font-stretch: 75%; text-transform: uppercase; margin: 0; line-height: 1; }
-h1 { font-size: 25pt; font-weight: 900; }
-h2 { font-size: 11.5pt; font-weight: 800; letter-spacing: .02em; display: flex; align-items: baseline; gap: 6pt; }
-h2 .n { display: inline-grid; place-items: center; width: 15pt; height: 15pt; border-radius: 50%; background: var(--ink); color: #fff; font-size: 8.5pt; font-stretch: 100%; flex: none; }
-h2 .when { font-family: "Public Sans", sans-serif; text-transform: none; font-weight: 600; font-size: 8pt; color: var(--soft); letter-spacing: 0; }
+h1 { font-family: "Archivo", "Arial Narrow", sans-serif; font-stretch: 75%; text-transform: uppercase; margin: 0; line-height: 1; font-size: 24pt; font-weight: 900; }
 p { margin: 0; }
 .top { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.5pt solid var(--ink); padding-bottom: 5pt; gap: 12pt; }
 .kicker { font-family: "Courier Prime", monospace; font-weight: 700; font-size: 8pt; letter-spacing: .1em; text-transform: uppercase; color: var(--soft); }
-.who { display: grid; grid-template-columns: auto 1.7in; gap: 4pt 6pt; font-size: 8.5pt; font-weight: 600; align-items: end; }
+.who { display: grid; grid-template-columns: auto 1.75in; gap: 4pt 6pt; font-size: 8.5pt; font-weight: 600; align-items: end; }
 .who span { border-bottom: 1pt solid var(--ink); height: 13pt; }
-.lede { font-size: 9.4pt; }
-.q { font-family: "Caveat", cursive; font-size: 14pt; line-height: 1.05; color: var(--red); }
-section { display: flex; flex-direction: column; gap: 4pt; }
-.line { border-bottom: 1pt solid var(--rule); height: 16pt; }
-.lines { display: flex; flex-direction: column; }
-.blank { display: inline-block; border-bottom: 1pt solid var(--ink); min-width: 0.7in; height: 11pt; vertical-align: bottom; }
-.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt 14pt; }
-.ask { display: flex; flex-direction: column; gap: 1pt; }
-.ask b { font-weight: 700; }
-table { border-collapse: collapse; width: 100%; }
-.words td, .words th { border: 1pt solid var(--ink); padding: 3pt 5pt; vertical-align: top; text-align: left; }
-.words th { background: var(--wash); font-size: 8pt; text-transform: uppercase; letter-spacing: .05em; }
-.words td:first-child { font-weight: 800; width: 1.05in; white-space: nowrap; }
-.words td.hint { font-size: 8pt; color: var(--soft); width: 2.15in; }
-.words tr { height: 27pt; }
-.years th, .years td { border: 1pt solid var(--ink); padding: 2pt 3pt; text-align: center; }
-.years thead th { background: var(--ink); color: #fff; font-size: 7.3pt; font-weight: 700; line-height: 1.12; vertical-align: bottom; }
-.years thead th small { display: block; font-weight: 400; opacity: .85; font-size: 6.8pt; }
-.years tbody th { font-family: "Courier Prime", monospace; font-size: 10pt; background: var(--wash); width: .5in; }
-.years tbody tr { height: 26pt; }
-.years td.money::before { content: "$"; color: var(--soft); float: left; font-size: 8pt; }
-.years td.lb::after { content: "lb"; color: var(--soft); float: right; font-size: 7pt; }
-.years tfoot td { font-size: 7.6pt; text-align: left; border: none; padding-top: 3pt; color: var(--soft); }
-.plain { border: 1pt solid var(--blue); border-left: 4pt solid var(--blue); background: #EEF2F8; padding: 4pt 7pt; font-size: 8.6pt; }
-.plain b { color: var(--blue); text-transform: uppercase; font-size: 7pt; letter-spacing: .08em; margin-right: 4pt; }
-.box { border: 1.2pt solid var(--ink); padding: 6pt 8pt; display: flex; flex-direction: column; gap: 4pt; }
-.circle { display: flex; gap: 10pt; flex-wrap: wrap; font-size: 8.8pt; }
-.circle span::before { content: "○ "; }
-.audit { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8pt; }
-.audit .cell { border: 1.2pt solid var(--ink); padding: 4pt 6pt; display: flex; flex-direction: column; gap: 3pt; }
-.audit .cell b { font-size: 8pt; text-transform: uppercase; letter-spacing: .04em; }
-.audit .cell .blank { width: 100%; height: 16pt; }
-blockquote { margin: 0; border-left: 3pt solid var(--ink); padding: 2pt 0 2pt 8pt; font-style: italic; font-size: 8.8pt; }
-blockquote cite { display: block; font-style: normal; font-size: 7.6pt; color: var(--soft); margin-top: 2pt; }
-.tea { border: 2pt solid var(--ink); padding: 6pt 8pt; display: flex; flex-direction: column; gap: 2pt; }
 
-.tea .key { display: flex; gap: 12pt; font-size: 8pt; color: var(--soft); }
+/* how to use */
+.how { display: grid; grid-template-columns: 1.15fr 1fr; gap: 10pt; background: var(--wash); border: 1pt solid var(--ink); padding: 6pt 9pt; font-size: 9pt; }
+.how ol { margin: 2pt 0 0; padding-left: 14pt; }
+.how li { margin: 1pt 0; }
+.helpers { display: grid; grid-template-columns: auto 1fr; gap: 3pt 6pt; align-items: center; font-size: 8.4pt; }
+.chip { font-size: 7.4pt; font-weight: 700; border: 1pt solid var(--ink); padding: 1pt 4pt; background: #fff; white-space: nowrap; }
+.chip.plain { border-color: var(--blue); color: var(--blue); background: #EEF2F8; border-left-width: 3pt; }
+
+/* a stop */
+.stop { border: 1.4pt solid var(--ink); display: grid; grid-template-columns: 1.08in 1fr; }
+.tag { background: var(--ink); color: #fff; padding: 5pt 6pt; display: flex; flex-direction: column; gap: 2pt; }
+.tag .s { font-family: "Archivo", sans-serif; font-stretch: 75%; font-weight: 900; font-size: 8pt; letter-spacing: .12em; opacity: .8; }
+.tag .t { font-family: "Archivo", sans-serif; font-stretch: 70%; font-weight: 900; font-size: 13pt; line-height: .95; text-transform: uppercase; overflow-wrap: anywhere; }
+.tag .w { font-size: 7.4pt; line-height: 1.2; opacity: .85; margin-top: auto; }
+.body { padding: 5pt 9pt 6pt; display: flex; flex-direction: column; gap: 5pt; }
+.see { font-size: 8.2pt; color: var(--soft); font-style: italic; }
+.qn { display: flex; gap: 5pt; align-items: baseline; flex-wrap: wrap; }
+.qn > i { font-style: normal; font-weight: 800; color: var(--red); flex: none; }
+.b { display: inline-block; border-bottom: 1pt solid var(--ink); min-width: 0.85in; height: 12pt; vertical-align: bottom; }
+.b.s { min-width: 0.55in; } .b.l { min-width: 1.7in; } .b.xl { flex: 1; min-width: 2in; }
+.opt { display: inline-flex; gap: 9pt; flex-wrap: wrap; }
+.opt span::before { content: ""; display: inline-block; width: 8pt; height: 8pt; border: 1pt solid var(--ink); border-radius: 50%; margin-right: 3pt; vertical-align: -1pt; }
+.line { border-bottom: 1pt solid var(--rule); height: 16pt; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 4pt 14pt; }
+.bank { font-size: 8pt; color: var(--soft); }
+.bank b { color: var(--ink); }
+.math { display: flex; align-items: flex-end; gap: 6pt; flex-wrap: wrap; font-weight: 600; }
+.math .cell { display: flex; flex-direction: column; gap: 1pt; font-size: 7.4pt; color: var(--soft); text-transform: uppercase; letter-spacing: .04em; }
+.math .cell .b { min-width: 0.9in; height: 15pt; }
+.math .op { font-size: 13pt; font-weight: 800; padding-bottom: 1pt; }
+
+/* the year table */
+table { border-collapse: collapse; width: 100%; }
+.years th, .years td { border: 1pt solid var(--ink); padding: 2pt 4pt; text-align: center; }
+.years thead th { background: var(--ink); color: #fff; font-size: 7.6pt; line-height: 1.15; vertical-align: bottom; }
+.years thead th small { display: block; font-weight: 400; opacity: .85; font-size: 6.8pt; }
+.years tbody th { font-family: "Courier Prime", monospace; font-size: 10pt; background: var(--wash); width: .55in; }
+.years tbody tr { height: 24pt; }
+.years td.money::before { content: "$"; color: var(--soft); float: left; font-size: 8pt; }
+.years td.yn { font-size: 7.6pt; color: var(--soft); white-space: nowrap; }
+
+/* words */
+.match { display: grid; grid-template-columns: 1fr 1.9fr; gap: 0 14pt; font-size: 8.8pt; }
+.match .w, .match .m { display: flex; flex-direction: column; gap: 3pt; }
+.match .w div { display: flex; gap: 6pt; align-items: baseline; }
+.match .w .b { min-width: 0.3in; }
+.match .w b { font-weight: 800; }
+.match .m div b { display: inline-block; width: 12pt; font-weight: 800; }
+
+blockquote { margin: 0; border-left: 3pt solid var(--ink); padding: 1pt 0 1pt 8pt; font-style: italic; font-size: 8.8pt; }
+blockquote cite { display: block; font-style: normal; font-size: 7.4pt; color: var(--soft); margin-top: 2pt; }
+.starters { display: grid; grid-template-columns: auto 1fr; gap: 3pt 6pt; font-size: 8.8pt; align-items: baseline; }
+.starters b { color: var(--red); font-size: 11pt; font-family: "Archivo", sans-serif; font-weight: 900; }
 .foot { margin-top: auto; font-size: 7pt; color: var(--soft); display: flex; justify-content: space-between; }
+.q { font-family: "Caveat", cursive; font-size: 14pt; line-height: 1.05; color: var(--red); }
 </style>
 </head>
 <body>
@@ -72,103 +86,166 @@ blockquote cite { display: block; font-style: normal; font-size: 7.6pt; color: v
     </div>
     <div class="who"><b>Name</b><span></span><b>Family name in the game</b><span></span><b>Date / period</b><span></span></div>
   </div>
-  <p class="lede">You are Robert, a free farmer four years after the Civil War. As you play, stop at each numbered moment and fill in this sheet. Use the blue <b>In plain words</b> boxes, the <b>Almanac</b>, <b>Hannah's tally</b>, and the <b>Journal</b> in the game to help you.</p>
-  <p class="q">The question to keep in mind: Can you be free if you can't leave?</p>
 
-  <section>
-    <h2><span class="n">1</span>Words to know <span class="when">Fill in as you meet each word. Tap the underlined words in the game for help.</span></h2>
-    <table class="words">
-      <thead><tr><th>Word</th><th>Clue</th><th>In my own words</th></tr></thead>
-      <tbody>
-        <tr><td>Sharecropper</td><td class="hint">How is Robert paid for a year of work?</td><td></td></tr>
-        <tr><td>Lien</td><td class="hint">Who owns the crop until the debt is paid?</td><td></td></tr>
-        <tr><td>Furnish</td><td class="hint">What does the store hand out each spring?</td><td></td></tr>
-        <tr><td>Credit</td><td class="hint">When do you pay, and at what price?</td><td></td></tr>
-        <tr><td>Settling up</td><td class="hint">What happens every Christmas?</td><td></td></tr>
-        <tr><td>Carried debt</td><td class="hint">What happens to money still owed?</td><td></td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <section>
-    <h2><span class="n">2</span>The contract <span class="when">January 1869, at the big house</span></h2>
-    <div class="grid2">
-      <div class="ask"><b>What does Mr. Holliday give the family?</b><div class="line"></div></div>
-      <div class="ask"><b>What share of the cotton does the family keep?</b><div class="line"></div></div>
+  <div class="how">
+    <div>
+      <b>How to use this sheet</b>
+      <ol>
+        <li>Play the game. You are Robert, a free farmer.</li>
+        <li>When you reach a <b>STOP</b>, pause and fill it in. Each stop says what you'll see on the screen.</li>
+        <li>Most answers are on the screen. Circle, fill in the blank, or copy the number.</li>
+      </ol>
+      <p class="q" style="margin-top:3pt">Keep asking: Can you be free if you can't leave?</p>
     </div>
-    <div class="ask"><b>Copy the clause that says the family can't sell its own crop. Why does it matter?</b><div class="lines"><div class="line"></div><div class="line"></div><div class="line"></div></div></div>
-  </section>
-
-  <section>
-    <h2><span class="n">3</span>The five crop years <span class="when">Fill in one row at each Christmas settling up</span></h2>
-    <table class="years">
-      <thead><tr>
-        <th>Year</th>
-        <th>Store basket<small>Lean / Basic / Extra</small></th>
-        <th>Acres of corn<small>0–5</small></th>
-        <th>Event card</th>
-        <th>His scale<small>weigh-in</small></th>
-        <th>Hannah's string<small>true weight</small></th>
-        <th>Price per bale</th>
-        <th>His book says<small>balance</small></th>
-        <th>Hannah's tally</th>
-      </tr></thead>
-      <tbody>
-        <tr><th>1869</th><td></td><td></td><td></td><td class="lb"></td><td class="lb"></td><td class="money"></td><td class="money"></td><td class="money"></td></tr>
-        <tr><th>1870</th><td></td><td></td><td></td><td class="lb"></td><td class="lb"></td><td class="money"></td><td class="money"></td><td class="money"></td></tr>
-        <tr><th>1871</th><td></td><td></td><td></td><td class="lb"></td><td class="lb"></td><td class="money"></td><td class="money"></td><td class="money"></td></tr>
-        <tr><th>1872</th><td></td><td></td><td></td><td class="lb"></td><td class="lb"></td><td class="money"></td><td class="money"></td><td class="money"></td></tr>
-        <tr><th>1873</th><td></td><td></td><td></td><td class="lb"></td><td class="lb"></td><td class="money"></td><td class="money"></td><td class="money"></td></tr>
-      </tbody>
-      <tfoot><tr><td colspan="9">Write money you owe with a minus sign (−$29.33). The scale numbers are on the big dial at the gin. Hannah's tally is in the top bar of the game.</td></tr></tfoot>
-    </table>
-    <div class="grid2">
-      <div class="ask"><b>In how many years did his book and Hannah's tally disagree? Which one was always lower?</b><div class="lines"><div class="line"></div><div class="line"></div></div></div>
-      <div class="ask"><b>What happened to the price of cotton from 1869 to 1873? (Check the Almanac.)</b><div class="lines"><div class="line"></div><div class="line"></div></div></div>
+    <div class="helpers">
+      <span class="chip plain">In plain words</span><span>Blue box: explains what just happened</span>
+      <span class="chip">Hannah's tally</span><span>Top bar: the family's own count of the money</span>
+      <span class="chip">Almanac</span><span>Top bar: cotton prices, year by year</span>
+      <span class="chip">Journal</span><span>Top bar: everything said, and the word list</span>
     </div>
-  </section>
-  <div class="foot"><span>Settling Up · Student worksheet · Page 1 of 2</span><span>Contract excerpt adapted from the 1882 Grimes Family Papers (SHEG)</span></div>
+  </div>
+
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 1</span><span class="t">The contract</span><span class="w">January 1869 · the big house on the hill</span></div>
+    <div class="body">
+      <p class="see">Mr. Holliday reads the contract to you before you make your mark (an X).</p>
+      <p class="qn"><i>a.</i> Mr. Holliday gives the family land, a <span class="b"></span>, a <span class="b"></span>, tools, and seed.</p>
+      <p class="qn"><i>b.</i> The family keeps <span class="b s"></span> of the cotton, but only after he is paid.</p>
+      <p class="qn"><i>c.</i> Until the debt is paid, the crop belongs to <span class="b"></span>. That claim is a <span class="b"></span>.</p>
+      <p class="bank"><b>Word bank:</b> half · lien · mule · cabin · Mr. Holliday</p>
+    </div>
+  </div>
+
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 2</span><span class="t">The store</span><span class="w">Spring 1869 · "Furnish for the year"</span></div>
+    <div class="body">
+      <p class="qn"><i>a.</i> Which basket did you choose? <span class="opt"><span>Lean</span><span>Basic</span><span>Extra</span></span> &nbsp; Cost: $<span class="b s"></span></p>
+      <p class="qn"><i>b.</i> When does the family pay for it? <span class="opt"><span>Today, in cash</span><span>At Christmas, out of the cotton</span></span></p>
+      <p class="qn"><i>c.</i> Read the warning in red. What happens to a family that buys Lean year after year?</p>
+      <div class="line"></div>
+    </div>
+  </div>
+
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 3</span><span class="t">The field</span><span class="w">Spring 1869 · the Almanac opens</span></div>
+    <div class="body">
+      <p class="qn"><i>a.</i> In the Almanac, what was cotton worth per bale in 1866? $<span class="b s"></span> &nbsp; In 1868? $<span class="b s"></span> &nbsp; <span class="opt"><span>Rising</span><span>Falling</span></span></p>
+      <p class="qn"><i>b.</i> How many acres of corn did you plant? <span class="b s"></span> (most allowed: 5)</p>
+      <p class="qn"><i>c.</i> Finish the sentence: Cotton can pay the <span class="b"></span>, but corn <span class="b l"></span>.</p>
+    </div>
+  </div>
+
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 4</span><span class="t">The scale</span><span class="w">Fall 1869 · the big dial at the gin</span></div>
+    <div class="body">
+      <p class="see">Watch the needle. Then look for the dashed mark labeled "Hannah's string."</p>
+      <div class="math">
+        <i style="font-style:normal;font-weight:800;color:var(--red);align-self:flex-end">a.</i>
+        <div class="cell">Hannah's string<span class="b"></span></div><span class="op">−</span>
+        <div class="cell">His scale<span class="b"></span></div><span class="op">=</span>
+        <div class="cell">Pounds he didn't count<span class="b"></span></div>
+      </div>
+      <p class="qn"><i>b.</i> Who reads the scale? <span class="b l"></span> Can Robert check it? <span class="opt"><span>Yes</span><span>No</span></span></p>
+    </div>
+  </div>
+
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 5</span><span class="t">Settling up</span><span class="w">Christmas 1869 · Mr. Holliday's porch</span></div>
+    <div class="body">
+      <p class="see">His book adds up line by line. Copy the bottom line of the equation.</p>
+      <div class="math">
+        <i style="font-style:normal;font-weight:800;color:var(--red);align-self:flex-end">a.</i>
+        <div class="cell">The crop brought in<span class="b"></span></div><span class="op">−</span>
+        <div class="cell">He charged<span class="b"></span></div><span class="op">=</span>
+        <div class="cell">His book says<span class="b"></span></div>
+        <div class="cell" style="margin-left:10pt">Hannah's tally says<span class="b"></span></div>
+      </div>
+      <p class="qn"><i>b.</i> Click "Leave the Holliday place." What happens, and why?</p>
+      <div class="line"></div><div class="line"></div>
+    </div>
+  </div>
+
+  <div class="foot"><span>Settling Up · Student worksheet · Page 1 of 2 · Turn over for 1870–1873</span><span>Contract excerpt adapted from the 1882 Grimes Family Papers (SHEG)</span></div>
 </div>
 
 <div class="page">
-  <section>
-    <h2><span class="n">4</span>Key moments <span class="when">Answer when each one happens</span></h2>
-    <div class="grid2">
-      <div class="ask"><b>The store.</b> Prices are shown only "on account." Why is buying everything on credit risky for the family?<div class="lines"><div class="line"></div><div class="line"></div></div></div>
-      <div class="ask"><b>The field.</b> Why does the planter want cotton? What does corn do for the family? Why does the contract limit corn to 5 acres?<div class="lines"><div class="line"></div><div class="line"></div></div></div>
-      <div class="ask"><b>The scale.</b> How many pounds apart were his scale and Hannah's string in 1869? Who reads the scale, and can Robert check it?<div class="lines"><div class="line"></div><div class="line"></div></div></div>
-      <div class="ask"><b>An event card.</b> Name one card that hurt the family. Was it the family's fault? Who carried the loss?<div class="lines"><div class="line"></div><div class="line"></div></div></div>
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 6</span><span class="t">Each Christmas</span><span class="w">1870–1873 · one row every time you settle up</span></div>
+    <div class="body">
+      <table class="years">
+        <thead><tr>
+          <th>Year</th>
+          <th>Basket<small>L / B / E</small></th>
+          <th>Event card<small>what happened this year</small></th>
+          <th>Price per bale<small>"He sold the cotton at…"</small></th>
+          <th>His book says</th>
+          <th>Hannah's tally</th>
+          <th>Owing?</th>
+        </tr></thead>
+        <tbody>
+          <tr><th>1870</th><td></td><td></td><td class="money"></td><td class="money"></td><td class="money"></td><td class="yn">Yes / No</td></tr>
+          <tr><th>1871</th><td></td><td></td><td class="money"></td><td class="money"></td><td class="money"></td><td class="yn">Yes / No</td></tr>
+          <tr><th>1872</th><td></td><td></td><td class="money"></td><td class="money"></td><td class="money"></td><td class="yn">Yes / No</td></tr>
+          <tr><th>1873</th><td></td><td></td><td class="money"></td><td class="money"></td><td class="money"></td><td class="yn">Yes / No</td></tr>
+        </tbody>
+      </table>
+      <div class="two">
+        <p class="qn"><i>a.</i> Which number was lower every year? <span class="opt"><span>His book</span><span>Hannah's tally</span></span></p>
+        <p class="qn"><i>b.</i> Price per bale from 1869 to 1873: <span class="opt"><span>Went up</span><span>Went down</span></span></p>
+      </div>
+      <p class="qn"><i>c.</i> Pick one event card. What happened to the family's money, and whose fault was it? <span class="b xl"></span></p>
     </div>
-    <div class="box">
-      <p><b>Trying to leave.</b> At a settling up, try the button to leave the planter's place. What happens, and what reason does Robert give?</p>
-      <div class="lines"><div class="line"></div><div class="line"></div></div>
-    </div>
-    <div class="box">
-      <p><b>Demanding the books.</b> Did you demand to see the books? <span class="circle" style="display:inline-flex"><span>Yes</span><span>No</span></span> &nbsp;If yes, what hidden line did you see? If no, why not?</p>
-      <div class="lines"><div class="line"></div></div>
-    </div>
-  </section>
+  </div>
 
-  <section>
-    <h2><span class="n">5</span>The audit <span class="when">After 1873: compare his book with the honest book</span></h2>
-    <div class="audit">
-      <div class="cell"><b>Credit markup</b><span>What the higher store prices cost you, all years</span><span class="blank"></span></div>
-      <div class="cell"><b>Missing cotton</b><span>Pounds his scale didn't count, all years</span><span class="blank"></span></div>
-      <div class="cell"><b>With honest books…</b><span>could your family have rented a farm?</span><span class="circle"><span>Yes</span><span>No</span></span></div>
+  <div class="stop">
+    <div class="tag"><span class="s">STOP 7</span><span class="t">The audit</span><span class="w">After 1873 · his book next to the honest book</span></div>
+    <div class="body">
+      <p class="see">The audit shows the hidden rules. Copy your family's numbers.</p>
+      <p class="qn"><i>a.</i> Extra paid for store prices (credit markup): $<span class="b"></span></p>
+      <p class="qn"><i>b.</i> Cotton his scale didn't count, all five years: <span class="b"></span> lb</p>
+      <p class="qn"><i>c.</i> With honest books, could your family have rented a farm? <span class="opt"><span>Yes</span><span>No</span></span></p>
+      <p class="qn"><i>d.</i> Which hidden rule cost your family the most? <span class="opt"><span>Store markup</span><span>Short scale</span><span>Interest</span></span></p>
+      <blockquote>"A man that didn't know how to count would always lose. He might lose anyhow. They didn't give no itemized statement. No, you just had to take their word."<cite>Henry Blake, formerly enslaved, interviewed for the Federal Writers' Project, Arkansas, 1930s</cite></blockquote>
+      <p class="qn"><i>e.</i> How is Henry Blake's story like your family's? <span class="b xl"></span></p>
     </div>
-    <div class="grid2">
-      <div class="ask"><b>Which hidden rule cost your family the most? Use a number.</b><div class="lines"><div class="line"></div><div class="line"></div></div></div>
-      <div class="ask"><b>Name one choice you made that helped or hurt. Did any choice let you get ahead for good?</b><div class="lines"><div class="line"></div><div class="line"></div></div></div>
-    </div>
-    <blockquote>"A man that didn't know how to count would always lose. He might lose anyhow. They didn't give no itemized statement. No, you just had to take their word."<cite>Henry Blake, formerly enslaved, interviewed for the Federal Writers' Project, Arkansas, 1930s</cite></blockquote>
-    <div class="ask"><b>How does Henry Blake's account match what happened to your family?</b><div class="line"></div></div>
-  </section>
+  </div>
 
-  <section class="tea">
-    <h2><span class="n">6</span>Can you be free if you can't leave? <span class="when">One TEA paragraph</span></h2>
-    <p class="key"><span><b>T</b>opic: your answer in one sentence</span><span><b>E</b>vidence: one number from your game or audit</span><span><b>A</b>nalysis: how the system, not bad luck, kept the family in place</span></p>
-    <div class="lines"><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div></div>
-  </section>
+  <div class="stop">
+    <div class="tag"><span class="s">WORDS</span><span class="t">Match them</span><span class="w">Use the Journal's word list if you're stuck</span></div>
+    <div class="body">
+      <div class="match">
+        <div class="w">
+          <div><span class="b"></span><b>Sharecropper</b></div>
+          <div><span class="b"></span><b>Lien</b></div>
+          <div><span class="b"></span><b>Furnish</b></div>
+          <div><span class="b"></span><b>Credit</b></div>
+          <div><span class="b"></span><b>Settling up</b></div>
+          <div><span class="b"></span><b>Carried debt</b></div>
+        </div>
+        <div class="m">
+          <div><b>A</b>Food and supplies from the planter's store for the year</div>
+          <div><b>B</b>Money still owed after Christmas, moved onto next year</div>
+          <div><b>C</b>A farmer paid with part of the crop, not with wages</div>
+          <div><b>D</b>The planter's legal claim on the crop until the debt is paid</div>
+          <div><b>E</b>Taking things now and paying later, at a higher price</div>
+          <div><b>F</b>The Christmas reckoning: the crop against everything owed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stop" style="flex:1">
+    <div class="tag"><span class="s">LAST STOP</span><span class="t">Your answer</span><span class="w">One paragraph: can you be free if you can't leave?</span></div>
+    <div class="body">
+      <div class="starters">
+        <b>T</b><span><b style="font-size:inherit;color:inherit;font-family:inherit">Topic:</b> Sharecroppers like Robert were / were not free because…</span>
+        <b>E</b><span><b style="font-size:inherit;color:inherit;font-family:inherit">Evidence:</b> In my game, … (use one number from your sheet)</span>
+        <b>A</b><span><b style="font-size:inherit;color:inherit;font-family:inherit">Analysis:</b> This shows the system kept families in place because…</span>
+      </div>
+      <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
+    </div>
+  </div>
+
   <div class="foot"><span>Settling Up · Student worksheet · Page 2 of 2</span><span>Dollar amounts in the game are simplified; the system they show is real.</span></div>
 </div>
 

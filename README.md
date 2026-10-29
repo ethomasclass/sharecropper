@@ -49,7 +49,7 @@ Papa walks everywhere himself:
 
 ## Student worksheet
 
-`teacher/Settling-Up-Worksheet.pdf` is a two-page sheet students fill in as they play: words to know, the contract, a row of numbers for each crop year (basket, corn, event, his scale against Hannah's string, price, his book against Hannah's tally), the key moments (store, field, scale, an event card, trying to leave, demanding the books), the audit, Henry Blake's account, and a TEA paragraph on the supporting question. Edit `teacher/worksheet.src.html` and run `node tools/worksheet.mjs` to remake it (needs Playwright).
+`teacher/Settling-Up-Worksheet.pdf` walks students through the game in order, two pages. Each **STOP** names the moment on screen to pause at (the contract, the store, the field and Almanac, the scale, settling up), then a row for each Christmas from 1870 to 1873, the audit, a word match, and a TEA paragraph with sentence starters. Most answers are circled, filled in from a word bank, or copied from the screen. Edit `teacher/worksheet.src.html` and run `node tools/worksheet.mjs` to remake it (needs Playwright).
 
 ## Adding your own art
 
