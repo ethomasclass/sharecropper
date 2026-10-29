@@ -47,6 +47,10 @@ Papa walks everywhere himself:
 
 **Sound.** The voice of Papa and Mr. Holliday, and outdoor sound under it (a spring day, a fall field, a winter dusk, rain) that fades with the season and turns down when someone speaks. The top bar has a switch for each.
 
+## Student worksheet
+
+`teacher/Settling-Up-Worksheet.pdf` is a two-page sheet students fill in as they play: words to know, the contract, a row of numbers for each crop year (basket, corn, event, his scale against Hannah's string, price, his book against Hannah's tally), the key moments (store, field, scale, an event card, trying to leave, demanding the books), the audit, Henry Blake's account, and a TEA paragraph on the supporting question. Edit `teacher/worksheet.src.html` and run `node tools/worksheet.mjs` to remake it (needs Playwright).
+
 ## Adding your own art
 
 Every cutout, cutscene panel, and event card can be replaced with your own images, including AI-generated ones. Drop a file into `art/`, named after its slot, and rebuild. The build trims each image, gives it a paper edge, resizes it, and packs it into the game. See [`art/README.md`](art/README.md) for the slot list, sizes, prompt tips, and guidance on depicting the family with dignity.
