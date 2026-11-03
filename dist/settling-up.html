@@ -2430,15 +2430,32 @@ const World = (() => {
     scene.add(hill);
 
     const pathMat = surface(0xb48a56, "road", 0xffffff, grain);
+    // Each road lies on the ground's own shape (up the hill too), and each
+    // sits a hair above the one before, so where roads cross they never
+    // fight over the same height and flicker.
+    pathMat.polygonOffset = true; pathMat.polygonOffsetFactor = -1; pathMat.polygonOffsetUnits = -4;
+    let roadLift = 0.03;
     const strip = (x1, z1, x2, z2, w) => {
-      const len = Math.hypot(x2 - x1, z2 - z1);
-      const geo = new T3.PlaneGeometry(w, len);
-      if (pathMat.userData.painted) meterUV(geo, w, len);
-      const m = new T3.Mesh(geo, pathMat);
-      m.rotation.x = -Math.PI / 2;
-      m.rotation.z = -Math.atan2(x2 - x1, z2 - z1);
-      m.position.set((x1 + x2) / 2, 0.02, (z1 + z2) / 2);
-      scene.add(m);
+      const len = Math.hypot(x2 - x1, z2 - z1), n = Math.max(1, Math.ceil(len / 1.5));
+      const dx = (x2 - x1) / len, dz = (z2 - z1) / len, sx = -dz * w / 2, sz = dx * w / 2;
+      const lift = (roadLift += 0.012);
+      const pos = [], uv = [], idx = [];
+      for (let i = 0; i <= n; i++) {
+        const t = (i / n) * len, cx = x1 + dx * t, cz = z1 + dz * t;
+        for (const k of [-1, 1]) {
+          const x = cx + sx * k, z = cz + sz * k;
+          pos.push(x, heightAt(x, z) + lift, z);
+          uv.push(pathMat.userData.painted ? (k + 1) / 2 * w : (k + 1) / 2, pathMat.userData.painted ? t : t / len);
+        }
+        if (i < n) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      }
+      const geo = new T3.BufferGeometry();
+      geo.setAttribute("position", new T3.Float32BufferAttribute(pos, 3));
+      geo.setAttribute("uv", new T3.Float32BufferAttribute(uv, 2));
+      geo.setIndex(idx);
+      geo.computeVertexNormals();
+      if (geo.attributes.normal.getY(0) < 0) { idx.reverse(); geo.setIndex(idx); geo.computeVertexNormals(); }
+      scene.add(new T3.Mesh(geo, pathMat));
     };
     strip(-20, 13.5, 27, 13.5, 2.2);                  // the road from the cabin to the store
     strip(0, 13.5, 0, -14, 2.2);                      // up through the field gate
@@ -2941,6 +2958,16 @@ const World = (() => {
       if (!b.visible) continue;
       b.rotation.y = Math.atan2(camera.position.x - b.position.x, camera.position.z - b.position.z);
     }
+    // Old Jack is drawn facing right. While he walks or pulls, mirror him so
+    // his head always points the way he's going, away from the wagon.
+    if (muleCut) {
+      let flip = 1;
+      if (muleHeading && Math.hypot(muleHeading.x, muleHeading.z) > 0.01) {
+        const rx = Math.cos(muleCut.rotation.y), rz = -Math.sin(muleCut.rotation.y);   // the cutout's right, on screen
+        flip = muleHeading.x * rx + muleHeading.z * rz < 0 ? -1 : 1;
+      }
+      muleCut.scale.x = flip;
+    }
     for (let i = tweens.length - 1; i >= 0; i--) {
       const t = tweens[i];
       t.t += dt / t.dur;
@@ -3035,6 +3062,7 @@ const World = (() => {
   const TONGUE = 3.4;                    // the mule walks this far ahead of the wagon's middle
   const MULE_PACE = 2.0;                 // meters a second: an easy walk, slower than Papa
   let drive = null;                      // { s, done } while Old Jack is pulling
+  let muleHeading = null;                // the way Old Jack walks, while he's hitched
   const roadLength = () => WAGON_ROAD.slice(1).reduce((t, p, i) => t + Math.hypot(p[0] - WAGON_ROAD[i][0], p[1] - WAGON_ROAD[i][1]), 0);
   // A point s meters along the road, and the way the wagon faces there (its front is local -z).
   function roadAt(s) {
@@ -3058,6 +3086,8 @@ const World = (() => {
     wagon.rotation.y += angleDiff(p.ry, wagon.rotation.y) * Math.min(1, dt * 4);
     rollWheels(step);
     muleCut.position.set(m.x, Math.abs(Math.sin(clock * 5.5)) * 0.06, m.z);   // the mule's walk bobs
+    const ahead = roadAt(drive.s + TONGUE + 0.5);
+    muleHeading = { x: ahead.x - m.x, z: ahead.z - m.z };
     if (drive.s >= total) { const d = drive.done; d(); }
   }
 
@@ -3366,14 +3396,21 @@ const World = (() => {
       muleCut.position.set(SPOTS.wagon.x - 3.2, 0, SPOTS.wagon.z - 2.6);
       scaleNeedle.rotation.z = Math.PI * 0.6;
       drive = null;
+      muleHeading = null;
     },
     // Old Jack walks over and is hitched to the tongue. Resolves when he's in place.
     hitchWagon() {
       if (!ok) return Promise.resolve();
       const from = muleCut.position.clone(), to = roadAt(TONGUE);
+      muleHeading = { x: to.x - from.x, z: to.z - from.z };   // walking over to the tongue
       return new Promise((resolve) => tween(2.2, (k, raw) => {
         muleCut.position.set(from.x + (to.x - from.x) * k, Math.abs(Math.sin(raw * Math.PI * 6)) * 0.05, from.z + (to.z - from.z) * k);
-      }, resolve));
+      }, () => {
+        // hitched: he faces down the road, away from the wagon
+        const ahead = roadAt(TONGUE + 1);
+        muleHeading = { x: ahead.x - to.x, z: ahead.z - to.z };
+        resolve();
+      }));
     },
     // Then he pulls the wagon down the cart road to the scale, at a mule's walk.
     // Resolves when the wagon stands on the platform.
@@ -3406,6 +3443,7 @@ const World = (() => {
       wagonFollow = false;
       wagon.visible = false;
       muleCut.position.copy(muleCut.userData.home);
+      muleHeading = null;
     },
     setPlanter(name) {
       if (!ok || mats.storeSign.userData.name === name) return;
